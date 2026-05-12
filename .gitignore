@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Streamlit secrets (NUNCA commitar — contém DATABASE_URL)
+.streamlit/secrets.toml
+
+# Banco local SQLite + backups
+*.db
+*.db.bak.*
+*.db.test_backup_*
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups de código antigos
+*.py.v*.bak
+
+# Histórico de sessões (transcrições com possível conteúdo sensível)
+historico_sessoes/
+
+# State local do Claude Code
+.claude/
+
+# Arquivos temporários gerados em sessões
+_tmp_*.py
+_streamlit_*.txt
+smoke_test_*.py
