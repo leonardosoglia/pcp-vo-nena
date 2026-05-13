@@ -26,7 +26,10 @@ if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
     os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
 
 sys.path.insert(0, os.path.dirname(__file__))
-from database import (
+# Usa cached_db (wrapper @st.cache_data sobre database) — reduz latência
+# percebida no app em produção. Invalidação manual após save/delete.
+import cached_db as db
+from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
     get_papelzinho_joel, get_pvirar_ideal, get_metas_45g, get_metas_mini_pet,
     list_datas_folha, salvar_folha_completa,
@@ -348,6 +351,7 @@ with st.sidebar:
             if st.button("✅ Confirmar", type="primary", use_container_width=True, key="btn_confirm_del"):
                 try:
                     excluir_folha(pendente)
+                    db.invalidar_folha(pendente)  # força releitura no próximo rerun
                     st.session_state.pop("confirm_excluir", None)
                     if st.session_state.get("data_selecionada") == pendente:
                         st.session_state.pop("data_selecionada", None)
@@ -1245,6 +1249,7 @@ if salvar_clicked:
             papelzinho_por_sabor=papelzinho_dict,
             pm_balas_doces=pm_balas_doces_dict,
         )
+        db.invalidar_folha(data_str)  # força releitura no próximo rerun
         # Marca a folha como recém-salva (mostra badge ✓ Salvo ao lado do botão)
         st.session_state["folha_salva_em"] = data_str
         st.success(

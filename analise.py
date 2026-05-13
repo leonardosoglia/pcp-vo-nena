@@ -17,7 +17,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date, datetime
-from database import (
+from cached_db import (
     get_folha_cocada, get_folha_palha, get_papelzinho_joel, get_pm_balas_doces,
     get_metas_45g, get_metas_mini_pet, list_datas_folha,
     SABORES_COCADA, SABORES_PALHA, SIGLA_COCADA, SIGLA_PALHA,

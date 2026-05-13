@@ -11,16 +11,16 @@
 
 ## 2. Stack técnico
 
-- **App:** Python 3.14 + Streamlit — porta 8502 (`lancamento.py`), 8501 (`painel.py`).
-- **Dados:** pandas + SQLite local (`pcp_vo_nena.db`) → migração iminente para Supabase Postgres.
+- **App:** Python 3.14 + Streamlit (multi-page, entry `lancamento.py` + `pages/1_Painel.py`).
+- **Dados:** pandas + Supabase Postgres em produção · SQLite local (`pcp_vo_nena.db`) em dev (fallback automático sem `DATABASE_URL`).
 - **Driver PG:** psycopg 3 (`psycopg[binary]>=3.2`) + URL do pooler Supabase (porta **6543**, não 5432).
 - **Deploy alvo:** Streamlit Community Cloud (free) + Supabase free tier (500 MB, ~30 k folhas de margem).
+- **Cache:** `@st.cache_data` via `cached_db.py` (TTL 60s folhas, 1h refs). Invalidação manual após save/delete.
 - **Extras:** openpyxl (xlsx), plotly (viz), python-docx (relatórios TCC).
 
-Subir local:
+Subir local (um único app multi-page; o Painel aparece no sidebar):
 ```powershell
 streamlit run lancamento.py --server.port=8502
-streamlit run painel.py     --server.port=8501
 ```
 
 ---
@@ -29,13 +29,14 @@ streamlit run painel.py     --server.port=8501
 
 | Arquivo | Função |
 |---------|--------|
-| `database.py` | Schema v2, dual-backend SQLite/PG, toda lógica de dados |
-| `lancamento.py` | Formulário diário da folha (porta 8502) |
-| `painel.py` | Abas Eraldo · Joel · Gil · Leonília · Estoque · Análise (porta 8501) |
-| `analise.py` | KPIs, heatmaps, anomalias — importada pelo painel |
+| `database.py` | Schema v2, dual-backend SQLite/PG, toda lógica de dados — **puro, sem Streamlit** |
+| `cached_db.py` | Wrappers `@st.cache_data` sobre `database.py` + `invalidar_folha()`. Tudo que é UI importa daqui |
+| `lancamento.py` | Entry point Streamlit: formulário diário da folha (multi-page) |
+| `pages/1_Painel.py` | Página Painel: abas Eraldo · Joel · Gil · Leonília · Estoque · Análise |
+| `analise.py` | KPIs, heatmaps, anomalias — importada pela aba Análise |
 | `exportar.py` | Gera XLSX por folha (chamado pelo menu ⋮) |
 | `inserir_historico.py` | Script one-shot de inserção em massa (já rodou) |
-| `migrar_dados_sqlite_para_postgres.py` | ETL idempotente SQLite → Supabase (pré-requisito: `DATABASE_URL`) |
+| `migrar_dados_sqlite_para_postgres.py` | ETL idempotente SQLite → Supabase (pré-requisito: `DATABASE_URL`) — importa só `database.py`, sem Streamlit |
 | `MIGRATION_TO_POSTGRES.md` | Checklist técnico da Etapa 4 (atualizado em 12/05) |
 
 Dados físicos em `folhas-semanais/` (organizado por `YYYY-MM_mês/semana_DD-DD_MM_a_DD-DD_MM_YYYY/`).
@@ -107,7 +108,10 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 - **Fidelidade ao papel antes de automação.** Sistema faz exatamente o que o papel faz, na mesma unidade. Conversões = referência visual, não cálculo que substitui input.
 - **Migração v1→v2 SQLite-only:** `_backup_db()` e `_migrate_v1_to_v2()` gated por `not IS_POSTGRES`.
 - **Renderização inversa em `lancamento.py`:** coluna Joel renderiza antes da coluna oficial pra alimentar derivados em tempo real.
-- **Bootstrap Streamlit Cloud (PENDENTE):** `lancamento.py` / `painel.py` precisam de 3 linhas no topo pra expor `st.secrets["DATABASE_URL"]` como env var (Streamlit Cloud **não** faz isso automaticamente).
+- **Bootstrap Streamlit Cloud:** topo de `lancamento.py` / `painel.py` propaga `st.secrets["DATABASE_URL"]` para `os.environ` antes de `import database` (Streamlit Cloud não faz isso automaticamente). Implementado em 12/05/2026.
+- **`prepare_threshold=None` no psycopg.connect:** PgBouncer transaction mode (porta 6543) multiplexa transações em conexões backend compartilhadas; psycopg 3 cria prepared statements com nomes determinísticos (`_pg3_N`) que colidem ao reutilizar uma conexão backend que já tem o mesmo nome. Solução: desabilitar prepared statements automáticos. Custo desprezível pra workload baixa-frequência do PCP. Implementado em 12/05/2026 após `DuplicatePreparedStatement` na 1ª migração. Vira parágrafo no TCC.
+- **Camada de cache separada (`cached_db.py`):** decorators `@st.cache_data` ficam num módulo wrapper, NÃO em `database.py`. Razão: scripts CLI (migração, smoke tests) importam `database.py` direto e não dependem de Streamlit. Toda UI importa de `cached_db.py`. TTL folhas = 60s · TTL refs = 1h. Invalidação manual via `invalidar_folha()` após save/delete. Implementado em 13/05/2026.
+- **Multi-page Streamlit (`pages/` directory):** consolidação de `lancamento.py` + `painel.py` em um único app deployado, navegação automática no sidebar. `lancamento.py` continua sendo o entry point no Streamlit Cloud; `painel.py` foi deletado da raiz, conteúdo migrado pra `pages/1_Painel.py`. Vantagens: 1 link só pro Eraldo, 1 slot do free tier (em vez de 2), cache compartilhado entre páginas, mesmo deploy/secrets/versão. Implementado em 13/05/2026.
 
 ---
 
@@ -121,26 +125,38 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 
 ---
 
-## 8. Estado atual (12/05/2026)
+## 8. Estado atual (13/05/2026)
 
-- 12 folhas no banco (`pcp_vo_nena.db`, 139 KB).
-- `database.py` refatorado para dual-backend. Smoke test SQLite OK (12 folhas, cálculos derivados OK).
-- `migrar_dados_sqlite_para_postgres.py` pronto (idempotente, `--dry-run`).
-- **Etapa 4 em andamento — bloqueador: criar projeto Supabase + URL do pooler.**
-- Checklist detalhado em `MIGRATION_TO_POSTGRES.md`.
+**Etapa 4 concluída.** App no ar em produção.
+
+- 13 folhas no Postgres do Supabase (`folha_cocada=78`, `folha_palha=65`, `papelzinho_joel=54`, `folha_pm_balas_doces=13`). Paridade total com SQLite local (mantido como fallback/backup).
+- Projeto Supabase: organização `doces-vo-nena`, projeto `pcp-vo-nena`, região `sa-east-1`, Postgres 17.6, pooler transaction porta 6543. Status Healthy. Compute NANO (free tier), 4/60 conns, 18% disco, 48% RAM.
+- Bootstrap `st.secrets → os.environ` aplicado em `lancamento.py` e `painel.py`.
+- `database.py:get_conn()` com `prepare_threshold=None` (correção do `DuplicatePreparedStatement`).
+- Repositório GitHub: `github.com/leonardosoglia/pcp-vo-nena` (privado), branch `main`, commit `1b29f03`.
+- App público no Streamlit Community Cloud: **`https://pcp-vo-nena.streamlit.app`** (deploy de `lancamento.py`, Python 3.14).
+- Backup pré-migração: `pcp_vo_nena.db.bak.20260512_161629` (136 KB).
+- Janela de manutenção do pooler Supabase em `sa-east-1`: **13-14/05/2026** (banner anunciou no dashboard).
+
+**13/05/2026 (sessão tarde):**
+- ✅ Erro `psycopg.errors.InternalError_` **resolveu sozinho** — era a janela de manutenção do pooler `sa-east-1` (13-14/05). App estabilizou.
+- ✅ Cache adicionado (`cached_db.py`) — reduz latência percebida no app em produção.
+- ✅ Multi-page consolidado: `painel.py` migrado para `pages/1_Painel.py`. `lancamento.py` continua entry point.
+- ⏳ Pendente commit + push (Leonardo preenchendo folha de 13/05 em produção; evitar redeploy no meio).
 
 ---
 
 ## 9. Próximos passos imediatos
 
-1. Leonardo termina input do 12/05 em `lancamento.py`.
-2. Leonardo cria projeto Supabase → URL pooler porta 6543 → `.streamlit/secrets.toml` local (não no chat).
-3. Adicionar bootstrap de `DATABASE_URL` em `lancamento.py` / `painel.py`.
-4. `python -c "import database; database.init_db()"` com `DATABASE_URL` setada → cria schema no Postgres.
-5. `python migrar_dados_sqlite_para_postgres.py --dry-run` → confirmar datas → rodar sem `--dry-run`.
-6. Deploy: Streamlit Cloud + secrets + smoke test.
+1. Leonardo termina input da folha de 13/05 em produção.
+2. Commit + push das mudanças locais (cache + multi-page) → Streamlit Cloud redeploya automaticamente.
+3. Apagar os 2 apps antigos `painel-vonena` no dashboard Streamlit Cloud (libera slots, free tier permite 3 apps).
+4. Voltar o repo `pcp-vo-nena` para **privado** no GitHub (foi público temporariamente pra desbloquear o deploy inicial).
+5. Validar com Eraldo na fábrica: mandar link `pcp-vo-nena.streamlit.app`. Pedir feedback de UX e regras de negócio.
+6. Migração do `estoque` do SQLite local pra Postgres — o script só toca as 4 tabelas de folha. Verificar se há dados além do seed.
 7. **22-29/05:** Etapa 5 (polimento visual, KPIs comparativos, exportação PDF).
 8. **05/06:** início da escrita do TCC.
+9. **~18/07:** defesa.
 
 ---
 

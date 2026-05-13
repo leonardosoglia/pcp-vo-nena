@@ -1,21 +1,27 @@
 """
-painel.py — PCP Vó Nena v1.1
-Sistema de Planejamento e Controle da Produção
-Stack: Python + Streamlit + SQLite
+pages/1_Painel.py — PCP Vó Nena v1.2
+
+Visualização operacional por persona (Eraldo, Joel, Gil, Leonília, Estoque, Análise).
+Acessível pelo sidebar do app principal (entry point: lancamento.py).
+
+Stack: Python + Streamlit + Postgres (Supabase) — fallback SQLite local em dev.
 """
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime
 import sys, os
 
-# Bootstrap: Streamlit Cloud expõe secrets só via st.secrets, mas database.py
-# lê os.environ["DATABASE_URL"] em import time. Propaga aqui antes de importar database.
-# Preserva env var explícita (dev pode setar manualmente no shell pra rodar scripts).
+# Bootstrap defensivo: o entry point (lancamento.py) já faz isso, mas idempotente
+# garante que se essa página for aberta direto não quebra.
 if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
     os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
 
-sys.path.insert(0, os.path.dirname(__file__))
-from database import (
+# sys.path do pai pra importar cached_db / database / analise da raiz
+_RAIZ = os.path.dirname(os.path.dirname(__file__))
+if _RAIZ not in sys.path:
+    sys.path.insert(0, _RAIZ)
+
+from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
     get_papelzinho_joel, get_estoque, get_metas_45g, get_metas_mini_pet,
     get_metas_potes, get_pvirar_ideal, get_conversoes, list_datas_folha,
@@ -23,7 +29,7 @@ from database import (
     SABORES_COCADA, SABORES_PALHA
 )
 
-st.set_page_config(page_title="PCP • Doces Vó Nena", page_icon="🍬", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Painel • Doces Vó Nena", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -45,6 +51,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# init_db é idempotente — entry point já chamou, mas defensivo se a página
+# for o primeiro hit do processo (cold start).
 init_db()
 
 # ── Helpers de estilo ──────────────────────────────────────────────────────────
@@ -122,7 +130,7 @@ st.divider()
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 🍬 Vó Nena")
-    st.markdown("**Sistema PCP** — Protótipo v1.1")
+    st.markdown("**Sistema PCP** — v1.2")
     st.divider()
     st.markdown("#### 🚨 Estoque Crítico")
     alertas = [e for e in get_estoque() if "GERAR" in e.get("alerta","")]
@@ -399,4 +407,4 @@ with aba_analise:
     analise.render()
 
 st.divider()
-st.caption(f"🍬 PCP Doces Vó Nena — Protótipo v1.1 · {datetime.today().strftime('%d/%m/%Y %H:%M')} · Python + Streamlit + SQLite")
+st.caption(f"🍬 PCP Doces Vó Nena — v1.2 · {datetime.today().strftime('%d/%m/%Y %H:%M')} · Python + Streamlit + Postgres")
