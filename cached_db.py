@@ -12,12 +12,13 @@ por:
 
 E chamam `invalidar_folha()` após salvar/excluir uma folha pra forçar releitura.
 
-TTLs escolhidos por taxa de mudança real do dado:
-    - Tabelas de referência (metas, conversões, estoque): 1h — quase nunca mudam.
-    - Folhas e derivados:                                  60s — mudam quando o
-      usuário salva. Limites de exposição a defasagem ficam aceitáveis sem
-      precisar invalidar a cada navegação.
-    - Lista de datas (sidebar):                            60s + invalidação no
+TTLs escolhidos por taxa de mudança real do dado (revisado 14/05/2026 após
+feedback de lentidão na produção com latência Atlântico Supabase + manutenção):
+    - Tabelas de referência (metas, conversões, estoque): 24h — quase nunca mudam.
+    - Folhas e derivados:                                  5 min — mudam quando o
+      usuário salva. `invalidar_folha()` força releitura imediata após save/delete,
+      então TTL pode ser longo sem prejudicar consistência percebida.
+    - Lista de datas (sidebar):                            5 min + invalidação no
       save/delete (muda quando nova folha entra ou sai).
 
 Trade-off do free tier:
@@ -49,37 +50,37 @@ upsert_pm_balas_doces = _db.upsert_pm_balas_doces
 # ════════════════════════════════════════════════════════════════════════════
 # LEITURAS DE FOLHA — TTL curto + invalidação manual no save
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_folha_cocada(data):
     return _db.get_folha_cocada(data)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_folha_palha(data):
     return _db.get_folha_palha(data)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_papelzinho_joel(data):
     return _db.get_papelzinho_joel(data)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_pm_balas_doces(data):
     return _db.get_pm_balas_doces(data)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def list_datas_folha():
     return _db.list_datas_folha()
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def calcular_cortados(data):
     return _db.calcular_cortados(data)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def calcular_viradas_pvirar(data):
     return _db.calcular_viradas_pvirar(data)
 
@@ -87,32 +88,32 @@ def calcular_viradas_pvirar(data):
 # ════════════════════════════════════════════════════════════════════════════
 # TABELAS DE REFERÊNCIA — TTL longo (mudam raramente, via seed/admin)
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_estoque():
     return _db.get_estoque()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_metas_45g():
     return _db.get_metas_45g()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_metas_mini_pet():
     return _db.get_metas_mini_pet()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_metas_potes():
     return _db.get_metas_potes()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_pvirar_ideal():
     return _db.get_pvirar_ideal()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_conversoes():
     return _db.get_conversoes()
 

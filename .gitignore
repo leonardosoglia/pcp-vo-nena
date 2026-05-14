@@ -38,3 +38,6 @@ historico_sessoes/
 _tmp_*.py
 _streamlit_*.txt
 smoke_test_*.py
+
+# Locks de Office (Word/Excel) quando arquivo está aberto
+~$*

@@ -197,12 +197,9 @@ META_DISPLAYS_PALHA = {
 
 
 def folha_existe(data_str: str) -> bool:
-    return bool(
-        get_folha_cocada(data_str)
-        or get_folha_palha(data_str)
-        or get_papelzinho_joel(data_str)
-        or get_pm_balas_doces(data_str)
-    )
+    # Reaproveita o cache da lista de datas: se a data está na lista, tem folha.
+    # Antes: 4 queries por verificação. Agora: 0 (hit no cache de list_datas_folha).
+    return data_str in list_datas_folha()
 
 
 def hdr_cell(col, txt):
