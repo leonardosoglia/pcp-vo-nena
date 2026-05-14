@@ -51,6 +51,14 @@ upsert_pm_balas_doces = _db.upsert_pm_balas_doces
 # LEITURAS DE FOLHA — TTL curto + invalidação manual no save
 # ════════════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=300, show_spinner=False)
+def get_folha_completa(data):
+    """Carrega cocada + palha + papelzinho + pmbd em UMA chamada (queries paralelas
+    em Postgres, sequencial em SQLite). Reduz ~4 round-trips em 1.
+    Retorna dict com chaves: 'cocada', 'palha', 'papelzinho', 'pmbd'."""
+    return _db.get_folha_completa(data)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def get_folha_cocada(data):
     return _db.get_folha_cocada(data)
 
@@ -135,6 +143,7 @@ def invalidar_folha(data: str | None = None):
     O parâmetro `data` é aceito mas atualmente ignorado (reservado pra futuro
     se a API do Streamlit ganhar `clear(args)` granular).
     """
+    get_folha_completa.clear()
     get_folha_cocada.clear()
     get_folha_palha.clear()
     get_papelzinho_joel.clear()

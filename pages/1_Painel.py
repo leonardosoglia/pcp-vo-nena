@@ -25,7 +25,7 @@ from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
     get_papelzinho_joel, get_estoque, get_metas_45g, get_metas_mini_pet,
     get_metas_potes, get_pvirar_ideal, get_conversoes, list_datas_folha,
-    calcular_cortados, calcular_viradas_pvirar,
+    calcular_cortados, calcular_viradas_pvirar, get_folha_completa,
     SABORES_COCADA, SABORES_PALHA
 )
 
@@ -103,13 +103,16 @@ def modal_alertas(df):
 # (útil enquanto o Leonardo está digitalizando histórico antes da folha do dia).
 hoje_real = str(date.today())
 datas_disponiveis = list_datas_folha()
-if get_folha_cocada(hoje_real) or not datas_disponiveis:
+# Usa cache de list_datas_folha em vez de query separada — zero round-trips se já cacheado.
+if hoje_real in datas_disponiveis or not datas_disponiveis:
     hoje = hoje_real
 else:
     hoje = datas_disponiveis[0]   # mais recente
-df_cocada  = pd.DataFrame(get_folha_cocada(hoje))
-df_palha   = pd.DataFrame(get_folha_palha(hoje))
-pbd        = get_pm_balas_doces(hoje)
+# 1 chamada paralela em vez de 3-4 sequenciais
+_folha = get_folha_completa(hoje)
+df_cocada  = pd.DataFrame(_folha["cocada"])
+df_palha   = pd.DataFrame(_folha["palha"])
+pbd        = _folha["pmbd"]
 df_est     = pd.DataFrame(get_estoque())
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────

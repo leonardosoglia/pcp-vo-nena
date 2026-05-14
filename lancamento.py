@@ -437,11 +437,12 @@ if prioridade_corte:
 
 st.divider()
 
-# ── Carregar dados existentes ──────────────────────────────────────────────────
-dados_cocada = {r["sabor"]: r for r in get_folha_cocada(data_str)}
-dados_palha = {r["sabor"]: r for r in get_folha_palha(data_str)}
-papelzinho_existente = {r["sabor"]: r for r in get_papelzinho_joel(data_str)}
-pbd_atual = get_pm_balas_doces(data_str) or {}
+# ── Carregar dados existentes (4 queries paralelas em Postgres, 1 round-trip) ──
+_folha = db.get_folha_completa(data_str)
+dados_cocada = {r["sabor"]: r for r in _folha["cocada"]}
+dados_palha = {r["sabor"]: r for r in _folha["palha"]}
+papelzinho_existente = {r["sabor"]: r for r in _folha["papelzinho"]}
+pbd_atual = _folha["pmbd"] or {}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONTEÚDO PRINCIPAL — duas colunas espelhando a folha física

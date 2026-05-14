@@ -103,7 +103,7 @@ def _get_pool():
         from psycopg.rows import dict_row
         _postgres_pool = ConnectionPool(
             DATABASE_URL,
-            min_size=1,
+            min_size=2,  # 2 conexões prontas no startup (suporta queries paralelas)
             max_size=5,
             kwargs={
                 "row_factory": dict_row,
@@ -116,7 +116,27 @@ def _get_pool():
             max_idle=600,
             open=True,
         )
+        # Pre-warm: aguarda min_size conexões serem abertas ANTES de retornar.
+        # Sem isso, a primeira query paga TCP+TLS handshake (~1.5 s).
+        # Com isso, o handshake é pago no import time (paralelo a outras inicializações).
+        try:
+            _postgres_pool.wait(timeout=10.0)
+        except Exception:
+            # Se wait falhar (timeout, rede ruim), segue mesmo assim — primeira
+            # query vai disparar a conexão sob demanda.
+            pass
     return _postgres_pool
+
+
+# Pre-warm: se já estamos em Postgres no momento do import, inicia o pool agora.
+# Faz com que o cold start do app (Streamlit Cloud acordando) pague o handshake
+# em paralelo a outras inicializações, em vez de pagar na 1ª requisição do usuário.
+if IS_POSTGRES:
+    try:
+        _get_pool()
+    except Exception:
+        # Falha de pre-warm não bloqueia o app — fallback lazy na 1ª chamada de get_conn.
+        pass
 
 
 class _PooledConnWrapper:
@@ -182,6 +202,41 @@ def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def get_folha_completa(data: str) -> dict:
+    """Carrega TODOS os blocos da folha de uma data em paralelo (Postgres) ou
+    sequencial (SQLite). Reduz o tempo total de 4× round trip → 1× round trip.
+
+    Retorna dict com chaves: 'cocada', 'palha', 'papelzinho', 'pmbd'.
+
+    Otimização crítica para latência Atlântico Supabase × Streamlit Cloud:
+    cada query individual leva ~30-50 ms quente; 4 sequenciais = 120-200 ms.
+    Executadas em paralelo com pool de 5 conexões → ~30-50 ms total.
+
+    SQLite não é thread-safe por default (cada conexão amarrada à thread que
+    a criou). Roda sequencial no caminho local, sem perda — SQLite é μs.
+    """
+    if IS_POSTGRES:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            f_cocada = ex.submit(get_folha_cocada, data)
+            f_palha  = ex.submit(get_folha_palha, data)
+            f_papel  = ex.submit(get_papelzinho_joel, data)
+            f_pmbd   = ex.submit(get_pm_balas_doces, data)
+            return {
+                "cocada":     f_cocada.result(),
+                "palha":      f_palha.result(),
+                "papelzinho": f_papel.result(),
+                "pmbd":       f_pmbd.result(),
+            }
+    # SQLite: sequencial (microssegundos cada)
+    return {
+        "cocada":     get_folha_cocada(data),
+        "palha":      get_folha_palha(data),
+        "papelzinho": get_papelzinho_joel(data),
+        "pmbd":       get_pm_balas_doces(data),
+    }
 
 
 def _sql(query: str) -> str:

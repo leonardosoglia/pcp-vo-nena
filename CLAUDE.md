@@ -48,7 +48,7 @@ Dados físicos em `folhas-semanais/` (organizado por `YYYY-MM_mês/semana_DD-DD_
 ### Produtos e tamanhos
 - **Cocada:** T, L, B, C, P, Z — em 45g, Mini (30g/27g p/ Z), Pet, Potes 260g/605g. **Zero não tem 45g.**
 - **Palha:** T, L, CH, CK, LIM — 50g (só T/L/CH) e Pet 160g (todos os 5).
-- **PM (Pão de Mel):** 1 bolo = 70 und. Campo "Amanhã" na folha = PM apenas.
+- **PM (Pão de Mel):** 1 bolo = 70 und = 7 displays · 1 display = 10 und. **No banco:** `cnt_pm` em **displays** · `ord_pm` em **bolos**. Campo "Amanhã" na folha = PM apenas.
 - **Bala DL:** `ord_balas` em TACHOS (1 tacho = 30 balas).
 
 ### Conversões-chave
