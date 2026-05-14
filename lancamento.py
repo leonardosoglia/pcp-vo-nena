@@ -43,7 +43,7 @@ DIAS_COL_METAS = {0: "segunda", 1: "terca", 2: "quarta", 3: "quinta", 4: "sexta"
 # Palha 50g só existe em T, L, CH (não em Cookies nem Limão)
 SABORES_PALHA_50G = {"TRADICIONAL", "LEITE EM PÓ", "CHURROS"}
 
-# Calendário de prioridade de corte definido pelo Eraldo (descoberto via entrevista)
+# Calendário de prioridade de corte definido pela Gestão (descoberto via entrevista)
 CALENDARIO_CORTE = {
     0: "45g",          # segunda
     1: "Mini + Pet",   # terça
@@ -433,7 +433,7 @@ if prioridade_corte:
         f"<div style='background:#FEF3C7; border-left:5px solid #D97706; "
         f"padding:8px 14px; border-radius:6px; color:#92400E; font-weight:600; margin:6px 0;'>"
         f"📅 <b>{nome_dia}</b> — dia de prioridade de corte: <b>{prioridade_corte}</b> "
-        f"<span style='font-weight:400; font-size:12px;'>(referência do Eraldo; não exclusivo)</span>"
+        f"<span style='font-weight:400; font-size:12px;'>(referência da Gestão; não exclusivo)</span>"
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -460,7 +460,7 @@ with col_papel:
 
     with st.expander("📝 Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
         st.caption(
-            "Contagem matinal do Sr. Joel · **45g, 30g (=Mini)** em unidades · "
+            "Contagem matinal da Produção · **45g, 30g (=Mini)** em unidades · "
             "**P (Pet), PV, V** em **bandejas** · Z não tem 45g. "
             "Rendimento Pet: 30 und/band (T,L,B,C,P) · 60 und/band (Z)."
         )
@@ -497,13 +497,14 @@ with col_papel:
 
     with st.expander("📋 Orientações do dia", expanded=False):
         st.caption(
-            "Avisos do Eraldo para a equipe. Pode mencionar quem é o destinatário no próprio texto "
-            "(ex: \"Gil: cortar cumbucas após 14h · Popô: embala até 16h e depois sobe pra cortar bala\")."
+            "Avisos da Gestão para a equipe. Pode mencionar quem é o destinatário no próprio texto "
+            "(ex: \"Corte: cortar cumbucas após 14h · Embalagem: até 16h e depois sobe pra cortar bala\")."
         )
         # Caixa única — dados antigos de obs_joel/gil/leonilia ficam concatenados se existirem
         valor_inicial = pbd_atual.get("obs", "") or ""
         # Migra orientações antigas das 4 caixas pra 1 só (read-only de retrocompat)
-        for legado_campo, legado_label in [("obs_joel", "Joel"), ("obs_gil", "Gil"), ("obs_leonilia", "Leonília")]:
+        # Campos legados do banco mantêm nomes antigos; labels exibidos usam departamentos.
+        for legado_campo, legado_label in [("obs_joel", "Produção"), ("obs_gil", "Corte"), ("obs_leonilia", "Embalagem")]:
             extra = pbd_atual.get(legado_campo, "")
             if extra:
                 valor_inicial = (valor_inicial + ("\n" if valor_inicial else "")
@@ -529,7 +530,7 @@ with col_papel:
     # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
     with st.expander("🍭 Bala de Doce de Leite — papelzinho do Joel", expanded=False):
         st.caption(
-            "Contagem do papelzinho separado do Sr. Joel. Total = P/cortar + Cortadas (automático)."
+            "Contagem do papelzinho separado da Produção. Total = P/cortar + Cortadas (automático)."
         )
         cols_bdl = st.columns([1, 1, 1])
         with cols_bdl[0]:
@@ -684,9 +685,9 @@ with col_folha:
             }
 
     # ── 4. PARÂMETRO REAL DO DIA (45g + Mini + Pet) ──────────────────────────
-    with st.expander("⚙️ Parâmetro Real do dia — Ajuste do Eraldo (45g · Mini · Pet)", expanded=False):
+    with st.expander("⚙️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
         st.caption(
-            "**Base** vem da tabela de referência · **Ajuste** = +/- do Eraldo (passos de 100) · "
+            "**Base** vem da tabela de referência · **Ajuste** = +/- da Gestão (passos de 100) · "
             "**Real** alimenta a coluna ③ do Cortados acima."
         )
         metas_dia = {r["sabor"]: r for r in get_metas_45g()}
@@ -1102,7 +1103,7 @@ with col_folha:
     with st.expander("🍞 Pão de Mel", expanded=False):
         st.caption(
             "Tudo sobre Pão de Mel num só lugar: quantidade atual + ordem do dia + "
-            "lembrete pro próximo dia útil. Produzido pelo Sr. Joel + uma auxiliar."
+            "lembrete pro próximo dia útil. Produzido pela Produção + uma auxiliar."
         )
 
         cnt_cols = st.columns([1, 1])
@@ -1121,7 +1122,7 @@ with col_folha:
 
         st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'>📅 PM pro próximo dia útil</div>", unsafe_allow_html=True)
         st.caption(
-            "Lembrete pro Sr. Joel: quantos PM produzir no próximo dia útil. "
+            "Lembrete pra Produção: quantos PM produzir no próximo dia útil. "
             "Ex: na sexta, escrever '4' lembra Joel de produzir 4 PM na segunda."
         )
         ord_amanha_obs = st.text_area(
@@ -1135,7 +1136,7 @@ with col_folha:
     # ── 15. 🍭 BALAS — caixa unificada ───────────────────────────────────────
     with st.expander("🍭 Balas", expanded=False):
         st.caption(
-            "Balas de doce de leite (produto distinto do PM). Produzidas pelo Sr. Joel e "
+            "Balas de doce de leite (produto distinto do PM). Produzidas pela Produção e "
             "cortadas pelo Popô. **Ordem em TACHOS** (1 tacho = 30 balas)."
         )
 
@@ -1161,8 +1162,8 @@ with col_folha:
     # ── 16. 🍫 DOCES — caixa unificada ───────────────────────────────────────
     with st.expander("🍫 Doces", expanded=False):
         st.caption(
-            "Pequenos doces de leite (produto distinto). Decisão sob demanda — Eraldo "
-            "costuma perguntar diretamente à Leonília. Normalmente este campo fica vazio."
+            "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
+            "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
         )
 
         st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍫 Quantidade atual (unidades)</div>", unsafe_allow_html=True)

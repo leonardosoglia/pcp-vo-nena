@@ -6,9 +6,9 @@ Renderizada como aba "📊 Análise" no painel.py.
 
 5 sub-abas internas:
     📈 Evolução temporal — linha por sabor ao longo do tempo
-    📊 Dia da Semana — média por dia da semana (descobre o calendário do Eraldo)
+    📊 Dia da Semana — média por dia da semana (descobre o calendário da Gestão)
     🔥 Heatmap — intensidade por (dia × sabor)
-    ⚙️ Ajustes Eraldo — quantas vezes ajustou cada parâmetro vs base
+    ⚙️ Ajustes da Gestão — quantas vezes ajustou cada parâmetro vs base
     ⚠️ Anomalias — alertas de proporções atípicas (ex: LP > T em palha)
 
 A inteligência cresce conforme o histórico cresce.
@@ -29,7 +29,7 @@ DIAS_PT_SHORT = {0: "Seg", 1: "Ter", 2: "Qua", 3: "Qui", 4: "Sex", 5: "Sáb", 6:
 ORDEM_DIAS_SHORT = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
 DIAS_COL_METAS = {0: "segunda", 1: "terca", 2: "quarta", 3: "quinta", 4: "sexta"}
 
-# Calendário descoberto via entrevista com o Eraldo
+# Calendário descoberto via entrevista com a Gestão
 CALENDARIO_CORTE = {
     0: "45g", 1: "Mini+Pet", 2: "45g", 3: "45g", 4: "Mini+Pet",
     5: None, 6: None,
@@ -138,9 +138,9 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
         "Ordem corte 45g (bandejas)":         ("cocada", "ord_corte_45g","Ordem corte 45g · bandejas"),
         "Ordem corte Mini (bandejas)":        ("cocada", "ord_corte_mini","Ordem corte Mini · bandejas"),
         "Ordem embalagem 45g (und)":          ("cocada", "ord_emb_45g","Ordem embalagem 45g · unidades"),
-        "Joel — V (bandejas viradas)":        ("joel",   "joel_v",    "Joel V · bandejas viradas"),
-        "Joel — PV (bandejas P/Virar)":       ("joel",   "joel_pv",   "Joel PV · bandejas p/virar"),
-        "Joel — 45g (sala produção)":         ("joel",   "joel_45g",  "Joel 45g · und sala produção"),
+        "Produção — V (bandejas viradas)":    ("joel",   "joel_v",    "Produção V · bandejas viradas"),
+        "Produção — PV (bandejas P/Virar)":   ("joel",   "joel_pv",   "Produção PV · bandejas p/virar"),
+        "Produção — 45g (sala produção)":     ("joel",   "joel_45g",  "Produção 45g · und sala produção"),
         "Embalados Palha 50g":                ("palha",  "emb_50g",   "Embalados Palha 50g · und"),
         "Embalados Palha Pet":                ("palha",  "emb_pet",   "Embalados Palha Pet · und"),
     }
@@ -186,7 +186,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
 def _render_dia_semana(df_cocada, sabores_cocada):
     st.markdown("##### 📊 Média por dia da semana")
     st.caption(
-        "Revela o **calendário implícito** das decisões. Compare com o calendário do Eraldo: "
+        "Revela o **calendário implícito** das decisões. Compare com o calendário da Gestão: "
         "Seg/Qua/Qui = 45g · Ter/Sex = Mini+Pet."
     )
 
@@ -282,12 +282,12 @@ def _render_heatmap(df_cocada, sabores_cocada):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SUB-ABA 4 — Ajustes do Eraldo
+# SUB-ABA 4 — Ajustes da Gestão
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_ajustes_eraldo(df_cocada, sabores_cocada):
-    st.markdown("##### ⚙️ Ajustes do Eraldo (Parâmetro Real vs Base esperada)")
+    st.markdown("##### ⚙️ Ajustes da Gestão (Parâmetro Real vs Base esperada)")
     st.caption(
-        "Quanto o Eraldo desviou da tabela de referência em cada folha. "
+        "Quanto a Gestão desviou da tabela de referência em cada folha. "
         "Positivo = aumentou produção · Negativo = diminuiu."
     )
 
@@ -316,7 +316,7 @@ def _render_ajustes_eraldo(df_cocada, sabores_cocada):
     df_ajustes = df_ajustes.sort_values("data", ascending=False)
 
     if df_ajustes.empty:
-        st.success("✅ Nenhum ajuste de 45g registrado no período (Eraldo seguiu a base semanal).")
+        st.success("✅ Nenhum ajuste de 45g registrado no período (Gestão seguiu a base semanal).")
     else:
         st.markdown("**Ajustes registrados (45g):**")
         df_ajustes_show = df_ajustes.copy()
@@ -480,7 +480,7 @@ def render():
         "📈 Evolução",
         "📊 Dia da Semana",
         "🔥 Heatmap",
-        "⚙️ Ajustes Eraldo",
+        "⚙️ Ajustes da Gestão",
         "⚠️ Anomalias",
     ])
     with sub_evol: _render_evolucao(df_cocada, df_palha, df_joel, sabores_filtro)

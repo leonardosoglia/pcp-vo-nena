@@ -83,17 +83,32 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 
 ---
 
-## 5. Pessoas e papéis
+## 5. Pessoas, papéis e departamentos do sistema
 
-| Pessoa | Função |
-|--------|--------|
-| **Eraldo** | Gestor PCP; define ordens, ajusta parâmetros, decide proporção embalagem |
+**Decisão (14/05/2026):** o sistema usa **nomenclatura de departamentos**, não nomes próprios. Profissionaliza, dá cara de ERP industrial, facilita expansão. Nomes próprios são realidade humana da fábrica (a IA precisa saber, mas a UI não exibe).
+
+### Departamentos no sistema (abas/páginas)
+
+| Departamento | Função no sistema | Responsável real na fábrica |
+|---|---|---|
+| **Gestão** | Planejamento, ordens do dia, ajuste de parâmetros | Eraldo |
+| **Produção** | Tachos, viradas, papelzinho diário, PM e Balas | Sr. Joel + auxiliar |
+| **Corte** | Ordens e execução de corte | Gil |
+| **Embalagem** | Embalagem plástica + cinta de papel | Leonília + Popô |
+| **Estoque** | Produto acabado (cocada/palha/PM/balas prontas) | — |
+| **Suprimentos** | Matéria-prima + insumos + embalagens + potes | **A criar (Etapa B)** |
+| **Análise** | Visualização e tendências | — |
+| **Insights** | Diagnóstico automático | — |
+
+### Pessoas reais (contexto humano que o sistema ainda não modela)
+
+| Pessoa | Função real |
+|--------|-------------|
 | **Leonardo** | Dev/estagiário; conta estoque (~7h–10h), alimenta sistema |
-| **Sr. Joel** | Encarregado de produção; preenche papelzinho diário (5 col × 6 sabores); também PM e Balas |
-| **Leonília** | Encarregada de embalagem cinta |
-| **Gil** | Encarregado de corte |
 | **Maria** | Produz palha (~2 dias/sem) |
-| **Popô** | 1ª etapa embalagem (plástico) + corte de balas |
+| **Paulo** | Auxiliar — corta cocada e vira bandejas |
+
+**Convenção textual:** documentos físicos com nome próprio histórico (ex: "Papelzinho do Joel") mantêm o nome — é como a fábrica conhece o documento. Referências à pessoa ("Sr. Joel disse", "Eraldo decide") viram referências ao departamento ("Produção disse", "Gestão decide").
 
 ---
 
@@ -111,7 +126,9 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 - **Bootstrap Streamlit Cloud:** topo de `lancamento.py` / `painel.py` propaga `st.secrets["DATABASE_URL"]` para `os.environ` antes de `import database` (Streamlit Cloud não faz isso automaticamente). Implementado em 12/05/2026.
 - **`prepare_threshold=None` no psycopg.connect:** PgBouncer transaction mode (porta 6543) multiplexa transações em conexões backend compartilhadas; psycopg 3 cria prepared statements com nomes determinísticos (`_pg3_N`) que colidem ao reutilizar uma conexão backend que já tem o mesmo nome. Solução: desabilitar prepared statements automáticos. Custo desprezível pra workload baixa-frequência do PCP. Implementado em 12/05/2026 após `DuplicatePreparedStatement` na 1ª migração. Vira parágrafo no TCC.
 - **Camada de cache separada (`cached_db.py`):** decorators `@st.cache_data` ficam num módulo wrapper, NÃO em `database.py`. Razão: scripts CLI (migração, smoke tests) importam `database.py` direto e não dependem de Streamlit. Toda UI importa de `cached_db.py`. TTL folhas = 60s · TTL refs = 1h. Invalidação manual via `invalidar_folha()` após save/delete. Implementado em 13/05/2026.
-- **Multi-page Streamlit (`pages/` directory):** consolidação de `lancamento.py` + `painel.py` em um único app deployado, navegação automática no sidebar. `lancamento.py` continua sendo o entry point no Streamlit Cloud; `painel.py` foi deletado da raiz, conteúdo migrado pra `pages/1_Painel.py`. Vantagens: 1 link só pro Eraldo, 1 slot do free tier (em vez de 2), cache compartilhado entre páginas, mesmo deploy/secrets/versão. Implementado em 13/05/2026.
+- **Multi-page Streamlit (`pages/` directory):** consolidação de `lancamento.py` + `painel.py` em um único app deployado, navegação automática no sidebar. `lancamento.py` continua sendo o entry point no Streamlit Cloud; `painel.py` foi deletado da raiz, conteúdo migrado pra `pages/1_Painel.py`. Vantagens: 1 link só pra Gestão, 1 slot do free tier (em vez de 2), cache compartilhado entre páginas, mesmo deploy/secrets/versão. Implementado em 13/05/2026.
+- **Renomeação por departamento (14/05/2026):** UI usa "Gestão", "Produção", "Corte", "Embalagem" em vez de nomes próprios. Profissionaliza o sistema (cara de ERP). Pessoas reais permanecem nos comentários do código e no CLAUDE.md como referência. Documento físico "Papelzinho do Joel" mantém o nome (referência cultural da fábrica). Campos legados do banco (`obs_joel`, `obs_gil`, `obs_leonilia`) mantêm os nomes — só os labels da UI mudam.
+- **Virada conceitual: PCP completo, não só de produção (14/05/2026).** Próximo grande módulo é **Suprimentos** (matéria-prima + insumos + embalagens). Aplica MRP simplificado: ordem de produção → BOM (receita) → necessidade de insumo → confere com estoque → sugere compra. Fecha o ciclo de PCP. Integração futura com Sigee Cloud (ERP da empresa). Vira capítulo brilhante do TCC (MRP em fábrica de doces). Roadmap em Etapas A-F no `CADERNO.md`.
 
 ---
 
@@ -148,13 +165,18 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 
 ## 9. Próximos passos imediatos
 
-1. Validar app em produção pós-redeploy do dia 13/05 (cache + multi-page).
-2. **Fase 1 — métricas pro capítulo 5 do TCC:** definir lista do que medir, começar a coletar agora (antes/depois do sistema).
-3. Validar com Eraldo na fábrica: mandar link `pcp-vo-nena.streamlit.app`. Pedir feedback de UX e regras de negócio.
-4. Migração do `estoque` do SQLite local pra Postgres — o script só toca as 4 tabelas de folha. Verificar se há dados além do seed.
-5. **22-29/05:** Etapa 5 (polimento visual, KPIs comparativos, exportação PDF).
-6. **05/06:** início da escrita do TCC.
-7. **~18/07:** defesa.
+Roadmap detalhado das **Etapas A-F** está no `CADERNO.md`. Resumo:
+
+1. ✅ **Etapa A — Renomeação por departamento** (14/05/2026).
+2. **Etapa B — Modelo de Suprimentos** (próxima sessão): schema `insumos`, `bom_produto`, `movimentos_insumo` + página `pages/3_Suprimentos.py`.
+3. **Etapa C — Cadastro inicial de insumos** — depende de entrevista com a Gestão (ficha em `entrevistas/`).
+4. **Etapa D — BOM (receitas)** — depende de entrevista com Produção/Gestão.
+5. **Etapa E — Auto-baixa por produção** (22-29/05): quando folha é salva, sistema baixa consumo automaticamente.
+6. **Etapa F — Alertas + sugestão de compra + integração Sigee** (até a defesa parcialmente).
+7. **05/06:** início da escrita do TCC.
+8. **~18/07:** defesa.
+
+**Em paralelo, sempre:** validar com Gestão na fábrica, coletar métricas pro capítulo 5, polir Camada 1.
 
 ---
 

@@ -1,7 +1,7 @@
 """
 pages/1_Painel.py — PCP Vó Nena v1.2
 
-Visualização operacional por persona (Eraldo, Joel, Gil, Leonília, Estoque, Análise).
+Visualização operacional por departamento (Gestão, Produção, Corte, Embalagem, Estoque, Análise).
 Acessível pelo sidebar do app principal (entry point: lancamento.py).
 
 Stack: Python + Streamlit + Postgres (Supabase) — fallback SQLite local em dev.
@@ -146,19 +146,19 @@ with st.sidebar:
     st.caption("Atualizado em tempo real.\nUse 🔄 para forçar atualização.")
 
 # ── Abas ───────────────────────────────────────────────────────────────────────
-aba_eraldo, aba_joel, aba_gil, aba_leonilia, aba_estoque, aba_analise = st.tabs([
-    "📋 Eraldo — Planejamento",
-    "👨‍🍳 Sr. Joel — Produção",
-    "🔪 Gil — Corte",
-    "📦 Leonília — Embalagem",
-    "📊 Estoque Geral",
-    "📊 Análise (Camada 1)",
+aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = st.tabs([
+    "📋 Gestão — Planejamento",
+    "🧑‍🍳 Produção",
+    "🔪 Corte",
+    "📦 Embalagem",
+    "📊 Estoque",
+    "📊 Análise",
 ])
 
 # ══════════════════════════════════════════════════════════════════
 # ABA ERALDO
 # ══════════════════════════════════════════════════════════════════
-with aba_eraldo:
+with aba_gestao:
 
     with st.expander("📚 Parâmetros e Metas Ideais — clique para consultar", expanded=False):
         s1,s2,s3,s4 = st.tabs(["📅 45g (semanal)","📆 Mini e Pet","🫙 Potes","⚙️ Conversões"])
@@ -259,8 +259,8 @@ with aba_eraldo:
 # ══════════════════════════════════════════════════════════════════
 # ABA SR. JOEL
 # ══════════════════════════════════════════════════════════════════
-with aba_joel:
-    st.subheader("👨‍🍳 Quadro de Produção — Sr. Joel")
+with aba_producao:
+    st.subheader("🧑‍🍳 Quadro de Produção")
     if not df_cocada.empty:
         col_j, col_l = st.columns([3,1])
         with col_j:
@@ -304,7 +304,7 @@ with aba_joel:
 # ══════════════════════════════════════════════════════════════════
 # ABA GIL
 # ══════════════════════════════════════════════════════════════════
-with aba_gil:
+with aba_corte:
     st.subheader("🔪 Quadro de Corte — Gil")
     st.caption("Ordens de corte do dia (em bandejas). O realizado vira CORTADOS① no dia seguinte.")
 
@@ -339,9 +339,9 @@ with aba_gil:
 # ══════════════════════════════════════════════════════════════════
 # ABA LEONÍLIA
 # ══════════════════════════════════════════════════════════════════
-with aba_leonilia:
-    st.subheader("📦 Quadro de Embalagem — Leonília")
-    st.caption("Unidades a embalar (valores já em unidades, conforme ordem do Eraldo).")
+with aba_embalagem:
+    st.subheader("📦 Quadro de Embalagem")
+    st.caption("Unidades a embalar (valores já em unidades, conforme ordem da Gestão).")
 
     if not df_cocada.empty:
         st.markdown("##### 🍬 Embalagem — Cocada")

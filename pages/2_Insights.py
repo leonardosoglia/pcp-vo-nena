@@ -8,7 +8,7 @@ em vez de jargão técnico.
 Atualiza automaticamente conforme novas folhas entram no banco.
 
 Achados principais:
-    1. Desbalanceamento por sabor (T = 2L = 4(B+C+P) — regra do Eraldo)
+    1. Desbalanceamento por sabor (T = 2L = 4(B+C+P) — regra da Gestão)
     2. Tachos parciais (capacidade não aproveitada)
     3. Anomalias palha (Leite em Pó × Tradicional)
     4. Sobrecarga de embalagem (>3000 und/dia)
@@ -192,7 +192,7 @@ def _calc_anomalias_palha(datas, folhas_palha, fator=1.3):
 
 
 def _calc_sobrecarga_embalagem(datas, folhas_cocada, capacidade=3000):
-    """H4 — soma ord_emb_* por dia, compara com capacidade Leonília."""
+    """H4 — soma ord_emb_* por dia, compara com capacidade da Embalagem."""
     rows = []
     for d in datas:
         e45 = sum((folhas_cocada[d].get(s, {}).get("ord_emb_45g") or 0) for s in SABORES_COCADA)
@@ -279,7 +279,7 @@ st.header("🎯 Achado principal — Desbalanceamento de produção")
 st.markdown(
     "<div class='insight-card-master'>"
     "<b style='font-size:18px;color:#7B341E;'>O sistema descobriu um padrão sistemático:</b><br><br>"
-    "A produção <b>não está respeitando</b> a regra do Eraldo (Tradicional = 2× Leite Condensado = 4× B/C/P). "
+    "A produção <b>não está respeitando</b> a regra da Gestão (Tradicional = 2× Leite Condensado = 4× B/C/P). "
     "Como consequência, alguns sabores <b>faltam</b> consistentemente, enquanto outros <b>sobram</b>. "
     "É o pior cenário do PCP: perde venda <i>e</i> encalha estoque ao mesmo tempo."
     "</div>",
@@ -327,17 +327,17 @@ with st.expander("📊 Ver tabela completa", expanded=False):
 st.markdown(
     "<div class='insight-card-warning'>"
     "<b>🔴 O que isso significa na prática:</b><br>"
-    "• Quando um sabor tem média muito <b>negativa</b> (vermelho), a fábrica está produzindo <b>menos</b> do que o parâmetro do Eraldo manda — quem chega na loja procurando esse sabor pode não encontrar.<br>"
+    "• Quando um sabor tem média muito <b>negativa</b> (vermelho), a fábrica está produzindo <b>menos</b> do que o parâmetro da Gestão manda — quem chega na loja procurando esse sabor pode não encontrar.<br>"
     "• Quando tem média muito <b>positiva</b> (verde escuro), está produzindo <b>mais</b> do que precisa — encalha no estoque, ocupa espaço, e tem risco de validade vencer."
     "</div>",
     unsafe_allow_html=True,
 )
 
-# Perguntas pro Eraldo
-st.markdown("#### 💬 Perguntas pra levar pro Eraldo")
+# Perguntas pra discutir com a Gestão
+st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
 perguntas_master = [
     "Você sente esse padrão de falta de Tradicional e sobra de Pé de Moça?",
-    "Por que a proporção Tradicional/Leite Condensado oscila tanto? Limite de capacidade do Joel?",
+    "Por que a proporção Tradicional/Leite Condensado oscila tanto? Limite de capacidade da Produção?",
     "Pé de Moça que sobra vai pra pote? Vencimento? Doação? Algum cliente específico?",
     "Tem demanda fixa de cliente que justifica produzir mais Pé de Moça? Quanto? Em quais dias?",
 ]
@@ -370,16 +370,16 @@ if h1["parciais"]:
 st.markdown(
     "<div class='insight-card-info'>"
     "<b>💡 Ideia de melhoria automática:</b> o sistema pode <b>sugerir arredondamento</b>. "
-    "Quando o Eraldo escrever 18 band, mostrar: <i>\"18 = 2 tachos + 2 band soltas. Sugere: 16 (mais conservador) ou 24 (cobre próximo dia)?\"</i>"
+    "Quando a Gestão escrever 18 band, mostrar: <i>\"18 = 2 tachos + 2 band soltas. Sugere: 16 (mais conservador) ou 24 (cobre próximo dia)?\"</i>"
     "</div>",
     unsafe_allow_html=True,
 )
 
-st.markdown("#### 💬 Perguntas pra levar pro Eraldo")
+st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
 for p in [
     "Quando produz 18 band de Tradicional em vez de 16 ou 24, o ingrediente extra vai pra onde?",
     "Tachos parciais são por urgência de cliente, ou por planejamento mesmo?",
-    "Sistema sugerir arredondamento pra cima/baixo seria útil ou atrapalha o teu controle?",
+    "Sistema sugerir arredondamento pra cima/baixo seria útil ou atrapalha o controle da Gestão?",
 ]:
     st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
 
@@ -414,7 +414,7 @@ else:
     )
 
 if h5["anomalias"]:
-    st.markdown("#### 💬 Perguntas pra levar pro Eraldo")
+    st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
     for p in [
         "Nos dias com mais Leite em Pó do que Tradicional, teve encomenda específica de cliente?",
         "Ou foi erro no preenchimento da folha?",
@@ -432,7 +432,7 @@ st.header(f"📦 Embalagem — {len(h4['sobrecarga'])} dia(s) acima da capacidad
 cap = h4["capacidade"]
 st.markdown(
     f"<div class='insight-card-info'>"
-    f"<b>Capacidade aproximada da Leonília:</b> {cap:,} unidades embaladas/dia.<br>"
+    f"<b>Capacidade aproximada da Embalagem:</b> {cap:,} unidades embaladas/dia.<br>"
     f"Quando a ordem total ultrapassa, sobra trabalho pro próximo dia (estoque cortado parado) ou alguém precisa ajudar / fazer hora extra."
     f"</div>",
     unsafe_allow_html=True,
@@ -475,10 +475,10 @@ fig_h4.update_layout(
 st.plotly_chart(fig_h4, use_container_width=True)
 
 if h4["sobrecarga"]:
-    st.markdown("#### 💬 Perguntas pra levar pro Eraldo")
+    st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
     for p in [
-        f"Nos dias acima de {cap:,} und, Leonília ficou até tarde? Alguém ajudou?",
-        "Hora extra dela tem custo direto que você acompanha?",
+        f"Nos dias acima de {cap:,} und, a Embalagem ficou até tarde? Alguém ajudou?",
+        "Hora extra da Embalagem tem custo direto que a Gestão acompanha?",
         f"A capacidade real é {cap:,} mesmo? Tem dias melhores/piores?",
     ]:
         st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
@@ -491,7 +491,7 @@ st.divider()
 st.header("📈 Proporção Tradicional / Leite Condensado ao longo do tempo")
 
 st.caption(
-    "A regra do Eraldo prescreve **T/L = 2.0** (produz 2× mais Tradicional que Leite Condensado). "
+    "A regra da Gestão prescreve **T/L = 2.0** (produz 2× mais Tradicional que Leite Condensado). "
     "Quando o gráfico oscila pra cima ou pra baixo dessa linha, há desbalanceamento."
 )
 
@@ -597,5 +597,5 @@ st.caption(
 )
 st.caption(
     "💡 Esta página é o **diagnóstico inicial** do sistema. Conforme novas folhas entram, padrões mais ricos emergem. "
-    "Achados confirmados com o Eraldo viram **regras automatizadas** na Camada 2 (sugestão de corte)."
+    "Achados confirmados com a Gestão viram **regras automatizadas** na Camada 2 (sugestão de corte)."
 )

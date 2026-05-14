@@ -2,7 +2,37 @@
 
 > **Propósito:** ponto único pra consolidar o que descobrimos, o que precisamos perguntar, e o roadmap até a defesa do TCC (~18/07/2026).
 >
-> Não é doc técnico (esse é `CLAUDE.md`). É o **diário do projeto** — atualizado conforme avançamos. Hipóteses, validações, ideias soltas, perguntas pra Eraldo/Joel/Leonília — tudo entra aqui pra não se perder.
+> Não é doc técnico (esse é `CLAUDE.md`). É o **diário do projeto** — atualizado conforme avançamos. Hipóteses, validações, ideias soltas, perguntas pra Gestão/Produção/Corte/Embalagem — tudo entra aqui pra não se perder.
+
+---
+
+## 0. Virada conceitual — 14/05/2026
+
+**O projeto evoluiu de "PCP de produção" para "PCP completo de empresa".**
+
+A diferença na prática:
+
+| PCP só de produção (até 13/05) | PCP completo (a partir de 14/05) |
+|---|---|
+| Folha do dia → ordem de produção → fim | Folha do dia → ordem → **BOM** → necessidade de insumo → **almoxarifado/suprimentos** → sugestão de compra → fim |
+| Sistema sabe **o que** produzir | Sistema sabe o que **e como** produzir (insumos disponíveis, quanto consome, quando comprar) |
+| Camada 1 (visualização) está madura | Camada 1.5 (semi-automação real via auto-baixa de insumos) é o próximo salto |
+
+**Conceitos aplicados (úteis pra revisão de literatura do TCC):**
+- **MRP** (Material Requirements Planning): explosão de necessidades a partir da BOM.
+- **BOM** (Bill of Materials): receita do produto — quanto de cada insumo é necessário.
+- **Ponto de pedido** e **estoque de segurança**: gatilhos pra disparo de compra.
+- **Lead time de compra**: tempo entre pedido ao fornecedor e chegada do insumo.
+- **Curva ABC**: priorização por giro/valor (insumos críticos vs commodities).
+- **JIT** (Just-In-Time): visão futura — pedir só o que vai precisar.
+
+**Por que isso é fundamental:**
+1. Hoje a fábrica trabalha "no feeling" pra reposição. Sistema vai antecipar.
+2. Evita PARADAS por falta de insumo (pior pesadelo de chão de fábrica).
+3. Vira capítulo brilhante do TCC ("Aplicação de MRP simplificado em confeitaria industrial").
+4. Conecta com Sigee Cloud (ERP da empresa) — possível integração futura.
+
+**Nome escolhido pro módulo:** **Suprimentos** (mais amplo que "Almoxarifado") — engloba matéria-prima, embalagens, potes, cintas, qualquer item consumível.
 
 ---
 
@@ -91,7 +121,7 @@ Só 3 pares de dias com gap de 3 dias úteis disponíveis. Várias folhas histó
 
 ## 3. Perguntas pendentes — em ordem de prioridade
 
-### 3.1 Pra Eraldo (entrevista presencial)
+### 3.1 Pra Gestão (entrevista presencial)
 
 #### Sobre o INSIGHT MASTER (urgente — fundamento do capítulo 5)
 1. Você sente que falta Tradicional/Leite Condensado e sobra Pé de Moça?
@@ -122,15 +152,15 @@ Só 3 pares de dias com gap de 3 dias úteis disponíveis. Várias folhas histó
 15. Capacidade típica do Joel em tachos/dia?
 16. Como funcionam encomendas de cliente? Afetam o parâmetro do dia?
 
-### 3.2 Pro Joel
+### 3.2 Pra Produção
 17. Quando recebe ordem de 18 band, complementa pra 24 por iniciativa, ou produz exatos 18?
 18. Quanto tempo leva pra "trocar de sabor" (set-up entre Tradicional → Brigadeiro)?
 
-### 3.3 Pra Leonília
+### 3.3 Pra Embalagem
 19. Capacidade real: ~3.000 und/dia confirmada? Tem dias melhores/piores?
 20. Quando sobra cortado mas não embalado, fica onde? Validade?
 
-### 3.4 Pra Popô / Paulo / Gil
+### 3.4 Pra Corte / Embalagem (operacional)
 21. Cortados ③ persistentemente positivo: vocês "param de cortar" quando vêem que tá sobrando, ou seguem a ordem do Eraldo?
 22. Asterisco no papelzinho (qty já enviada à embalagem): com que frequência acontece?
 
@@ -165,11 +195,24 @@ Só 3 pares de dias com gap de 3 dias úteis disponíveis. Várias folhas histó
 
 ## 5. Roadmap até a defesa (~18/07/2026)
 
+### Etapas A-F (detalhamento da virada conceitual da seção 0)
+
+| Etapa | O quê | Tempo | Status / quando |
+|---|---|---|---|
+| **A — Renomeação** | UI/variáveis: nomes próprios → departamentos (Gestão, Produção, Corte, Embalagem, Suprimentos). Mantém retrocompat no banco. | 2h | ✅ **Feito 14/05/2026** |
+| **B — Modelo de Suprimentos** | Schema novo: `insumos`, `bom_produto`, `movimentos_insumo`. Migração suave. Página `pages/3_Suprimentos.py` CRUD básico. | 4-6h | Próxima sessão (14-17/05) |
+| **C — Cadastro inicial de insumos** | Lista de matérias-primas + estoque atual + mínimo + fornecedor. Depende de entrevista com Gestão. | manual | Esta semana |
+| **D — BOM (receitas)** | Pra cada produto, quanto consome de cada insumo. Pergunta-chave pra Produção/Gestão. | entrevista | Esta semana |
+| **E — Auto-baixa por produção** | Quando folha é salva, sistema calcula consumo e baixa do almoxarifado. Sai da pura visualização — Camada 1.5. | 6-8h | 22-29/05 (Etapa 5 do TCC) |
+| **F — Alertas + sugestão de compra + Sigee** | "Vai faltar X em Y dias", "Comprar Z". Importação de dados do Sigee Cloud. | 10h+ | Parcial até a defesa, completo pós-TCC |
+
 ### Semana atual (13-15/05)
 - ✅ Cache + multi-page deploy
 - ✅ **Página `pages/2_Insights.py`** criada e deployada — diagnóstico operacional automático com os 6 achados visualmente. Acessível em `pcp-vo-nena.streamlit.app/Insights` (no celular ou desktop).
-- 🔄 Validar app em produção pós-redeploy (cache, multi-page, página Insights)
-- ➡️ Marcar entrevista presencial com Eraldo (1h, perguntas 1-16 da seção 3.1) — levar celular com o app aberto
+- ✅ **Etapa A — Renomeação por departamento** (14/05)
+- 🔄 Validar app em produção pós-redeploy (cache, multi-page, página Insights, renomeação)
+- ➡️ Marcar entrevista presencial com a Gestão (1h, ficha em `entrevistas/01_pcp_inicial.md`)
+- ➡️ Começar Etapa B — modelo de Suprimentos no banco
 
 ### 16-22/05 — Validação na fábrica
 - Apresentar Relatório de Insights pro Eraldo
