@@ -148,15 +148,13 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 
 ## 9. Próximos passos imediatos
 
-1. Leonardo termina input da folha de 13/05 em produção.
-2. Commit + push das mudanças locais (cache + multi-page) → Streamlit Cloud redeploya automaticamente.
-3. Apagar os 2 apps antigos `painel-vonena` no dashboard Streamlit Cloud (libera slots, free tier permite 3 apps).
-4. Voltar o repo `pcp-vo-nena` para **privado** no GitHub (foi público temporariamente pra desbloquear o deploy inicial).
-5. Validar com Eraldo na fábrica: mandar link `pcp-vo-nena.streamlit.app`. Pedir feedback de UX e regras de negócio.
-6. Migração do `estoque` do SQLite local pra Postgres — o script só toca as 4 tabelas de folha. Verificar se há dados além do seed.
-7. **22-29/05:** Etapa 5 (polimento visual, KPIs comparativos, exportação PDF).
-8. **05/06:** início da escrita do TCC.
-9. **~18/07:** defesa.
+1. Validar app em produção pós-redeploy do dia 13/05 (cache + multi-page).
+2. **Fase 1 — métricas pro capítulo 5 do TCC:** definir lista do que medir, começar a coletar agora (antes/depois do sistema).
+3. Validar com Eraldo na fábrica: mandar link `pcp-vo-nena.streamlit.app`. Pedir feedback de UX e regras de negócio.
+4. Migração do `estoque` do SQLite local pra Postgres — o script só toca as 4 tabelas de folha. Verificar se há dados além do seed.
+5. **22-29/05:** Etapa 5 (polimento visual, KPIs comparativos, exportação PDF).
+6. **05/06:** início da escrita do TCC.
+7. **~18/07:** defesa.
 
 ---
 
