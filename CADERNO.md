@@ -6,6 +6,30 @@
 
 ---
 
+## 0.5 Reposicionamento estratégico — 15/05/2026
+
+**Após Etapa B estar pronta, Leonardo recalibrou a visão do projeto:**
+
+> *"Nessa parte de insumos, eu não conto insumos, o que eu conto é o estoque e produto semiacabado e produto acabado. Na verdade o Eraldo não produz olhando insumos."*
+
+A fábrica trabalha com **3 categorias de "coisa medida"**:
+
+| Categoria | O que é | Onde no sistema |
+|---|---|---|
+| **Insumo** (matéria-prima) | Coco, leite condensado, plástico, cinta | Suprimentos (Etapa B feita 15/05) |
+| **Produto semiacabado** | Bandejas cortadas mas não embaladas; massa virada | Folha (cort1_*, joel_pv, joel_v) |
+| **Produto acabado** (estoque) | Cocada embalada pronta pra venda | Folha (emb_*) |
+
+**Implicação:**
+- O **coração** do sistema é a Folha + Painel + Insights (Camadas 0+1)
+- Suprimentos é **suporte defensivo:** avisa sobre falta antes de virar problema
+- Eraldo decide ordens olhando estoque + semiacabado + parâmetro + mão-de-obra + pedidos
+- Insumos entra como CONTEXTO ("vou ter coco pra ordenar 24 bandejas?"), **não como driver**
+
+**Pra próxima sessão:** priorize features que reduzam tempo/erro no fluxo principal do PCP. Insights e IA agregam **se forem práticos** — não criar feature complexa que ninguém vai usar.
+
+---
+
 ## 0. Virada conceitual — 14/05/2026
 
 **O projeto evoluiu de "PCP de produção" para "PCP completo de empresa".**

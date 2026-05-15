@@ -1,156 +1,384 @@
-# Handoff — Sessão 12-13/05/2026
+# Handoff — Sessão 15/05/2026 (sexta)
 
-Eu sou Leonardo Sóglia, estagiário na Doces Vó Nena, desenvolvendo o
-**PCP Vó Nena** (Streamlit + Postgres) como projeto de estágio e TCC.
-
-Esta sessão concluiu a **Etapa 4 (migração SQLite → Postgres + deploy
-na nuvem)**. O app está no ar em produção, mas tem um erro pendente
-de diagnóstico. A próxima sessão começa daqui.
-
-**Antes de tudo**, lê o `CLAUDE.md` na íntegra — ele tem o contexto
-de negócio, decisões arquiteturais consolidadas, regras de cocada/palha/
-PM, pessoas, e o estado atual atualizado. Este arquivo é só o relato
-da sessão pra você entender o caminho que percorremos.
+> **Pra você que acabou de abrir uma nova sessão do Claude Code neste projeto:**
+> Leia este arquivo INTEIRO antes de fazer qualquer coisa. Em seguida o `CLAUDE.md`
+> (referência técnica). Em seguida o `CADERNO.md` (diário com descobertas, perguntas,
+> roadmap). Só depois disso, responda ao Leonardo.
 
 ---
 
-## 1. O que foi feito nesta sessão (12-13/05)
+## TL;DR (1 minuto)
 
-### 1.1 Supabase configurado do zero
-- Conta criada com GitHub OAuth (`bandroid289@gmail.com`).
-- Organização `doces-vo-nena`, projeto `pcp-vo-nena`, região São Paulo (`sa-east-1`).
-- Postgres 17.6, free tier, compute NANO.
-- Senha do banco gerada via gerador automático do Supabase (sem chars especiais → sem URL-encoding).
-- Senha guardada em `OneDrive/_secrets/supabase_pcp.txt` (Leonardo planeja migrar pra Bitwarden).
-- URL do pooler transaction (porta 6543) salva em `.streamlit/secrets.toml` local.
-
-### 1.2 Smoke test de conexão validado
-- Script standalone (`smoke_test_conexao.py`, depois apagado) conectou no Supabase, rodou `SELECT 1` e confirmou Postgres 17.6 + sa-east-1 + pooler.
-
-### 1.3 Bootstrap `st.secrets → os.environ` aplicado
-- 6 linhas inseridas no topo de `lancamento.py` (entre linha 20 e 22) e `painel.py` (entre linha 9 e 10).
-- Padrão: `if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets: os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]`.
-- Preserva env var explícita (útil pra scripts CLI como `migrar_dados_sqlite_para_postgres.py`).
-
-### 1.4 Schema criado no Supabase
-- `python -c "import database; database.init_db()"` com `DATABASE_URL` setada via PowerShell.
-- 10 tabelas criadas: 4 de folha (vazias inicialmente) + 6 de referência (populadas pelo `_seed_referencias`).
-
-### 1.5 Migração SQLite → Postgres
-- Backup pré-migração: `pcp_vo_nena.db.bak.20260512_161629` (136 KB, mantido).
-- Dry-run identificou 13 datas (2026-04-02 → 2026-05-12).
-- **1ª tentativa de migração real FALHOU** com `psycopg.errors.DuplicatePreparedStatement: prepared statement "_pg3_0" already exists`.
-- **Causa:** PgBouncer transaction mode multiplexa transações em conexões backend; psycopg 3 nomeia prepared statements de forma determinística e colide ao reutilizar uma conexão backend.
-- **Correção:** adicionado `prepare_threshold=None` em `database.py:get_conn()` no `psycopg.connect(...)`. 1 linha + comentário explicativo.
-- **2ª tentativa OK:** 13 folhas migradas, paridade confirmada: `folha_cocada=78`, `folha_palha=65`, `papelzinho_joel=54`, `folha_pm_balas_doces=13`.
-- **Tabela `estoque` NÃO foi migrada** — o script só toca as 4 tabelas de folha. Tem 25 linhas no Postgres (do seed) mas o SQLite local pode ter dados adicionais de contagens diárias. Verificar na próxima sessão.
-
-### 1.6 Validação local
-- `python -m streamlit run lancamento.py --server.port=8502` em background, health endpoint HTTP 200.
-- Script ad-hoc validou stack `database.py → Postgres`: leu 13 datas, calculou derivados, retornou metas e conversões. Stack 100% funcional contra Postgres.
-
-### 1.7 Git + GitHub
-- `git init` + commit inicial `1b29f03` ("Estado inicial: dual-backend SQLite/Postgres pronto pra deploy").
-- 16 arquivos comitados, 4826 linhas. Repositório criado em `github.com/leonardosoglia/pcp-vo-nena` (privado).
-- `.gitignore` expandido pra cobrir `historico_sessoes/`, `.claude/`, `_tmp_*.py`, `smoke_test_*.py`, `_streamlit_*.txt`.
-- Push HTTPS bem sucedido (Credential Manager Windows já tinha auth cacheada).
-- Arquivo zumbi `.streamlit/smoke_test_conexao.py` (0 bytes, criado por um Out-File em path errado em sessão anterior) removido.
-
-### 1.8 Deploy no Streamlit Community Cloud (saga longa)
-- Vários travas até funcionar:
-  - Streamlit não enxergava o repo privado `pcp-vo-nena` no dropdown — só listava `painel-vonena` e `2025.2-IAD-LEONARDO`.
-  - Tentamos: revogar e reautorizar OAuth (2 entradas "Streamlit" e "Streamlit Community Cloud" em `github.com/settings/applications`), instalar GitHub App (404 — Streamlit não usa GitHub App tradicional), trocar de browser (Opera → Chrome, descartou hipótese de VPN), aguardar sync.
-  - **Solução que funcionou:** tornar o repo **público temporariamente** no GitHub (Settings → Danger Zone → Change visibility → Make public). O Streamlit conseguiu clonar e deployar.
-  - **Leonardo deve voltar o repo pra privado depois** (mesmo caminho, Make private). Streamlit Cloud continua servindo o app mesmo após a mudança.
-- Configuração do app: Python 3.14, secrets coladas no Advanced settings (DATABASE_URL via TOML), Main file `lancamento.py`, App URL `pcp-vo-nena`.
-- App público: **`https://pcp-vo-nena.streamlit.app`**.
-
-### 1.9 Erro de runtime visível no app deployado
-- App carrega, mostra a UI, lê dados do Postgres, mas em algum momento explode com:
-  ```
-  psycopg.errors.InternalError_: This app has encountered an error...
-  File "/mount/src/pcp-vo-nena/lancamento.py", line 688, in <module>
-      metas_dia = {r["sabor"]: r for r in get_metas_45g()}
-  File "/mount/src/pcp-vo-nena/database.py", line 527, in get_metas_45g
-      rows = conn.execute("SELECT * FROM metas_45g").fetchall()
-  ```
-- Mensagem real foi "redacted" pelo Streamlit Cloud — precisa do log completo via botão "Manage app" (canto inferior direito do app) pra ver o erro real.
-- **Hipóteses:**
-  - (a) Janela de manutenção do pooler Supabase em `sa-east-1` — banner do dashboard anunciou "Shared pooler maintenance May 13-14". Hoje é 13/05.
-  - (b) Outro padrão de prepared statement não coberto por `prepare_threshold=None`.
-  - (c) Algo específico do `get_metas_45g` (talvez query simples sem WHERE clause aciona algum caminho diferente no psycopg).
-- **Leonardo concordou em ignorar o erro por enquanto** e abordar na próxima sessão.
+- **Estado:** app em produção (`pcp-vo-nena.streamlit.app`) com Etapas A + B feitas. Keepalive ativo. Suprimentos pronto pra receber cadastro.
+- **O que falta da sessão anterior:** Leonardo levou ficha de entrevista (29 perguntas) pro Eraldo no questionário pendente. **Vai chegar respondida nesta sessão nova.**
+- **Próxima grande virada decidida:** **migrar de Streamlit Cloud Free → Hugging Face Spaces** (16× mais RAM, não dorme, ainda grátis). Mas **com cuidado** — não destruir Streamlit Cloud até HF Spaces estar 100% validado.
+- **Visão estratégica recalibrada (importante):** o coração do projeto é o **PCP de produção**, NÃO o controle de insumos. Suprimentos é **suporte/contexto**, não driver. Detalhe abaixo.
+- **IA / ML:** Leonardo quer começar agora, ainda que de forma simples. Eu (Claude) preciso ser honesto sobre o que dá e o que não dá com poucos dados. Plano gradual abaixo.
 
 ---
 
-## 2. Decisões tomadas nesta sessão (vão pro TCC)
+## 1. Estado do projeto em 15/05/2026
 
-1. **Pooler transaction (porta 6543) + `prepare_threshold=None`** em vez de session pooler (5432). Preserva a Decisão Arquitetural original do projeto. Justificativa: prepared statements colidem com PgBouncer transaction mode porque o pooler não rastreia state per-conexão backend; desabilitar prepared statements no psycopg evita a colisão sem custo perceptível pra workload de baixa frequência do PCP.
-2. **`historico_sessoes/` gitignorado** — transcrições podem ter conteúdo sensível, repo é privado mas precaução faz sentido.
-3. **`painel_claude.py` e `Painel_Fabrica.py` (vazio) mantidos no commit** — versões legadas, Leonardo decidirá se remove em commits futuros.
-4. **Repo no GitHub privado** (mesmo Streamlit Community Cloud aceitar privado) — proteger decisões arquiteturais em validação até depois da defesa do TCC (~07/2026), depois tornar público pra portfólio.
+### O que está rodando hoje em produção
+- **App público:** `https://pcp-vo-nena.streamlit.app/`
+- **Plataforma:** Streamlit Community Cloud Free + Supabase Postgres (sa-east-1)
+- **Páginas:** Lançamento (home) · Painel · Insights · **Suprimentos (NOVO 15/05)**
+- **Folhas no banco:** ~14 (mais novas: 11, 12, 13, 14, 15/05)
+- **GitHub:** `leonardosoglia/pcp-vo-nena` (público temporariamente)
 
----
+### Roadmap de Etapas (A-F)
 
-## 3. Estado do app em produção (13/05/2026)
+| Etapa | O quê | Status |
+|---|---|---|
+| **A** | Renomeação por departamentos (Gestão / Produção / Corte / Embalagem) | ✅ 14/05 |
+| **B** | Modelo de Suprimentos (3 tabelas + página + MRP simplificado) | ✅ 15/05 |
+| **C** | Cadastro inicial de insumos | ⏳ Aguarda entrevista Eraldo |
+| **D** | Cadastro de Receitas (BOM) | ⏳ Aguarda entrevista Eraldo |
+| **E** | Auto-baixa por produção (Camada 1.5) | ⏳ Semana 22-29/05 |
+| **F** | Alertas + sugestão de compra + Sigee Cloud | ⏳ Parcial até defesa |
 
-| Item | Status |
-|------|--------|
-| Supabase | ✅ Healthy, 13 folhas migradas, paridade total com SQLite local |
-| GitHub | ✅ Repo `pcp-vo-nena` (privado), commit `1b29f03` |
-| Streamlit Cloud | ⚠️ App no ar (`pcp-vo-nena.streamlit.app`) mas com erro psycopg pendente |
-| App local (8501, 8502) | ✅ Funcional (usa SQLite por default se `DATABASE_URL` não setado) |
-| Backup SQLite | ✅ `pcp_vo_nena.db.bak.20260512_161629` |
-| 2 apps antigos `painel-vonena` | ⚠️ Ainda no dashboard Streamlit Cloud, ocupam slots, Leonardo vai deletar |
-
----
-
-## 4. Pendências imediatas (próxima sessão começa por aqui)
-
-### Bloqueador
-1. **Diagnosticar `psycopg.InternalError_`** no app em produção:
-   - Pedir Leonardo abrir `pcp-vo-nena.streamlit.app`, clicar "Manage app" (canto inferior direito), capturar o log completo.
-   - Se for manutenção do pooler (janela 13-14/05), basta esperar passar e validar de novo.
-   - Se for outro padrão de prepared statement, ajustar `database.py` (talvez explicit `PREPARE`/`DEALLOCATE` ou `cursor.execute(query, prepare=False)` em queries específicas).
-
-### Limpeza
-2. Apagar os 2 apps antigos `painel-vonena · painel_claude.py` e `painel-vonena · painel.py` no dashboard Streamlit Cloud (3 pontinhos → Delete app).
-3. Voltar o repo `pcp-vo-nena` pra **privado** no GitHub (foi tornado público temporariamente pra desbloquear o deploy).
-
-### Validação com fábrica
-4. Mandar link `pcp-vo-nena.streamlit.app` pro Eraldo testar — só depois do erro psycopg resolvido. Pedir feedback de UX e regras de negócio.
-
-### Decisão arquitetural pendente
-5. **`painel.py` no Streamlit Cloud:** dois caminhos:
-   - (a) Subir como segundo app (`painel-pcp-vo-nena.streamlit.app`), Streamlit Cloud free permite 3 apps.
-   - (b) Consolidar `lancamento` + `painel` em estrutura multi-página (`pages/`), 1 app só, navegação por sidebar. Refactor ~30min.
-   - Decisão depende de feedback do Eraldo sobre UX.
-
-### Migração faltante
-6. **Estoque:** o script de migração só copiou as 4 tabelas de folha. `estoque` no Postgres tem 25 linhas do seed inicial. Verificar se o SQLite local tem contagens diárias adicionais que precisam ir pra produção. Se sim, criar script complementar (pode reaproveitar padrão do `migrar_dados_sqlite_para_postgres.py`).
-
-### Performance
-7. Adicionar `@st.cache_data(ttl=60)` nas funções de leitura (`get_folha_cocada`, `get_papelzinho_joel`, `get_metas_45g`, `get_conversoes`, etc.). Reduz latência percebida no app em produção (~20-50ms por query × ~10-15 queries por folha = lento ao navegar entre datas).
+**Cronograma TCC:**
+- 18/05 - 21/05: receber questionário, cadastrar Etapas C/D, iniciar HF Spaces migration
+- 22/05 - 29/05: Etapa E + Etapa 5 do TCC (polimento Camada 1)
+- 30/05 - 04/06: consolidação
+- **05/06:** começa escrita do TCC
+- **~18/07:** defesa
 
 ---
 
-## 5. Roadmap até a defesa
+## 2. O que rolou nesta sessão (15/05/2026)
 
-| Quando | O quê |
-|--------|-------|
-| **Próxima sessão** | Resolver psycopg, limpar apps antigos, voltar repo pra privado |
-| **Esta semana** | Mostrar pro Eraldo, ajustar conforme feedback |
-| **22-29/05/2026** | Etapa 5: polimento visual, KPIs comparativos, exportação PDF |
-| **05/06/2026** | Início da escrita do TCC |
-| **~18/07/2026** | Defesa |
+Lista do que foi feito hoje (em ordem):
+
+1. ✅ Resolvido erro `Oh no — Error running app` em produção (era repo privado bloqueando clone; voltou pra público).
+2. ✅ Pool de conexões Postgres adicionado em `database.py` (`psycopg-pool`, min 2, max 5).
+3. ✅ Pre-warm do pool no import time (mata cold start de TCP+TLS handshake).
+4. ✅ `get_folha_completa()` com 4 queries paralelas (ThreadPoolExecutor) — substituiu chamadas separadas.
+5. ✅ Cache TTL aumentado: folhas 60s → 5min, refs 1h → 24h.
+6. ✅ `folha_existe()` otimizado: 4 queries → 0 (reusa cache de `list_datas_folha`).
+7. ✅ Tema light forçado via `.streamlit/config.toml` (não usa mais dark do sistema).
+8. ✅ `plotly_chart` com `displayModeBar=False` em todos os gráficos (resolve zoom acidental no celular).
+9. ✅ `ZERO 45g` mascarado como "—" nas tabelas do Painel (produto não existe).
+10. ✅ Conversão de bandeja corrigida no banco: 6 kg recém-tacho / 5,5 kg pronta-corte (era "≈ 7 kg" errado).
+11. ✅ Limpeza profunda do PC do Leonardo: lixo Temp/Update/cache liberados (~5 GB), startups bloat removidos, plano de energia "Alto desempenho", **Autodesk completamente desinstalado** (~9 GB).
+12. ✅ Identificadas peças que ele comprou: RAM 4GB DDR4 3200 (vai funcionar 100%, slot livre) + SSD Patriot 120GB SATA (notebook tem baia 2.5" porque é modelo bateria 35Wh).
+13. ✅ **GitHub Actions keepalive** rodando: pinga app a cada 15 min em horário comercial (seg-sáb, 7h-19h BR). Resolve cold start sem custo.
+14. ✅ **Etapa B — Suprimentos** criada e deployada: 3 tabelas + 4 abas + helpers + cache + smoke test contra Supabase.
+15. ✅ Memórias persistentes salvas: `project_engrenagem_virada.md`, `project_pm_unidades.md`.
 
 ---
 
-## 6. Como me ajudar bem (lembrete pra próxima sessão)
+## 3. Clarificações IMPORTANTES de domínio (LEIA com atenção)
 
-- **Linguagem:** Leonardo é leigo em programação. Evitar jargão técnico ou explicar quando usar. Não usar "backend", "pooler", "OAuth", "deploy" etc. sem explicação curta.
-- **Postura:** especialista técnico em PCP + software, mas didático. Defender decisões com argumentos (vai pro TCC).
-- **Tom:** informal, PT-BR, direto. Sem sumário do que acabou de fazer no final da resposta.
-- **Antes de programar:** identificar inconsistências com o fluxo real da fábrica.
-- **Unidades explícitas:** und · bandejas · tachos — nunca misturar.
-- **Pausar e perguntar:** Leonardo se cansa de copiar/colar comandos. Quando ele delegar autonomia, executar e parar SÓ se der erro real ou precisar de decisão. Mas quando ele pedir pra ir devagar, ir devagar de verdade.
+### 3.1 Insumos vs Estoque vs Produto Semiacabado
+
+**Discussão de 15/05 que reposiciona o projeto:**
+
+A fábrica trabalha com **3 categorias de "coisa medida"**, não 1:
+
+| Categoria | O que é | Quem conta | Onde está no sistema |
+|---|---|---|---|
+| **Insumo** (matéria-prima) | Coco ralado, leite condensado, açúcar, mel, plástico, cinta... | Quase ninguém conta sistematicamente | **Suprimentos** (Etapa B — feito hoje) |
+| **Produto semiacabado** | Bandejas cortadas mas não embaladas; massa virada esperando o corte | Leonardo, Joel — informalmente | Folha de Produção (campos `cort1_*`, `joel_pv`, `joel_v`) |
+| **Produto acabado** (estoque) | Cocada embalada pronta pra venda; PM em display pronto | Leonardo (todo dia 7h-10h) | Folha de Produção (campos `emb_*`) |
+
+**Insight crítico:** o **Eraldo NÃO produz olhando insumos.** Ele decide ordens olhando:
+1. **Estoque acabado** (Embalados)
+2. **Semiacabado** (Cortados ②, Viradas, P/Virar)
+3. **Parâmetro do dia** (demanda esperada por dia da semana)
+4. **Mão de obra disponível** (quem tá no chão de fábrica hoje)
+5. **Pedidos de cliente** (encomendas pontuais)
+
+Insumos entram como **CONTEXTO defensivo:** "preciso saber se vai faltar coco antes de ordenar 24 bandejas, mas o coco não é o GATILHO da ordem — o gatilho é a demanda."
+
+**Implicação prática pro sistema:**
+- O **coração** é a Folha de Produção + Painel + Insights (Camadas 0 + 1).
+- Suprimentos é **suporte:** avisa sobre falta antes de virar problema.
+- **NÃO** tornar Suprimentos o centro da experiência. Eraldo não vai abrir Suprimentos como primeira tela — abre Lançamento ou Painel.
+- A página de "Necessidades do dia" da aba Suprimentos é **alerta passivo**, não fluxo principal.
+
+### 3.2 Foco do projeto, na visão do Leonardo (palavras dele)
+
+> *"Minha ideia principal é tornar esse PCP melhor, mais prático, economizar tempo com ele. (...) É interessante ter insights que sejam importantes e que agreguem, que mostre aquela visão diferenciada, mas, minha ideia principal é tornar esse PCP melhor."*
+
+**Tradução pra próxima sessão:** priorize sempre que reduza tempo/erro no dia-a-dia do Eraldo. Insights, IA e Suprimentos só agregam SE forem práticos. Não criar feature complexa que ele não vai usar.
+
+### 3.3 Conversão de bandeja corrigida hoje
+
+| Estado da bandeja | Peso |
+|---|---|
+| Recém-saída do tacho (úmida) | **~6 kg** |
+| Pronta pra corte (após viração + descanso) | **~5,5 kg** |
+
+A conversão "≈ 7 kg" que estava na tabela era incorreta. Atualizado no banco hoje (init_db re-seed). Documentado em `CLAUDE.md` seção 4 (regras de negócio) e na memória persistente.
+
+### 3.4 Engrenagem da Virada (`ord_prod_virada`)
+
+Já documentado em memória persistente, mas vale repetir pra próxima sessão entender:
+
+`ord_prod_virada` é **resposta corretiva** ao Viradas② baixo. Quando sobra pouco/nenhum estoque de bandejas viradas após o corte do dia, a Gestão pede pra virar X bandejas pra repor.
+
+Exemplo 15/05: Leite Condensado V② = 1 → ord_prod_virada(L) = 15.
+
+---
+
+## 4. Pendências imediatas (bloqueadores ou esperando alguém)
+
+### 4.1 ⏳ Questionário Eraldo (29 perguntas) — ESTÁ COM ELE
+- Arquivo: `entrevistas/01_pcp_inicial.docx` (.pdf também)
+- Status: respondendo no momento desta sessão (15/05 tarde)
+- **Vai chegar respondido na próxima sessão.**
+- Quando chegar, Leonardo vai mandar as respostas (transcrever no chat, ou commitar arquivo `entrevistas/01_pcp_inicial_respondido.md`)
+- Próxima sessão: absorver respostas → cadastrar insumos (Etapa C) → cadastrar receitas/BOM (Etapa D) → atualizar `CADERNO.md` com aprendizados.
+
+### 4.2 Folha de produção 15/05/2026 (sexta)
+- Preenchida em `pcp-vo-nena.streamlit.app` (Leonardo testou ali mesmo)
+- Dados no banco
+
+### 4.3 Asteriscos no papelzinho
+- Caso conhecido: às vezes Mini/Pet do papelzinho Joel já foi embalada antes da folha fechar → contagem dupla em Cortados②
+- Solução atual: aviso visual + obs no campo
+- Solução futura (Fase 1.5): checkbox por célula
+
+### 4.4 Tabela `estoque` (legada)
+- Tem 25 linhas de seed inicial
+- Não foi migrada do SQLite local pro Postgres (script de migração só toca 4 tabelas de folha)
+- Hoje: usada só pra alertas no sidebar do Painel
+- Decidir destino: migrar de fato OU substituir pela nova lógica de Suprimentos
+
+---
+
+## 5. Plano para a próxima sessão (em ordem de prioridade)
+
+### Prioridade 1 — Migração para Hugging Face Spaces
+
+**Decisão:** Leonardo quer migrar. Motivo principal: HF Spaces tem **16 GB de RAM** (vs 1 GB Streamlit Cloud Free), não dorme, é gratuito.
+
+**MAS Leonardo tem receio de perder o que já está funcionando.** Plano de migração com **rollback seguro**:
+
+#### Estratégia: NÃO derrubar Streamlit Cloud até HF Spaces estar 100% validado.
+
+| Fase | Ação | Risco se der errado |
+|---|---|---|
+| **1. Criar Space no HF** | Conta HF (login Google), criar Space novo apontando pro mesmo repo GitHub | Zero — Streamlit Cloud continua intocado |
+| **2. Configurar secrets HF** | DATABASE_URL no painel HF (mesmo Supabase) | Zero |
+| **3. Adicionar README.md com YAML header** | HF exige (sdk: streamlit, app_file: lancamento.py) | Pode quebrar se errar formato, mas é só editar |
+| **4. Testar em paralelo** | Acessar `huggingface.co/spaces/leonardosoglia/pcp-vo-nena` por uma semana | Zero — Streamlit Cloud continua |
+| **5. Comparar:** velocidade, estabilidade, custo de manutenção | Anotar prós/contras observados | Zero |
+| **6. SE HF Spaces der certo → descomissionar Streamlit Cloud (deletar app + keepalive workflow)** | Trocar URL na ficha de entrevista + comunicação com Eraldo | Pode-se voltar Streamlit Cloud em ~30 min se precisar |
+| **7. SE HF Spaces der problema → manter Streamlit Cloud, fechar Space** | Sem perda | Zero |
+
+**Custo estimado de migração:** ~30-45 min de trabalho (setup + teste).
+
+**O que NÃO muda:**
+- Código Python (mesmo lancamento.py, pages/, etc.)
+- Banco de dados (mesmo Supabase Postgres)
+- Repo GitHub (mesmo)
+
+**O que muda:**
+- URL do app (`*.streamlit.app` → `huggingface.co/spaces/...`)
+- Plataforma de hosting
+- Como deployar (HF tem fluxo próprio)
+
+### Prioridade 2 — Receber e absorver respostas do questionário Eraldo
+
+Quando Leonardo mandar:
+
+1. Ler todas as 29 respostas
+2. Cadastrar insumos na aba 📦 Insumos (Etapa C) — provavelmente 30-50 itens
+3. Cadastrar receitas (BOM) na aba 📋 Receitas (Etapa D) — provavelmente 20-30 produtos
+4. Atualizar `CADERNO.md` (seção 3 → seção 1 e 2) com respostas
+5. Atualizar `CLAUDE.md` com regras de negócio novas descobertas
+6. Salvar memórias persistentes pra descobertas críticas
+7. Conferir se o cálculo de Necessidades faz sentido com dados reais
+
+### Prioridade 3 — Introdução gradual de IA / Machine Learning
+
+Leonardo quer começar a usar IA. **Não posso prometer mágica.** Plano realista abaixo na seção 6.
+
+### Prioridade 4 — Bugs conhecidos pra corrigir
+
+| Bug | Reportado | Prioridade |
+|---|---|---|
+| Gráficos plotly quebram no celular ao tocar | 15/05 | ✅ Resolvido com `displayModeBar: False` |
+| Tema dark forçado pelo sistema | 15/05 | ✅ Resolvido com config.toml |
+| Cores escuras ilegíveis em dark mode | 15/05 | ✅ Resolvido (tema light forçado) |
+| Necessidade visual de Viradas② + ord_prod_virada lado a lado | 15/05 | Pendente — UX melhoria pra próxima sessão |
+
+---
+
+## 6. Sobre IA e Machine Learning (visão honesta — LEIA)
+
+Leonardo quer começar a usar IA. **Eu preciso ser honesto com ele:**
+
+### ❌ O que IA / ML NÃO faz com 30 dias de dados:
+- Previsão precisa de demanda (preciso 6+ meses)
+- Otimização complexa (preciso modelar todas as restrições, custos, capacidades)
+- "Entender" a empresa autonomamente
+- Sugerir ordens com confiança alta
+
+### ✅ O que IA / ML pode fazer JÁ com poucos dados:
+- **Detecção de anomalias estatística** (Isolation Forest, Z-score) — melhora a regra "LP > T+30%" atual
+- **Curva ABC de sabores** (clustering simples) — quem gira muito, médio, pouco
+- **Projeção simples de demanda** (média móvel ponderada por dia da semana) — funciona razoável com 4 semanas de dados
+- **Detecção de tendência** (slope da regressão linear) — vendas subindo/caindo
+
+### 🤖 LLM (Claude API) como "assistente cognitivo" — pode usar AGORA:
+- Adicionar botão "Pergunte ao Claude" no app
+- Quando usuário aperta, sistema manda contexto (folha atual + métricas + descobertas do CADERNO) + pergunta pro Claude API
+- Resposta volta em ~2-3 segundos
+- Casos de uso:
+  - "Por que o sistema está sugerindo cortar 20 bandejas de T hoje?"
+  - "Onde estamos perdendo mais venda este mês?"
+  - "Qual sabor tá com viés mais positivo?"
+- **Custo:** R$ 0,01 a R$ 0,10 por consulta (Claude Haiku é barato)
+- **Tempo de implementação:** ~3-4h. Pode ser feito antes do TCC e vira capítulo bonito.
+
+### 🎓 Pro TCC:
+
+Recomendação minha (Claude da próxima sessão deve seguir):
+- **Capítulo 4 (Implementação):** descrever Camada 1 atual (regras heurísticas, detecção de anomalia LP>T)
+- **Capítulo 4.5 ou seção dentro de 4 (IA Aplicada):** implementar 1-2 técnicas estatísticas/ML simples:
+  - Detecção de anomalia com Isolation Forest
+  - Projeção de demanda com média móvel + sazonalidade dia da semana
+  - Botão "Pergunte ao Claude" no app
+- **Capítulo 5 (Resultados):** mostrar que as técnicas detectaram anomalias reais e ajudaram nas decisões
+- **Capítulo 6 (Trabalhos Futuros):** dizer que com 6+ meses de dados, modelos preditivos vão ficar muito melhores
+
+### ❗ O que NÃO prometer ao Leonardo:
+- "Sistema vai aprender sozinho" (vai aprender com dados — precisa tempo)
+- "Vai prever exato o que produzir" (sugere, ele aprova/ajusta)
+- "Vai eliminar trabalho do Eraldo" (vai amplificar a capacidade dele, não substituir)
+
+---
+
+## 7. Como funciona o sistema NA PRÁTICA (visão alinhada com Leonardo)
+
+Pra próxima sessão entender a visão de uso real:
+
+### Fluxo do dia típico (depois de tudo pronto):
+
+1. **7h-10h:** Leonardo conta estoque (acabado + semiacabado) no chão de fábrica → digita no app
+2. **~10h:** Eraldo abre o app no notebook/celular:
+   - **Painel** mostra: Cortados ②③, Viradas, P/Virar, alertas
+   - **Insights** mostra: padrão de excesso/falta semanal, anomalias
+   - **Suprimentos > Necessidades** mostra: o que vai precisar comprar nos próximos dias
+3. **~10h30:** Eraldo define ordens olhando: estoque + semiacabado + parâmetro + mão-de-obra + pedidos + (defensivamente) insumos
+4. **Eraldo salva folha:**
+   - (Etapa E futura) Sistema baixa automaticamente insumos consumidos
+   - Painel atualiza pra cada departamento
+5. **11h-18h:** cada departamento (Joel/Gil/Leonília/Maria) abre sua aba no celular, executa
+6. **Fim do dia:** Eraldo confere o que foi produzido vs planejado, sistema mostra alertas pendentes
+
+### O que importa:
+- **Reduzir tempo gasto** preenchendo papel (de 18 min → 6 min)
+- **Eliminar erros** de cálculo
+- **Visibilidade histórica** instantânea (consulta em segundos vs procurar pasta por minutos)
+- **Antecipar problemas** (insumo acabando, sabor sobrando crônico)
+
+### O que NÃO importa (na visão do Leonardo):
+- Sistema dirigir decisões — ele complementa, não substitui Eraldo
+- Controle obsessivo de cada grama de insumo — Eraldo trabalha por estoque
+- Features complexas que ninguém usa
+
+---
+
+## 8. Estrutura técnica resumida (pra orientação)
+
+### Arquivos principais
+- `database.py` — schema, CRUD, conexões. Backend dual SQLite/Postgres. Pool psycopg.
+- `cached_db.py` — wrappers `@st.cache_data` (TTL folhas 5min / refs 24h / Suprimentos 5min). `invalidar_folha()` + `invalidar_suprimentos()` chamados após save/delete.
+- `lancamento.py` — entry point Streamlit. Formulário diário da folha.
+- `pages/1_Painel.py` — visualização por departamento.
+- `pages/2_Insights.py` — diagnóstico operacional automático (6 hipóteses).
+- `pages/3_Suprimentos.py` — **NOVO 15/05** — 4 abas (Insumos, BOM, Movimentações, Necessidades).
+- `analise.py` — importado pela aba Análise do Painel. Curva ABC inicial.
+- `.github/workflows/keepalive.yml` — anti cold-start.
+- `.streamlit/config.toml` — tema light forçado + paleta Vó Nena.
+
+### Banco Supabase (Postgres 17.6, sa-east-1)
+**Tabelas de Folha:**
+- `folha_cocada`, `folha_palha`, `papelzinho_joel`, `folha_pm_balas_doces`
+
+**Tabelas de Referência:**
+- `metas_45g`, `metas_mini_pet`, `metas_potes`, `parametros_pvirar_ideal`, `conversoes`, `estoque`
+
+**Tabelas de Suprimentos (Etapa B, novas):**
+- `insumos`, `bom_produto`, `movimentos_insumo`
+
+### Constantes/helpers de domínio em `database.py`
+- `SABORES_COCADA`, `SIGLA_COCADA` (T, L, B, C, P, Z)
+- `SABORES_PALHA`, `SIGLA_PALHA` (T, L, CH, CK, LIM)
+- `SABORES_PALHA_50G` (T, L, CH)
+- `CATEGORIAS_INSUMO` (matéria-prima, embalagem, pote, cinta, display, outros)
+- `UNIDADES_INSUMO`, `TIPOS_MOVIMENTO`, `ORIGENS_MOVIMENTO`
+- `chave_produto_cocada(sabor, tamanho)` → `cocada_T_45g_band`
+- `chave_produto_palha(sabor, tamanho)` → `palha_L_50g_band`
+- `listar_produtos_possiveis()` → lista pra dropdown da UI BOM
+
+---
+
+## 9. Como me ajudar bem (postura — válido pra próxima sessão também)
+
+**Pra próxima sessão Claude Code:**
+
+- **Postura técnica:** especialista em PCP (Eng. de Produção) + software (Python sênior). Tom didático mas direto. Não simplifica prematuramente. Argumenta decisões.
+- **Tom:** PT-BR informal mas profissional. Sem floreios.
+- **Antes de codar:** **identifica inconsistências** com o fluxo real da fábrica. **Pergunta** se algo não bate.
+- **Código:** sempre completo. Sem placeholders. Pedaços validáveis antes do próximo.
+- **Unidades:** explícitas sempre (kg vs L vs und vs band vs tacho). Nunca misturar.
+- **Decisões arquiteturais:** explica o **porquê** — vira capítulo do TCC.
+- **Memória persistente:** salva descobertas importantes em `~/.claude/projects/.../memory/`. Atualiza `MEMORY.md` (índice).
+- **CADERNO.md:** atualiza com cada conversa relevante (descobertas, perguntas, hipóteses).
+
+**Sobre o Leonardo:**
+- Estagiário Eng. Produção (UFCG P10)
+- Reside em SP pro estágio + TCC
+- Leigo em programação (mas absorvendo bem)
+- Profundo conhecedor do domínio PCP/Vó Nena
+- Tempo curto até defesa (~9 semanas)
+- Quer construir algo IMPACTANTE pro TCC e pra fábrica
+
+**Princípios:**
+- **Fidelidade ao papel antes de automação.** Sistema espelha papel; depois automatiza.
+- **Departamentos > nomes próprios** na UI (decidido 14/05).
+- **PCP > Suprimentos > IA** (em ordem de prioridade da atenção).
+- **Validação humana sempre** — sistema sugere, Eraldo decide.
+
+---
+
+## 10. Primeira ação da próxima sessão
+
+Quando Leonardo abrir a sessão nova, **ele deve:**
+
+1. Mandar mensagem inicial tipo *"continua de onde paramos"* ou similar
+2. **Eventualmente:** mandar respostas do questionário Eraldo
+
+Você (Claude) deve:
+
+1. **Ler:**
+   - Este arquivo (`CONTEXTO_SESSAO_ANTERIOR.md`) — onde paramos
+   - `CLAUDE.md` — referência técnica
+   - `CADERNO.md` — diário do projeto
+   - Memórias persistentes em `~/.claude/projects/.../memory/`
+2. **Resumir** pra ele em 5-7 linhas: "Estamos em X, próximo passo é Y, você tinha pendência Z."
+3. **Perguntar:** "Você quer (a) começar a migração HF Spaces, (b) já tem o questionário pra processar, ou (c) outra prioridade?"
+4. **Não tomar atitude antes do alinhamento.**
+
+---
+
+## 11. Resumo executivo das decisões pendentes
+
+| Decisão | Status | Responsável |
+|---|---|---|
+| Migrar pra HF Spaces | ✅ Decidido (com rollback seguro) | Claude próxima sessão executa |
+| Implementar Etapa C/D | ✅ Aguarda questionário | Leonardo + Claude próxima sessão |
+| Implementar Etapa E (auto-baixa) | Programado pra 22-29/05 | Claude futuras sessões |
+| Implementar IA (LLM "Pergunte ao Claude") | A discutir na próxima | Decisão conjunta |
+| Voltar repo pra privado | Pendente — deixar público até HF Spaces validado | Leonardo |
+
+---
+
+**Fim do handoff. Sessão atual encerrada em 15/05/2026.**
+
+*Boa sorte na próxima sessão. Quando o Eraldo te der as respostas, o projeto destrava.*
