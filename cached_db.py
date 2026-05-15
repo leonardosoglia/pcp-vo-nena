@@ -46,6 +46,23 @@ upsert_folha_palha = _db.upsert_folha_palha
 upsert_papelzinho_joel = _db.upsert_papelzinho_joel
 upsert_pm_balas_doces = _db.upsert_pm_balas_doces
 
+# Suprimentos — escrita
+criar_insumo = _db.criar_insumo
+atualizar_insumo = _db.atualizar_insumo
+excluir_insumo = _db.excluir_insumo
+upsert_bom_linha = _db.upsert_bom_linha
+excluir_bom_linha = _db.excluir_bom_linha
+registrar_movimento_insumo = _db.registrar_movimento_insumo
+
+# Suprimentos — constantes e helpers de domínio (sem cache, em memória)
+CATEGORIAS_INSUMO = _db.CATEGORIAS_INSUMO
+UNIDADES_INSUMO = _db.UNIDADES_INSUMO
+TIPOS_MOVIMENTO = _db.TIPOS_MOVIMENTO
+ORIGENS_MOVIMENTO = _db.ORIGENS_MOVIMENTO
+chave_produto_cocada = _db.chave_produto_cocada
+chave_produto_palha = _db.chave_produto_palha
+listar_produtos_possiveis = _db.listar_produtos_possiveis
+
 
 # ════════════════════════════════════════════════════════════════════════════
 # LEITURAS DE FOLHA — TTL curto + invalidação manual no save
@@ -164,7 +181,58 @@ def invalidar_referencias():
     get_conversoes.clear()
 
 
+def invalidar_suprimentos():
+    """Invalida cache de Suprimentos. Chamar após criar/editar/excluir insumo,
+    BOM ou registrar movimento."""
+    get_insumos.clear()
+    get_insumo.clear()
+    get_insumo_por_codigo.clear()
+    get_bom_produto.clear()
+    get_movimentos_insumo.clear()
+    calcular_necessidades_do_dia.clear()
+
+
 def invalidar_tudo():
     """Limpa todo o cache de leitura. Útil em testes ou em botão de "atualizar"."""
     invalidar_folha()
     invalidar_referencias()
+    invalidar_suprimentos()
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# SUPRIMENTOS — leituras com cache
+# ════════════════════════════════════════════════════════════════════════════
+# TTL médio (5min) pra suprimentos — mudam mais que metas (24h) mas menos que
+# folhas (que são salvas várias vezes ao dia).
+@st.cache_data(ttl=300, show_spinner=False)
+def get_insumos(categoria=None, somente_ativos=True):
+    return _db.get_insumos(categoria=categoria, somente_ativos=somente_ativos)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_insumo(insumo_id):
+    return _db.get_insumo(insumo_id)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_insumo_por_codigo(codigo):
+    return _db.get_insumo_por_codigo(codigo)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_bom_produto(produto_chave):
+    return _db.get_bom_produto(produto_chave)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_movimentos_insumo(insumo_id=None, data_inicio=None, data_fim=None, tipo=None, limite=100):
+    return _db.get_movimentos_insumo(
+        insumo_id=insumo_id, data_inicio=data_inicio, data_fim=data_fim,
+        tipo=tipo, limite=limite,
+    )
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def calcular_necessidades_do_dia(data):
+    """TTL curto (60s) — depende de folha atual + estoque atual, ambos podem mudar."""
+    return _db.calcular_necessidades_do_dia(data)

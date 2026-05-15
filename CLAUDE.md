@@ -38,6 +38,8 @@ streamlit run lancamento.py --server.port=8502
 | `inserir_historico.py` | Script one-shot de inserção em massa (já rodou) |
 | `migrar_dados_sqlite_para_postgres.py` | ETL idempotente SQLite → Supabase (pré-requisito: `DATABASE_URL`) — importa só `database.py`, sem Streamlit |
 | `MIGRATION_TO_POSTGRES.md` | Checklist técnico da Etapa 4 (atualizado em 12/05) |
+| `pages/3_Suprimentos.py` | Página Suprimentos (Etapa B — insumos, BOM, movimentações, necessidades) |
+| `.github/workflows/keepalive.yml` | Anti cold-start do Streamlit Cloud free (ping cada 15min em horário comercial) |
 
 Dados físicos em `folhas-semanais/` (organizado por `YYYY-MM_mês/semana_DD-DD_MM_a_DD-DD_MM_YYYY/`).
 
@@ -132,6 +134,8 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 - **Tema light forçado (15/05/2026):** `.streamlit/config.toml` define `base = "light"` + paleta Vó Nena. Antes: Streamlit detectava dark mode do sistema/celular e aplicava automaticamente, deixando fontes ilegíveis em tabelas customizadas. Padronizado em light pra consistência visual.
 - **Plotly mobile-friendly (15/05/2026):** todos os `st.plotly_chart` agora têm `config={"displayModeBar": False, "responsive": True}`. Esconde a barra de ferramentas (zoom/pan/etc) que causava zoom acidental quando o usuário tocava na tela do celular.
 - **Engrenagem da Virada (15/05/2026):** `ord_prod_virada` é resposta corretiva ao Viradas② baixo — se sobra pouca virada após o corte do dia, Gestão pede pra virar X bandejas pra repor estoque. Documentado em memória persistente; melhoria futura: mostrar Viradas② + ord_prod_virada lado a lado, com sugestão automática na Camada 2.
+- **Etapa B — Modelo de Suprimentos (15/05/2026):** 3 tabelas novas (`insumos`, `bom_produto`, `movimentos_insumo`) + página `pages/3_Suprimentos.py` com 4 abas (Insumos / BOM / Movimentações / Necessidades). Aplica MRP simplificado: folha do dia × BOM × estoque atual → necessidade de compra. Smoke test passou contra Supabase. Pronto pra receber cadastro real depois da entrevista com Eraldo. Chaves canônicas: `cocada_<sigla>_<tamanho>_band`, `palha_<sigla>_<tamanho>_band`, `pm_bolo`, `bala_tacho`, `doce_und`. Auto-baixa por produção (Etapa E) integra com `salvar_folha_completa` na próxima fase.
+- **GitHub Actions keepalive (15/05/2026):** `.github/workflows/keepalive.yml` pinga `pcp-vo-nena.streamlit.app` a cada 15 min entre 7h-19h Brasil (seg-sáb). Evita cold start de 20-40s do Streamlit Cloud free tier. Custo zero, gerenciado no próprio repo. Pode ser pausado pelo Actions > Disable workflow.
 - **Renomeação por departamento (14/05/2026):** UI usa "Gestão", "Produção", "Corte", "Embalagem" em vez de nomes próprios. Profissionaliza o sistema (cara de ERP). Pessoas reais permanecem nos comentários do código e no CLAUDE.md como referência. Documento físico "Papelzinho do Joel" mantém o nome (referência cultural da fábrica). Campos legados do banco (`obs_joel`, `obs_gil`, `obs_leonilia`) mantêm os nomes — só os labels da UI mudam.
 - **Virada conceitual: PCP completo, não só de produção (14/05/2026).** Próximo grande módulo é **Suprimentos** (matéria-prima + insumos + embalagens). Aplica MRP simplificado: ordem de produção → BOM (receita) → necessidade de insumo → confere com estoque → sugere compra. Fecha o ciclo de PCP. Integração futura com Sigee Cloud (ERP da empresa). Vira capítulo brilhante do TCC (MRP em fábrica de doces). Roadmap em Etapas A-F no `CADERNO.md`.
 

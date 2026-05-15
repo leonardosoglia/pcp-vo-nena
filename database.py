@@ -69,6 +69,85 @@ SIGLA_PALHA = {"TRADICIONAL": "T", "LEITE EM PÓ": "L", "CHURROS": "CH",
 SABORES_PALHA_50G = ["TRADICIONAL", "LEITE EM PÓ", "CHURROS"]
 
 
+# ── Suprimentos (módulo de insumos + BOM + movimentações) ────────────────────
+# Categorias que um insumo pode ter. Lista controlada (não-extensível em runtime).
+CATEGORIAS_INSUMO = [
+    "materia_prima",  # coco, leite condensado, açúcar, mel, farinha, chocolate, café, etc.
+    "embalagem",      # plástico individual (45g, Mini, Pet)
+    "pote",           # pote 260g, pote 605g
+    "cinta",          # cinta de papel (45g, Mini)
+    "display",        # caixa de display palha 50g
+    "outros",         # qualquer outro item consumível
+]
+
+# Unidades aceitas pra estoque/quantidade. Não é exclusivo — TEXT no banco —
+# mas a UI usa essa lista pra selectbox.
+UNIDADES_INSUMO = ["kg", "g", "L", "mL", "und", "cx", "m", "pacote"]
+
+# Tipos de movimentação. 'entrada' soma ao estoque, 'saida' subtrai.
+TIPOS_MOVIMENTO = ["entrada", "saida"]
+
+# Origens prováveis de uma movimentação. Documenta de onde veio o lançamento.
+ORIGENS_MOVIMENTO = [
+    "compra",            # entrada vinda de NF de compra
+    "producao_auto",     # saída automática quando uma folha é salva (Etapa E)
+    "producao_manual",   # saída lançada manualmente pela Gestão
+    "perda",             # saída por descarte (lote ruim, vencimento, queima)
+    "ajuste",            # ajuste manual de inventário (contagem física diferente)
+    "contagem_inicial",  # entrada do cadastro inicial do estoque
+]
+
+
+def chave_produto_cocada(sabor: str, tamanho: str) -> str:
+    """Gera a chave canônica usada na tabela bom_produto pra cocada.
+    Ex: ('TRADICIONAL', '45g') → 'cocada_T_45g_band'
+        ('ZERO', 'Mini')       → 'cocada_Z_Mini_band'
+    Convenção: tudo é POR BANDEJA (unidade básica de produção da cocada).
+    """
+    sigla = SIGLA_COCADA.get(sabor, sabor[:1])
+    return f"cocada_{sigla}_{tamanho}_band"
+
+
+def chave_produto_palha(sabor: str, tamanho: str) -> str:
+    """Chave pra palha. Ex: ('LEITE EM PÓ', '50g') → 'palha_L_50g_band'."""
+    sigla = SIGLA_PALHA.get(sabor, sabor[:3])
+    return f"palha_{sigla}_{tamanho}_band"
+
+
+def listar_produtos_possiveis() -> list[dict]:
+    """Retorna lista de produtos que podem ter receita (BOM) cadastrada.
+    Cada produto tem 'chave' (string canônica) e 'nome' (label amigável pra UI).
+    """
+    produtos = []
+    # Cocada — por bandeja, em 3 tamanhos. ZERO não tem 45g.
+    for sabor in SABORES_COCADA:
+        for tamanho in ["45g", "Mini", "Pet"]:
+            if sabor == "ZERO" and tamanho == "45g":
+                continue
+            produtos.append({
+                "chave": chave_produto_cocada(sabor, tamanho),
+                "nome": f"Cocada {sabor} {tamanho} (por bandeja)",
+                "grupo": "Cocada",
+            })
+    # Palha — 50g só em T/L/CH, Pet em todos os 5.
+    for sabor in SABORES_PALHA:
+        for tamanho in ["50g", "Pet"]:
+            if tamanho == "50g" and sabor not in SABORES_PALHA_50G:
+                continue
+            produtos.append({
+                "chave": chave_produto_palha(sabor, tamanho),
+                "nome": f"Palha {sabor} {tamanho} (por bandeja)",
+                "grupo": "Palha",
+            })
+    # Outros produtos
+    produtos.extend([
+        {"chave": "pm_bolo",     "nome": "Pão de Mel (1 bolo = 70 unidades)", "grupo": "PM/Balas/Doces"},
+        {"chave": "bala_tacho",  "nome": "Bala de doce de leite (1 tacho = 30 balas)", "grupo": "PM/Balas/Doces"},
+        {"chave": "doce_und",    "nome": "Doce de leite (1 unidade)", "grupo": "PM/Balas/Doces"},
+    ])
+    return produtos
+
+
 # ════════════════════════════════════════════════════════════════════════════════
 # CONEXÃO E HELPERS DE COMPATIBILIDADE
 # ════════════════════════════════════════════════════════════════════════════════
@@ -546,6 +625,66 @@ def _ensure_v2_schema(c):
         )
     """)
 
+    # ════════════════════════════════════════════════════════════════════════
+    # SUPRIMENTOS (Etapa B — 15/05/2026)
+    # Modelo de insumos + receitas (BOM) + movimentações de estoque.
+    # ════════════════════════════════════════════════════════════════════════
+    # Catálogo de insumos (matéria-prima, embalagem, potes, cintas, etc).
+    # estoque_atual usa REAL (float) pra suportar quantidades fracionárias
+    # como 12.5 kg, 0.5 L, etc. Postgres usa DOUBLE PRECISION; SQLite mapeia REAL.
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS insumos (
+            id {pk},
+            codigo TEXT NOT NULL UNIQUE,
+            nome TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            unidade TEXT NOT NULL,
+            estoque_atual REAL DEFAULT 0,
+            estoque_minimo REAL DEFAULT 0,
+            estoque_seguranca REAL DEFAULT 0,
+            fornecedor TEXT DEFAULT '',
+            lead_time_dias INTEGER DEFAULT 0,
+            custo_unitario REAL DEFAULT 0,
+            ativo INTEGER DEFAULT 1,
+            obs TEXT DEFAULT '',
+            criado_em TEXT DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # BOM (Bill of Materials) — receita de cada produto. Cada linha = 1 insumo
+    # consumido pra produzir 1 unidade do produto (1 bandeja, 1 bolo, 1 tacho).
+    # `produto_chave` segue convenção de listar_produtos_possiveis() em database.py.
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS bom_produto (
+            id {pk},
+            produto_chave TEXT NOT NULL,
+            insumo_id INTEGER NOT NULL,
+            quantidade REAL NOT NULL,
+            unidade TEXT NOT NULL,
+            obs TEXT DEFAULT '',
+            UNIQUE(produto_chave, insumo_id)
+        )
+    """)
+
+    # Movimentações de estoque (histórico). Rastreabilidade: toda mudança de
+    # estoque_atual passa por aqui. estoque_atual em `insumos` é cache;
+    # soma dos movimentos por insumo deve bater.
+    # quantidade SEMPRE positiva — o sinal vem do `tipo` (entrada/saida).
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS movimentos_insumo (
+            id {pk},
+            data TEXT NOT NULL,
+            insumo_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            quantidade REAL NOT NULL,
+            origem TEXT DEFAULT '',
+            referencia TEXT DEFAULT '',
+            obs TEXT DEFAULT '',
+            criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
 
 # ════════════════════════════════════════════════════════════════════════════════
 # SEEDS — apenas tabelas de referência. Folhas do dia nascem do lancamento.py.
@@ -952,3 +1091,374 @@ def upsert_pm_balas_doces(data, fields: dict):
         (data, *fields.values()),
     )
     conn.commit(); conn.close()
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SUPRIMENTOS — CRUD de insumos, receitas (BOM) e movimentações
+# ════════════════════════════════════════════════════════════════════════════════
+
+# ── Insumos (catálogo) ────────────────────────────────────────────────────────
+def get_insumos(categoria: str | None = None, somente_ativos: bool = True) -> list[dict]:
+    """Lista insumos cadastrados. Filtra por categoria se informado.
+    `somente_ativos=True` esconde insumos desativados (ativo=0)."""
+    conn = get_conn()
+    sql = "SELECT * FROM insumos WHERE 1=1"
+    params: list = []
+    if somente_ativos:
+        sql += " AND ativo = 1"
+    if categoria:
+        sql += " AND categoria = ?"
+        params.append(categoria)
+    sql += " ORDER BY categoria, nome"
+    rows = conn.execute(_sql(sql), tuple(params)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_insumo(insumo_id: int) -> dict | None:
+    """Busca um insumo pelo ID. Retorna None se não existe."""
+    conn = get_conn()
+    row = conn.execute(_sql("SELECT * FROM insumos WHERE id = ?"), (insumo_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_insumo_por_codigo(codigo: str) -> dict | None:
+    """Busca insumo pelo código único (ex: 'INS-COCO-RALADO')."""
+    conn = get_conn()
+    row = conn.execute(_sql("SELECT * FROM insumos WHERE codigo = ?"), (codigo,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def criar_insumo(dados: dict) -> int:
+    """Cria um insumo novo. Retorna o id gerado.
+
+    Campos obrigatórios: codigo (único), nome, categoria, unidade.
+    Opcionais: estoque_atual, estoque_minimo, estoque_seguranca, fornecedor,
+               lead_time_dias, custo_unitario, obs.
+
+    Se `estoque_atual` > 0, registra um movimento de origem 'contagem_inicial'
+    pra manter coerência entre estoque_atual e soma de movimentos.
+    """
+    obrigatorios = ("codigo", "nome", "categoria", "unidade")
+    for f in obrigatorios:
+        if not dados.get(f):
+            raise ValueError(f"Campo obrigatório ausente: {f}")
+    if dados["categoria"] not in CATEGORIAS_INSUMO:
+        raise ValueError(f"Categoria inválida: {dados['categoria']}. Use uma de {CATEGORIAS_INSUMO}.")
+
+    cols_validas = [
+        "codigo", "nome", "categoria", "unidade",
+        "estoque_atual", "estoque_minimo", "estoque_seguranca",
+        "fornecedor", "lead_time_dias", "custo_unitario",
+        "ativo", "obs",
+    ]
+    fields = {k: v for k, v in dados.items() if k in cols_validas}
+    cols = list(fields.keys())
+    placeholders = ", ".join("?" for _ in cols)
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(
+            _sql(f"INSERT INTO insumos ({', '.join(cols)}) VALUES ({placeholders})"),
+            tuple(fields.values()),
+        )
+        # Pega o id inserido (compatível com ambos os backends)
+        if IS_POSTGRES:
+            insumo_id = c.execute(
+                _sql("SELECT id FROM insumos WHERE codigo = ?"), (dados["codigo"],)
+            ).fetchone()["id"]
+        else:
+            insumo_id = c.lastrowid
+
+        # Se estoque inicial > 0, registra movimento de contagem inicial
+        estoque_ini = float(dados.get("estoque_atual") or 0)
+        if estoque_ini > 0:
+            from datetime import date as _date
+            c.execute(
+                _sql("INSERT INTO movimentos_insumo (data, insumo_id, tipo, quantidade, origem, obs) "
+                     "VALUES (?, ?, ?, ?, ?, ?)"),
+                (_date.today().isoformat(), insumo_id, "entrada", estoque_ini,
+                 "contagem_inicial", "Cadastro inicial do insumo"),
+            )
+
+        conn.commit()
+        return insumo_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def atualizar_insumo(insumo_id: int, dados: dict):
+    """Atualiza campos de um insumo. NÃO atualiza estoque_atual — pra mudar
+    estoque, usar `registrar_movimento_insumo` (mantém rastreabilidade)."""
+    if not dados:
+        return
+    cols_editaveis = [
+        "nome", "categoria", "unidade", "estoque_minimo", "estoque_seguranca",
+        "fornecedor", "lead_time_dias", "custo_unitario", "ativo", "obs",
+    ]
+    fields = {k: v for k, v in dados.items() if k in cols_editaveis}
+    if not fields:
+        return
+    set_clause = ", ".join(f"{k} = ?" for k in fields.keys())
+    set_clause += ", atualizado_em = CURRENT_TIMESTAMP"
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(
+            _sql(f"UPDATE insumos SET {set_clause} WHERE id = ?"),
+            (*fields.values(), insumo_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def excluir_insumo(insumo_id: int):
+    """Marca insumo como inativo (não apaga — preserva histórico de movimentos).
+    Pra apagar de verdade, fazer DELETE direto no banco (perigoso, perde refs)."""
+    atualizar_insumo(insumo_id, {"ativo": 0})
+
+
+# ── BOM (Receitas — Bill of Materials) ────────────────────────────────────────
+def get_bom_produto(produto_chave: str) -> list[dict]:
+    """Lista de insumos consumidos por 1 unidade do produto especificado.
+    Cada linha vem com os dados do insumo JOINed (nome, unidade, etc)."""
+    conn = get_conn()
+    sql = """
+        SELECT b.id, b.produto_chave, b.insumo_id, b.quantidade, b.unidade, b.obs,
+               i.codigo, i.nome AS insumo_nome, i.categoria,
+               i.unidade AS insumo_unidade, i.estoque_atual
+        FROM bom_produto b
+        INNER JOIN insumos i ON i.id = b.insumo_id
+        WHERE b.produto_chave = ?
+        ORDER BY i.categoria, i.nome
+    """
+    rows = conn.execute(_sql(sql), (produto_chave,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_bom_linha(produto_chave: str, insumo_id: int, quantidade: float,
+                     unidade: str, obs: str = "") -> int:
+    """Insere ou atualiza uma linha de receita.
+    UNIQUE(produto_chave, insumo_id) garante que não há duplicata."""
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(
+            _sql("INSERT INTO bom_produto (produto_chave, insumo_id, quantidade, unidade, obs) "
+                 "VALUES (?, ?, ?, ?, ?) "
+                 "ON CONFLICT(produto_chave, insumo_id) DO UPDATE SET "
+                 "quantidade = excluded.quantidade, "
+                 "unidade = excluded.unidade, "
+                 "obs = excluded.obs"),
+            (produto_chave, insumo_id, quantidade, unidade, obs),
+        )
+        conn.commit()
+        # Retorna id da linha (pra ambos os backends)
+        row = c.execute(
+            _sql("SELECT id FROM bom_produto WHERE produto_chave = ? AND insumo_id = ?"),
+            (produto_chave, insumo_id),
+        ).fetchone()
+        return row["id"] if row else 0
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def excluir_bom_linha(linha_id: int):
+    """Remove uma linha específica de BOM."""
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(_sql("DELETE FROM bom_produto WHERE id = ?"), (linha_id,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+# ── Movimentações de estoque ──────────────────────────────────────────────────
+def registrar_movimento_insumo(insumo_id: int, tipo: str, quantidade: float,
+                                origem: str = "", referencia: str = "",
+                                obs: str = "", data: str | None = None):
+    """Registra uma movimentação e atualiza estoque_atual atomicamente.
+
+    Args:
+        insumo_id: FK pra tabela insumos.
+        tipo: 'entrada' (soma) ou 'saida' (subtrai).
+        quantidade: SEMPRE positiva (o sinal vem do tipo).
+        origem: ver ORIGENS_MOVIMENTO (compra, perda, ajuste, etc).
+        referencia: texto livre (NF, data folha, etc).
+        obs: observação opcional.
+        data: YYYY-MM-DD. Default = hoje.
+
+    Atualiza estoque_atual em uma única transação atômica.
+    """
+    if tipo not in TIPOS_MOVIMENTO:
+        raise ValueError(f"Tipo inválido: {tipo}. Use 'entrada' ou 'saida'.")
+    if quantidade <= 0:
+        raise ValueError("Quantidade deve ser positiva (o sinal vem do tipo).")
+    if not data:
+        from datetime import date as _date
+        data = _date.today().isoformat()
+
+    delta = quantidade if tipo == "entrada" else -quantidade
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        # 1. Insere movimentação
+        c.execute(
+            _sql("INSERT INTO movimentos_insumo "
+                 "(data, insumo_id, tipo, quantidade, origem, referencia, obs) "
+                 "VALUES (?, ?, ?, ?, ?, ?, ?)"),
+            (data, insumo_id, tipo, quantidade, origem, referencia, obs),
+        )
+        # 2. Atualiza cache de estoque_atual no insumo
+        c.execute(
+            _sql("UPDATE insumos SET estoque_atual = estoque_atual + ?, "
+                 "atualizado_em = CURRENT_TIMESTAMP WHERE id = ?"),
+            (delta, insumo_id),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_movimentos_insumo(insumo_id: int | None = None,
+                           data_inicio: str | None = None,
+                           data_fim: str | None = None,
+                           tipo: str | None = None,
+                           limite: int = 100) -> list[dict]:
+    """Histórico de movimentações. Filtros opcionais.
+    JOIN com insumos pra trazer nome + unidade."""
+    conn = get_conn()
+    sql = """
+        SELECT m.id, m.data, m.insumo_id, m.tipo, m.quantidade,
+               m.origem, m.referencia, m.obs, m.criado_em,
+               i.codigo, i.nome AS insumo_nome, i.unidade AS insumo_unidade
+        FROM movimentos_insumo m
+        INNER JOIN insumos i ON i.id = m.insumo_id
+        WHERE 1=1
+    """
+    params: list = []
+    if insumo_id is not None:
+        sql += " AND m.insumo_id = ?"
+        params.append(insumo_id)
+    if data_inicio:
+        sql += " AND m.data >= ?"
+        params.append(data_inicio)
+    if data_fim:
+        sql += " AND m.data <= ?"
+        params.append(data_fim)
+    if tipo:
+        sql += " AND m.tipo = ?"
+        params.append(tipo)
+    sql += " ORDER BY m.data DESC, m.id DESC LIMIT ?"
+    params.append(limite)
+
+    rows = conn.execute(_sql(sql), tuple(params)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def calcular_necessidades_do_dia(data: str) -> list[dict]:
+    """Cruza folha do dia × BOM × estoque atual.
+
+    Pra cada produto da folha do dia (com ordem > 0), busca a BOM, calcula
+    necessidade total de cada insumo, compara com estoque atual.
+
+    Retorna lista de dicts:
+        {insumo_id, insumo_nome, unidade, necessidade, estoque_atual,
+         saldo (estoque - necessidade), status ('falta'/'ok'/'critico')}
+
+    Versão SIMPLES desta Etapa B: trata apenas ord_prod_band da cocada e
+    ord_prod_band da palha + ord_pm + ord_balas. Outros campos podem entrar
+    em iterações futuras.
+    """
+    folha_c = get_folha_cocada(data)
+    folha_p = get_folha_palha(data)
+    pmbd    = get_pm_balas_doces(data) or {}
+
+    # Acumula necessidade total por insumo
+    necessidades: dict[int, dict] = {}
+
+    def _adicionar_necessidade(produto_chave: str, qtd_produzir: float):
+        """Pega a BOM do produto e soma a necessidade dos insumos."""
+        if qtd_produzir <= 0:
+            return
+        bom = get_bom_produto(produto_chave)
+        for linha in bom:
+            iid = linha["insumo_id"]
+            necessidades.setdefault(iid, {
+                "insumo_id": iid,
+                "insumo_nome": linha["insumo_nome"],
+                "unidade": linha["insumo_unidade"],
+                "estoque_atual": linha["estoque_atual"],
+                "necessidade": 0.0,
+            })
+            necessidades[iid]["necessidade"] += linha["quantidade"] * qtd_produzir
+
+    # Cocada — ord_prod_band por sabor × 3 tamanhos? Não, ord_prod_band é total
+    # de bandejas pra produzir (não discrimina tamanho). Aplico no `_band`
+    # do sabor. Tamanho específico vem se for cadastrado separado.
+    # Por ora, atribui à variante 45g se for não-Zero, Mini se for Zero.
+    for r in folha_c:
+        sabor = r["sabor"]
+        band = r.get("ord_prod_band") or 0
+        if band > 0:
+            # Heurística: a maior fração de produção da cocada é 45g
+            # (exceto Zero que vai pra Mini). Usuário pode refinar depois.
+            tam = "Mini" if sabor == "ZERO" else "45g"
+            _adicionar_necessidade(chave_produto_cocada(sabor, tam), band)
+
+    # Palha — ord_prod_band por sabor (tamanho 50g por convenção)
+    for r in folha_p:
+        sabor = r["sabor"]
+        band = r.get("ord_prod_band") or 0
+        if band > 0:
+            tam = "50g" if sabor in SABORES_PALHA_50G else "Pet"
+            _adicionar_necessidade(chave_produto_palha(sabor, tam), band)
+
+    # PM (ord_pm em bolos)
+    _adicionar_necessidade("pm_bolo", pmbd.get("ord_pm") or 0)
+
+    # Balas (ord_balas em tachos)
+    _adicionar_necessidade("bala_tacho", pmbd.get("ord_balas") or 0)
+
+    # Calcula saldo e status
+    resultado = []
+    for n in necessidades.values():
+        saldo = n["estoque_atual"] - n["necessidade"]
+        if saldo < 0:
+            status = "falta"
+        elif saldo < n["necessidade"] * 0.1:  # menos de 10% de folga
+            status = "critico"
+        else:
+            status = "ok"
+        n["saldo"] = saldo
+        n["status"] = status
+        resultado.append(n)
+
+    # Ordena: faltas primeiro, depois críticos, depois OK
+    ordem_status = {"falta": 0, "critico": 1, "ok": 2}
+    resultado.sort(key=lambda x: (ordem_status[x["status"]], x["insumo_nome"]))
+    return resultado

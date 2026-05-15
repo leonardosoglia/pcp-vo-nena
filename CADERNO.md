@@ -200,7 +200,7 @@ Só 3 pares de dias com gap de 3 dias úteis disponíveis. Várias folhas histó
 | Etapa | O quê | Tempo | Status / quando |
 |---|---|---|---|
 | **A — Renomeação** | UI/variáveis: nomes próprios → departamentos (Gestão, Produção, Corte, Embalagem, Suprimentos). Mantém retrocompat no banco. | 2h | ✅ **Feito 14/05/2026** |
-| **B — Modelo de Suprimentos** | Schema novo: `insumos`, `bom_produto`, `movimentos_insumo`. Migração suave. Página `pages/3_Suprimentos.py` CRUD básico. | 4-6h | Próxima sessão (14-17/05) |
+| **B — Modelo de Suprimentos** | ✅ **Feito 15/05/2026.** Schema novo (3 tabelas), CRUD completo, página com 4 abas, helpers `chave_produto_*`, função `calcular_necessidades_do_dia(data)` (MRP simplificado). Smoke test passou contra Supabase. Pronto pra cadastro real após entrevista. | 4h | ✅ 15/05/2026 |
 | **C — Cadastro inicial de insumos** | Lista de matérias-primas + estoque atual + mínimo + fornecedor. Depende de entrevista com Gestão. | manual | Esta semana |
 | **D — BOM (receitas)** | Pra cada produto, quanto consome de cada insumo. Pergunta-chave pra Produção/Gestão. | entrevista | Esta semana |
 | **E — Auto-baixa por produção** | Quando folha é salva, sistema calcula consumo e baixa do almoxarifado. Sai da pura visualização — Camada 1.5. | 6-8h | 22-29/05 (Etapa 5 do TCC) |
