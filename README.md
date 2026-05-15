@@ -1,3 +1,14 @@
+---
+title: PCP Vó Nena
+emoji: 🍬
+colorFrom: orange
+colorTo: yellow
+sdk: docker
+app_port: 8501
+pinned: false
+short_description: Sistema de PCP da confeitaria Doces Vo Nena
+---
+
 # 🍬 PCP Vó Nena — Sistema de Planejamento e Controle da Produção
 
 ## Protótipo v1.0
