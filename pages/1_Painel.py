@@ -91,6 +91,19 @@ def reord_palha(df):
     df["sabor"] = pd.Categorical(df["sabor"], categories=SABORES_PALHA, ordered=True)
     return df.sort_values("sabor").reset_index(drop=True)
 
+
+def mask_zero_45g(df, col_45g_name="45g", sabor_col="Sabor"):
+    """ZERO não tem cocada 45g — produto não existe na fábrica.
+    Substitui o valor por '—' visualmente. Mantém o restante dos sabores intacto."""
+    if df.empty or col_45g_name not in df.columns or sabor_col not in df.columns:
+        return df
+    df = df.copy()
+    df[col_45g_name] = df.apply(
+        lambda r: "—" if str(r[sabor_col]).upper() == "ZERO" else r[col_45g_name],
+        axis=1,
+    )
+    return df
+
 # ── Modal alertas ──────────────────────────────────────────────────────────────
 @st.dialog("⚠️ Produtos com Estoque Crítico", width="large")
 def modal_alertas(df):
@@ -198,6 +211,7 @@ with aba_gestao:
     if not df_cocada.empty:
         df_e = reord_cocada(df_cocada)[["sabor","emb_45g","emb_mini","emb_pet","emb_potes_260g","emb_potes_605g"]]
         df_e.columns = ["Sabor","45g","Mini","Pet","Potes 260g","Potes 605g"]
+        df_e = mask_zero_45g(df_e)
         st.dataframe(df_styled(df_e, estilo_laranja, ["Sabor"]), use_container_width=True, hide_index=True)
 
     st.subheader("🌾 Embalados — Palha")
@@ -315,6 +329,7 @@ with aba_corte:
         st.markdown("##### 🍬 Corte de Cocada")
         df_cc = reord_cocada(df_cocada)[["sabor","ord_corte_45g","ord_corte_mini","ord_corte_pet"]].copy()
         df_cc.columns = ["Sabor","Ordem 45g","Ordem Mini","Ordem Pet"]
+        df_cc = mask_zero_45g(df_cc, col_45g_name="Ordem 45g")
         col_t, col_ref = st.columns([3,1])
         with col_t:
             st.dataframe(df_styled(df_cc, estilo_azul, ["Sabor"]), use_container_width=True, hide_index=True)
@@ -350,6 +365,7 @@ with aba_embalagem:
         st.markdown("##### 🍬 Embalagem — Cocada")
         df_emb = reord_cocada(df_cocada)[["sabor","ord_emb_45g","ord_emb_mini"]].copy()
         df_emb.columns = ["Sabor","45g (und.)","Mini (und.)"]
+        df_emb = mask_zero_45g(df_emb, col_45g_name="45g (und.)")
 
         col_el, col_ref2 = st.columns([2,1])
         with col_el:

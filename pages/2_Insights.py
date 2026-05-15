@@ -312,7 +312,7 @@ fig_h2.update_layout(
     plot_bgcolor="white",
 )
 fig_h2.add_vline(x=0, line_width=2, line_color="#1a1a1a")
-st.plotly_chart(fig_h2, use_container_width=True)
+st.plotly_chart(fig_h2, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 # Tabela com soma + média + n
 df_h2_tab = df_h2.copy()
@@ -472,7 +472,7 @@ fig_h4.update_layout(
     margin=dict(l=20, r=20, t=60, b=40),
     plot_bgcolor="white",
 )
-st.plotly_chart(fig_h4, use_container_width=True)
+st.plotly_chart(fig_h4, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 if h4["sobrecarga"]:
     st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
@@ -529,7 +529,7 @@ if not df_h6_valid.empty:
         plot_bgcolor="white",
         showlegend=False,
     )
-    st.plotly_chart(fig_h6, use_container_width=True)
+    st.plotly_chart(fig_h6, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
     # Estatísticas
     media_tl = df_h6_valid["T/L"].mean()

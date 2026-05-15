@@ -52,9 +52,11 @@ Dados físicos em `folhas-semanais/` (organizado por `YYYY-MM_mês/semana_DD-DD_
 - **Bala DL:** `ord_balas` em TACHOS (1 tacho = 30 balas).
 
 ### Conversões-chave
-- 1 tacho cocada = 8 band (Z = 3) · band 45g = 100 und · Mini = 150 · Pet = 30 · Pet-Z = 60 · ≈ 7 kg/band
+- 1 tacho cocada = 8 band (Z = 3) · band 45g = 100 und · Mini = 150 · Pet = 30 · Pet-Z = 60
+- **Peso da bandeja:** ~6 kg recém-tacho (úmida) · ~5,5 kg pronta-corte (após viração + descanso).
 - **`joel_pet` = BANDEJAS** (diferente das outras colunas do papelzinho que são unidades) → converte × 30 (× 60 p/ Z) em `calcular_cortados()`.
 - 1 display palha 50g = 10 palhas (4T + 4L + 2CH).
+- **ZERO 45g NÃO EXISTE** — produto inexistente na fábrica. Filtrar de qualquer visualização/cadastro 45g.
 
 ### Lead times
 - Cocada: **3 dias** (tacho → virar → virada → corte). Potes: **1 dia**. Palha: **3 dias**.
@@ -127,6 +129,9 @@ Chave `(data, sabor)`. Não acumulativas. Derivados **não persistem** (Cortados
 - **`prepare_threshold=None` no psycopg.connect:** PgBouncer transaction mode (porta 6543) multiplexa transações em conexões backend compartilhadas; psycopg 3 cria prepared statements com nomes determinísticos (`_pg3_N`) que colidem ao reutilizar uma conexão backend que já tem o mesmo nome. Solução: desabilitar prepared statements automáticos. Custo desprezível pra workload baixa-frequência do PCP. Implementado em 12/05/2026 após `DuplicatePreparedStatement` na 1ª migração. Vira parágrafo no TCC.
 - **Camada de cache separada (`cached_db.py`):** decorators `@st.cache_data` ficam num módulo wrapper, NÃO em `database.py`. Razão: scripts CLI (migração, smoke tests) importam `database.py` direto e não dependem de Streamlit. Toda UI importa de `cached_db.py`. TTL folhas = 60s · TTL refs = 1h. Invalidação manual via `invalidar_folha()` após save/delete. Implementado em 13/05/2026.
 - **Multi-page Streamlit (`pages/` directory):** consolidação de `lancamento.py` + `painel.py` em um único app deployado, navegação automática no sidebar. `lancamento.py` continua sendo o entry point no Streamlit Cloud; `painel.py` foi deletado da raiz, conteúdo migrado pra `pages/1_Painel.py`. Vantagens: 1 link só pra Gestão, 1 slot do free tier (em vez de 2), cache compartilhado entre páginas, mesmo deploy/secrets/versão. Implementado em 13/05/2026.
+- **Tema light forçado (15/05/2026):** `.streamlit/config.toml` define `base = "light"` + paleta Vó Nena. Antes: Streamlit detectava dark mode do sistema/celular e aplicava automaticamente, deixando fontes ilegíveis em tabelas customizadas. Padronizado em light pra consistência visual.
+- **Plotly mobile-friendly (15/05/2026):** todos os `st.plotly_chart` agora têm `config={"displayModeBar": False, "responsive": True}`. Esconde a barra de ferramentas (zoom/pan/etc) que causava zoom acidental quando o usuário tocava na tela do celular.
+- **Engrenagem da Virada (15/05/2026):** `ord_prod_virada` é resposta corretiva ao Viradas② baixo — se sobra pouca virada após o corte do dia, Gestão pede pra virar X bandejas pra repor estoque. Documentado em memória persistente; melhoria futura: mostrar Viradas② + ord_prod_virada lado a lado, com sugestão automática na Camada 2.
 - **Renomeação por departamento (14/05/2026):** UI usa "Gestão", "Produção", "Corte", "Embalagem" em vez de nomes próprios. Profissionaliza o sistema (cara de ERP). Pessoas reais permanecem nos comentários do código e no CLAUDE.md como referência. Documento físico "Papelzinho do Joel" mantém o nome (referência cultural da fábrica). Campos legados do banco (`obs_joel`, `obs_gil`, `obs_leonilia`) mantêm os nomes — só os labels da UI mudam.
 - **Virada conceitual: PCP completo, não só de produção (14/05/2026).** Próximo grande módulo é **Suprimentos** (matéria-prima + insumos + embalagens). Aplica MRP simplificado: ordem de produção → BOM (receita) → necessidade de insumo → confere com estoque → sugere compra. Fecha o ciclo de PCP. Integração futura com Sigee Cloud (ERP da empresa). Vira capítulo brilhante do TCC (MRP em fábrica de doces). Roadmap em Etapas A-F no `CADERNO.md`.
 

@@ -169,7 +169,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
         xaxis_title="Data", yaxis_title="Valor",
         hovermode="x unified", legend_title="Sabor",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
     # Métrica auxiliar — total agregado por dia
     total_por_dia = df_plot.groupby("data")["valor"].sum()
@@ -226,7 +226,7 @@ def _render_dia_semana(df_cocada, sabores_cocada):
         xaxis_title="Dia da semana", yaxis_title="Média",
         legend_title="Sabor",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
     # Mostrar destaque: dia com maior média
     if not df_grouped.empty:
@@ -278,7 +278,7 @@ def _render_heatmap(df_cocada, sabores_cocada):
         color_continuous_scale="Oranges",
         title=f"{metrica_label} — média por (dia, sabor)",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -596,11 +596,12 @@ def _seed_referencias(c):
         c.executemany(_sql("INSERT INTO conversoes (descricao, rende) VALUES (?,?)"), [
             ("1 Tacho",                 "8 Bandejas"),
             ("1 Tacho ZERO",            "3 Bandejas"),
-            ("1 Bandeja 45g",           "100 unidades"),
-            ("1 Bandeja Mini",          "150 unidades"),
-            ("1 Bandeja Pet (normal)",   "30 unidades"),
-            ("1 Bandeja Pet ZERO",       "60 unidades"),
-            ("1 Bandeja",               "≈ 7 kg"),
+            ("1 Bandeja 45g",                "100 unidades"),
+            ("1 Bandeja Mini",               "150 unidades"),
+            ("1 Bandeja Pet (normal)",        "30 unidades"),
+            ("1 Bandeja Pet ZERO",            "60 unidades"),
+            ("1 Bandeja recém-tacho",         "≈ 6 kg (úmida)"),
+            ("1 Bandeja pronta p/ corte",     "≈ 5,5 kg (após viração + descanso)"),
         ])
 
     if c.execute("SELECT COUNT(*) AS n FROM estoque").fetchone()["n"] == 0:

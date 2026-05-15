@@ -1,0 +1,26 @@
+# Configuração do Streamlit (não contém secrets — pode commitar).
+#
+# [theme] força o tema LIGHT independente da preferência do navegador/SO do
+# usuário. Antes: Streamlit detectava o "dark mode" do sistema/celular e
+# aplicava automaticamente, deixando algumas fontes ilegíveis nas tabelas
+# customizadas do app. Padronizar em light é mais simples + consistente
+# com a identidade visual Vó Nena (laranja + creme).
+#
+# Se quiser oferecer toggle dark/light no futuro, remover esse bloco e
+# implementar via query param ou session_state.
+
+[theme]
+base = "light"
+primaryColor = "#C05621"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FFF8F2"
+textColor = "#1A1A1A"
+font = "sans serif"
+
+[client]
+# Esconde os "tip cards" do Streamlit que aparecem em loading
+showSidebarNavigation = true
+
+[browser]
+# Não envia telemetria do uso pro Streamlit
+gatherUsageStats = false
