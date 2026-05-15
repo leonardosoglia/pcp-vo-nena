@@ -1,9 +1,13 @@
-# Handoff — Sessão 15/05/2026 (sexta)
+# Handoff — Sessão 15/05/2026 (sexta) — ATUALIZADO 15/05 fim do dia
 
 > **Pra você que acabou de abrir uma nova sessão do Claude Code neste projeto:**
 > Leia este arquivo INTEIRO antes de fazer qualquer coisa. Em seguida o `CLAUDE.md`
 > (referência técnica). Em seguida o `CADERNO.md` (diário com descobertas, perguntas,
 > roadmap). Só depois disso, responda ao Leonardo.
+>
+> **🆕 ATUALIZAÇÃO 15/05 fim do dia:** Eraldo respondeu PARTE do questionário (Blocos
+> 1, 2, 3 + parte 5/6/7). Várias DESCOBERTAS CRÍTICAS recalibram o entendimento do
+> projeto. Veja seção 3.5 abaixo, e CADERNO.md seção 1.0, antes de qualquer ação.
 
 ---
 
@@ -120,6 +124,82 @@ Já documentado em memória persistente, mas vale repetir pra próxima sessão e
 
 Exemplo 15/05: Leite Condensado V② = 1 → ord_prod_virada(L) = 15.
 
+### 3.5 🆕 DESCOBERTAS DO QUESTIONÁRIO (15/05 fim do dia)
+
+**Eraldo respondeu Blocos 1-3 + parte 5/6/7. Várias coisas recalibram o projeto.**
+
+Detalhes completos: `CADERNO.md` seção 1.0 + 5 memórias persistentes em `~/.claude/projects/.../memory/`. Resumo:
+
+#### Descoberta 1 — Ajustes da Gestão = ANTECIPAÇÃO de pedidos (não correção)
+- A diferença entre `param_real_*` e o base da tabela `metas_45g` representa **pedidos futuros** distribuídos ao longo dos dias.
+- Exemplo (15/05 quinta): base T=6800 → real T=8300 porque pedido cliente de +1500 distribuído na semana.
+- **Implicação:** o "Insight Master" (③ negativo de T/L, positivo de PdM) **NÃO é fato confirmado**. Eraldo NÃO sente esse desbalanceamento. Pode ser viés de amostra pequena + sinal do próprio ajuste antecipado embutido no `param_real`.
+- **Ação próxima sessão:** recalibrar texto da página Insights — "padrão DETECTADO, validar com mais dados" em vez de "desbalanceamento confirmado".
+- Memória: `project_ajustes_antecipacao.md`
+
+#### Descoberta 2 — Tachos parciais NÃO são desperdício (viram potes!)
+- Quando Eraldo ordena `ord_prod_band = 18` (não-múltiplo de 8):
+  - 16 bandejas → corte normal
+  - 2 bandejas + sobra do 3º tacho → **potes 260g/605g**
+- É **decisão intencional**, não erro.
+- **Implicação:** Insight H1 (33% tachos parciais como "desperdício") está **errado conceitualmente**.
+- **Ação próxima sessão:** remover/reformular H1 na página Insights. Pode virar "X% dos tachos foram aproveitados como potes — conversão de Y kg de cocada em Z potes".
+- Memória: `project_tachos_parciais_potes.md`
+- **Pendência:** Leonardo notou que 15/05 sobrou 36 kg de Pé de Moça mas só pediu 30 potes 260g (= 7,8 kg). Diferença não explicada. Vai perguntar ao Eraldo.
+
+#### Descoberta 3 — RECEITA é por TACHO, não por formato (45g/Mini/Pet)
+- Eraldo: *"A mesma receita que vai na tradicional 45g é a mesma que vai na mini, na pet, porque todas são tradicionais — só os formatos são diferentes."*
+- **Implicação na Etapa B (Suprimentos):** as chaves de BOM precisam ser refatoradas:
+  - Antes: `cocada_T_45g_band`, `cocada_T_Mini_band`, ...
+  - Depois: **`cocada_T_tacho`** (única, por sabor)
+- 1 tacho rende 8 bandejas (Z=3); divisão em formatos é decisão de corte/embalagem.
+- **Receita Tradicional (1 tacho):**
+  - 19 L leite in natura
+  - 8 kg açúcar cristal
+  - 4 kg coco ralado
+  - 14 colheres de anti-mofo
+  - 1 colher de sal
+- **Variações por sabor (sobre Tradicional):**
+  - L: substitui leite por 15 kg leite condensado *(confirmar — parece muito)*
+  - C: + 5 sachês 40g café
+  - B: + 500g cacau/brigadeiro
+  - PdM: + amendoim (qtd pendente)
+  - Z: substitui açúcar por adoçante zero (qtd pendente)
+- **Ação próxima sessão:** atualizar `listar_produtos_possiveis()` em `database.py` (chaves por tacho) + ajustar página Suprimentos > Receitas (BOM) pra usar nova convenção.
+- Memória: `project_receita_por_tacho.md`
+
+#### Descoberta 4 — Mariana (pessoa nova) + Sigee Cloud tem insumos
+- **Mariana** faz compras + controla estoque de insumos. Trabalha no escritório.
+- **Sigee Cloud** tem: NF, Estoque, Vendas, NFE. NÃO faz PCP.
+- **Insumos JÁ ESTÃO cadastrados no Sigee** — não precisamos digitar manualmente!
+- **Plano de integração com Sigee** (memória `project_pessoa_mariana_e_sigee.md`):
+  - **Opção A (rápida):** Mariana exporta CSV dos insumos do Sigee → script Python povoa nossa tabela `insumos`. Tempo: ~2h.
+  - **Opção B (longo prazo):** API do Sigee — verificar se existe.
+  - **Recomendação:** começar com A na próxima sessão pra destravar Etapas C+D.
+- **Pendência:** Leonardo perguntar pra Mariana se ela consegue exportar CSV.
+
+#### Descoberta 5 — Capacidade Embalagem é VARIÁVEL
+- O threshold "3000 und/dia" da Leonília que o sistema usa em Insights NÃO é fixo.
+- Varia conforme: quantas pessoas estão na embalagem + capacidade individual.
+- Exemplo 15/05: só 1 rapaz embalando, capacidade reduzida → ordem reduzida (1800 und).
+- **Ação próxima sessão:** considerar tornar o threshold do alerta H4 (sobrecarga embalagem) configurável. Ou esconder até ter mais dados de capacidade real.
+
+#### Descoberta 6 — Detalhes operacionais (Bala/PM/ASS)
+- **Papelzinho da Bala/PM:** existe, é separado. Eraldo confirmou.
+- **Balas 15/05:** P/cortar 630 + Cortados 191 = subtotal 821 + Embalado 118 = total 939 balas
+- **Pão de Mel 15/05:** 390 (provavelmente unidades; **REVISAR regra**: se cnt_pm está em DISPLAYS, deveria ser 39 displays; se em unidades, conflita com memória atual)
+- **ASS (Cocada Assada):** produzido no dia, vai em campo `cocada_assada_und`
+- **Ação próxima sessão:** revalidar regra do `cnt_pm` (unidades vs displays) com Leonardo.
+
+#### Pendências reabertas (Leonardo vai responder depois)
+- Bloco 4 inteiro (lista de insumos com fornecedor/lead time) — Mariana ajuda
+- Receitas de Palha (Bloco 5)
+- Quem produz Doces, frequência PM, dias palha (Bloco 7 — boa parte)
+- Capacidade Joel em tachos/dia
+- Mistério 36 kg PdM vs 30 potes
+- Confirmar 15 kg leite condensado (parece muito)
+- API do Sigee — Leonardo investiga
+
 ---
 
 ## 4. Pendências imediatas (bloqueadores ou esperando alguém)
@@ -149,6 +229,15 @@ Exemplo 15/05: Leite Condensado V② = 1 → ord_prod_virada(L) = 15.
 ---
 
 ## 5. Plano para a próxima sessão (em ordem de prioridade)
+
+### Prioridade 0 — Recalibrar Insights com descobertas do Eraldo (rápido, ~30 min)
+
+Antes de migrar/cadastrar nada, ajustar a página `pages/2_Insights.py`:
+
+1. **H1 (Tachos parciais)** — REMOVER ou REFORMULAR. Não é desperdício, é conversão pra potes.
+2. **Insight Master (desbalanceamento T/L × P)** — atenuar texto. Em vez de "está faltando T", dizer "Sistema detectou padrão. Confirmar com Gestão se há motivo (ex: pedidos antecipados)."
+3. **H4 (Sobrecarga Embalagem 3000)** — threshold variável; talvez esconder ou pedir input dinâmico.
+4. **H5 (anomalia palha LP>T)** — manter (Eraldo aprovou).
 
 ### Prioridade 1 — Migração para Hugging Face Spaces
 

@@ -60,7 +60,137 @@ A diferença na prática:
 
 ---
 
+## 1.0 Respostas do Eraldo ao questionário (15/05/2026, parcial)
+
+Leonardo levou ficha (`entrevistas/01_pcp_inicial.docx`) pro Eraldo. Eraldo respondeu Blocos 1-3 + parte do 5/6/7. Blocos completos virão depois.
+
+### Bloco 1 — Insight Master (desbalanceamento)
+
+**Q1 — Sente padrão de falta T/L e sobra Pé de Moça?**
+> *"Na verdade eu não sei. Você sente que esses sabores Tradicional e Leite estão faltando, talvez porque eu fiz que para esses 2 sabores sejam produzidos em maior quantidade porque eles saem bastante. Aí talvez o sistema fechou que eu fizer muito eles estão faltando, mas não. Eu também não sinto pé de moça sobrando, ok, realmente talvez pareça sobrar por sempre ter ali no estoque acima, mas de momento isso não tem me incomodado. Talvez o recorte de poucos dias tenha te passado essa imagem de estar sobrando."*
+
+**Eraldo NÃO confirma o desbalanceamento.** Hipótese: viés de amostra pequena (13 folhas). Recalibrar Insight Master pra: "Padrão DETECTADO, validar com mais dados."
+
+**Q2 — Por que proporção T/L oscila tanto? Capacidade?**
+> Não é capacidade. **São pedidos antecipados.** Eraldo aumenta `param_real` pra distribuir pedido futuro ao longo dos dias da semana.
+>
+> Exemplo (15/05, quinta):
+> - Param base do dia: T=6800, L=3400, B=1700, C=1700, P=1700
+> - Pedido pra próxima semana: T+1500, L+200, B+200, C+200, P+400
+> - `param_real` do dia incorpora esse ajuste distribuído
+
+→ **Memória persistente:** `project_ajustes_antecipacao.md`. Implicação: muitas das "anomalias" detectadas podem ser ajustes intencionais.
+
+**Q3 — Pé de Moça que sobra vai pra onde?** *Não está sobrando hoje. (Mesma resposta da Q1)*
+
+**Q4 — Demanda fixa de Pé de Moça?** *"Não tem!"*
+
+**Regra confirmada:** T = 2×L; L = 2×B = 2×C = 2×P. Ou seja, **T : L : B : C : P = 4 : 2 : 1 : 1 : 1** (em 45g).
+
+### Bloco 2 — Tachos parciais
+
+**Q5 — Quando ordena tacho parcial (18 band), o que vai pra:**
+> ✅ **"Vira potes do mesmo sabor"** (260g ou 605g)
+
+→ **DESCOBERTA CRÍTICA:** tacho parcial NÃO é desperdício. É decisão intencional.
+
+**Q6 — Tachos parciais por planejamento ou urgência?** *Planejamento normal — sobra do tacho vai pra potes.*
+
+**Q7 — Sugestão de arredondamento útil?** *Não muito útil — o "parcial" já é intencional.*
+
+→ **Memória persistente:** `project_tachos_parciais_potes.md`. **Recalibrar Insight H1.**
+
+**Regras de peso confirmadas:**
+- 1 bandeja recém-tacho: ~6 kg (úmida)
+- 1 bandeja pronta pra corte (após viração+descanso): ~5,5 kg
+- **500 g perdidos** "pela interferes, evaporação" (palavras do Eraldo)
+
+### Bloco 3 — Anomalias palha + embalagem
+
+**Q8 — Anomalia palha LP > T (04/05 e 06/05)?** *"Sim, me parece que nesses dias realmente foi maior."* — **Confirmado.** Eraldo gostou: *"é interessante que o sistema sempre entregue isso."* Manter detecção.
+
+**Q9 — Em dias com >3000 und embalagem, o que acontece?**
+> *"Às vezes tem mais pessoas na embalagem, ou existem pessoas com capacidade maior."*
+> *"A capacidade de 3000 não é fixa, varia."*
+> *"Hoje (15/05) só tinha um rapaz lá embalando, ordenado 1400 T 45g + 400 L 45g."*
+
+→ **Capacidade Embalagem é VARIÁVEL.** Sistema não deveria usar threshold fixo de 3000.
+
+**Q10 — Capacidade real?** Variável (depende de quantas pessoas + capacidade individual). No início tinha "uma menina que embalava pouco", depois um rapaz que embala mais.
+
+### Bloco 5 — Receitas (BOM)
+
+**Q17 — Receita de Cocada Tradicional (1 TACHO):**
+
+| Insumo | Quantidade |
+|---|---|
+| Leite in natura | 19 L |
+| Açúcar cristal | 8 kg |
+| Coco ralado | 4 kg |
+| Anti-mofo (aditivo) | 14 colheres de sopa |
+| Sal | 1 colher |
+
+**Q18 — Receita varia por formato (45g/Mini/Pet)?**
+> *"Sim, a mesma receita que vai na tradicional 45g é a mesma que vai na mini, na pet, porque todas são tradicionais, só que os formatos são diferentes."*
+
+→ **DESCOBERTA CRÍTICA:** receita é POR TACHO (sabor), não por formato. Reformular BOM. Memória: `project_receita_por_tacho.md`.
+
+**Variações por sabor (sobre a receita Tradicional):**
+- **Leite Condensado:** substitui leite por **15 kg de leite condensado** (atenção: muito! confirmar)
+- **Café:** + 5 sachês de 40g de café (200g total)
+- **Brigadeiro:** + 500g de cacau/brigadeiro
+- **Pé de Moça:** + amendoim (quantidade pendente)
+- **Zero:** substitui açúcar cristal por adoçante zero (quantidade pendente)
+
+**Q19 — Receitas de Palha?** *Pendente, Leonardo ainda não sabe.*
+
+### Bloco 6 — Sigee Cloud
+
+**Quem faz compras / controla insumos:** **Mariana** (pessoa nova mapeada).
+
+**Sigee Cloud tem:** Estoque, Vendas, NF, NFE. **NÃO tem PCP.**
+
+**Insumos JÁ ESTÃO cadastrados no Sigee** — não precisamos digitar manualmente.
+
+**API do Sigee:** Eraldo não sabe se existe. **Pendência crítica.**
+
+→ **Memória persistente:** `project_pessoa_mariana_e_sigee.md`.
+
+### Bloco 7 — Operação geral
+
+**Q25 — Papelzinho Bala/PM existe?** Sim — *"é pra contar quantas balas nós temos na empresa."*
+
+**Balas hoje (15/05):**
+- Para cortar: 630
+- Cortados (semiacabado): 191
+- Subtotal: 821
+- Embalado/acabado: 118
+- Total na fábrica: 939
+
+**Pão de Mel hoje:** 390 (provavelmente unidades; revisar regra `cnt_pm` em DISPLAYS vs unidades).
+
+**Cocada Assada (ASS):** quantidade produzida no dia.
+
+**Demais perguntas do Bloco 7:** pendentes.
+
+### Pendências reabertas (Leonardo vai perguntar depois)
+
+- Lista de insumos completa (Bloco 4)
+- Estoque mínimo / fornecedor / lead time por insumo
+- Quem produz Doces, frequência PM, dias palha
+- Capacidade Joel em tachos/dia
+- Mistério dos 36 kg de Pé de Moça vs 30 potes
+- Confirmar 15 kg leite condensado (parece muito)
+- API do Sigee
+- Receitas de Palha
+
+---
+
 ## 1. INSIGHT MASTER — Desbalanceamento sistemático na produção (13/05/2026)
+
+**⚠️ RECALIBRAR (15/05):** O Eraldo NÃO confirma o desbalanceamento. Pode ser viés da amostra pequena (13 folhas) + ajustes de pedidos antecipados embutidos no `param_real`. Manter detecção como **sinal pra investigar**, NÃO como "fato confirmado".
+
+
 
 Análise das **13 folhas** registradas entre 02/04/2026 e 12/05/2026 (9 com parâmetro real preenchido) revelou padrão consistente que **explica perda de venda + encalhe simultâneos**.
 
