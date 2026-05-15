@@ -49,27 +49,39 @@ jobs:
           APP_URL="https://pcp-vo-nena.streamlit.app/"
           echo "🍬 Pingando $APP_URL em $(date -u +%FT%TZ)"
 
-          # -L: segue redirects (Streamlit usa 303 pra rota)
-          # -s: silent
-          # -o /dev/null: descarta corpo
-          # -w: imprime metadata depois
-          # -m 30: timeout 30s (cold start pode ser lento)
-          # --retry 2: tenta de novo se falhar
-          RESULT=$(curl -L -s -o /dev/null -m 30 --retry 2 \
-            -w "HTTP=%{http_code} TIME=%{time_total}s SIZE=%{size_download}" \
-            "$APP_URL")
+          # Notas técnicas:
+          # - NÃO seguimos redirects (-L removido) — Streamlit Cloud pode ter
+          #   redirect circular interno (curl exit 47 = too many redirects).
+          #   Pro keepalive, qualquer resposta HTTP do servidor já basta como
+          #   "atividade" e mantém o app acordado.
+          # - -s: silent · -o /dev/null: descarta corpo · -w: imprime status
+          # - --max-time 45: cold start de Streamlit Cloud pode levar até 40s
+          # - --max-redirs 0: zero redirect (defensivo)
+          RESULT=$(curl -s -o /dev/null \
+            --max-time 45 \
+            --max-redirs 0 \
+            -w "HTTP=%{http_code} TIME=%{time_total}s" \
+            "$APP_URL" || true)
 
           echo "Resultado: $RESULT"
 
-          # Extrai status code
-          STATUS=$(echo "$RESULT" | grep -oP 'HTTP=\K\d+')
+          STATUS=$(echo "$RESULT" | grep -oE 'HTTP=[0-9]+' | grep -oE '[0-9]+')
 
-          if [ "$STATUS" = "200" ] || [ "$STATUS" = "303" ]; then
-            echo "✅ App está acordado (HTTP $STATUS)"
-            exit 0
-          else
-            echo "⚠️ Status inesperado: $STATUS"
-            # Não falha o workflow — pode ser Streamlit Cloud com hiccup temporário.
-            # Se isso acumular, GitHub avisa via email. Próxima execução em 15 min.
-            exit 0
-          fi
+          # 200 (OK), 303 (redirect — Streamlit padrão), 302 (redirect alt) — todos
+          # significam que o servidor respondeu = atividade registrada = não dorme.
+          case "$STATUS" in
+            200|301|302|303|307|308)
+              echo "✅ App está acordado (HTTP $STATUS)"
+              ;;
+            "")
+              echo "⚠️ Sem resposta (timeout ou erro de rede)"
+              ;;
+            *)
+              echo "⚠️ Status inesperado: $STATUS"
+              ;;
+          esac
+
+          # Sempre exit 0 — falha de keepalive não é crítica, próxima execução
+          # em 15 min tenta de novo. Falhas acumuladas geram email automático
+          # do GitHub se quiser monitorar.
+          exit 0
