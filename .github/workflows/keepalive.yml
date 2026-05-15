@@ -1,0 +1,75 @@
+name: Keep Streamlit App Awake
+
+# Objetivo: mantém o app pcp-vo-nena.streamlit.app "acordado" durante o horário
+# comercial da Doces Vó Nena (7h-19h horário Brasil, seg a sab).
+#
+# Streamlit Community Cloud free tier coloca apps em "sleep" após ~30 min sem
+# acesso — quando alguém abre depois disso, paga cold start de 20-40 segundos
+# (recarregar Python, importar libs, criar pool Postgres, etc).
+#
+# Este workflow faz um HTTP GET no app a cada 10-15 minutos durante o horário
+# útil, evitando que ele durma. Domingo deixamos dormir mesmo (sem fábrica).
+#
+# Custo: GitHub Actions é GRATUITO para repositórios públicos (ilimitado).
+# Pra repo privado: até 2.000 minutos/mês free — cada execução leva ~10s,
+# muito abaixo do limite.
+#
+# Limitações conhecidas:
+# - GitHub pode atrasar workflows agendados em 5-15 min (especialmente em horários
+#   de pico do GitHub). Não é crítico — Streamlit dorme só após 30 min de silêncio.
+# - O cron schedule é em UTC. Brasil é UTC-3 (sem horário de verão atualmente).
+#
+# Como pausar este keepalive:
+# - Vá em github.com/leonardosoglia/pcp-vo-nena → Actions → "Keep Streamlit App
+#   Awake" → "..." → Disable workflow. Ou delete este arquivo no repo.
+
+on:
+  schedule:
+    # Cron em UTC. Brasil = UTC-3. Horário comercial Vó Nena = 7h-19h BR = 10h-22h UTC.
+    # Roda a cada 15 minutos, das 10h às 22h UTC, segunda a sábado.
+    - cron: '*/15 10-21 * * 1-6'
+
+  # Permite disparar manualmente pela interface do GitHub (Actions → Run workflow).
+  # Útil pra testar ou acordar o app fora do horário agendado.
+  workflow_dispatch:
+
+# Cancela execuções pendentes se uma nova for disparada (evita acúmulo)
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2  # se travar, não fica pendurado
+
+    steps:
+      - name: Ping app
+        run: |
+          APP_URL="https://pcp-vo-nena.streamlit.app/"
+          echo "🍬 Pingando $APP_URL em $(date -u +%FT%TZ)"
+
+          # -L: segue redirects (Streamlit usa 303 pra rota)
+          # -s: silent
+          # -o /dev/null: descarta corpo
+          # -w: imprime metadata depois
+          # -m 30: timeout 30s (cold start pode ser lento)
+          # --retry 2: tenta de novo se falhar
+          RESULT=$(curl -L -s -o /dev/null -m 30 --retry 2 \
+            -w "HTTP=%{http_code} TIME=%{time_total}s SIZE=%{size_download}" \
+            "$APP_URL")
+
+          echo "Resultado: $RESULT"
+
+          # Extrai status code
+          STATUS=$(echo "$RESULT" | grep -oP 'HTTP=\K\d+')
+
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "303" ]; then
+            echo "✅ App está acordado (HTTP $STATUS)"
+            exit 0
+          else
+            echo "⚠️ Status inesperado: $STATUS"
+            # Não falha o workflow — pode ser Streamlit Cloud com hiccup temporário.
+            # Se isso acumular, GitHub avisa via email. Próxima execução em 15 min.
+            exit 0
+          fi
