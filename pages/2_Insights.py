@@ -1,19 +1,17 @@
 """
 pages/2_Insights.py — Diagnóstico operacional automático
 
-Página que mostra padrões descobertos pelo sistema ao analisar todas as folhas
-registradas. Linguagem do chão de fábrica — "falta", "sobra", "tacho cheio" —
-em vez de jargão técnico.
+Página que mostra SINAIS detectados pelo sistema ao analisar todas as folhas
+registradas. Linguagem do chão de fábrica, sem jargão técnico.
+
+⚠️ Após questionário 15/05/2026 com a Gestão, vários sinais foram recalibrados:
+   - Insight Master: NÃO é desbalanceamento confirmado — pode ser viés de amostra
+     + reflexo dos ajustes antecipados de pedido embutidos no param_real.
+   - H1 Tachos parciais: NÃO é desperdício — sobra do tacho vira pote 260g/605g.
+   - H4 Embalagem: capacidade NÃO é fixa em 3000 — varia conforme equipe do dia.
+   - H5 Anomalia palha: validado pela Gestão — manter detecção.
 
 Atualiza automaticamente conforme novas folhas entram no banco.
-
-Achados principais:
-    1. Desbalanceamento por sabor (T = 2L = 4(B+C+P) — regra da Gestão)
-    2. Tachos parciais (capacidade não aproveitada)
-    3. Anomalias palha (Leite em Pó × Tradicional)
-    4. Sobrecarga de embalagem (>3000 und/dia)
-    5. Lead time real (P/Virar → Cortados em D+3)
-    6. Razão T/L ao longo do tempo
 
 Cálculos rodam em memória com cache de 60s. Para refresh manual, recarregar a página.
 """
@@ -248,9 +246,10 @@ def calcular_todos_insights():
 # ════════════════════════════════════════════════════════════════════════════
 st.title("🔍 Insights & Diagnóstico")
 st.caption(
-    "Padrões que o sistema descobriu ao analisar todas as folhas registradas. "
+    "Sinais que o sistema detectou ao analisar todas as folhas registradas. "
     "Atualiza sozinho quando novas folhas entram. "
-    "**Linguagem direta:** \"falta\", \"sobra\", \"tacho cheio\"."
+    "⚠️ **Importante:** sinais ≠ diagnósticos confirmados. "
+    "Cada achado é uma pista pra investigar com a Gestão — não conclusão fechada."
 )
 
 dados = calcular_todos_insights()
@@ -267,22 +266,27 @@ col_c.metric("📅 Última", datetime.strptime(dados["ultima"], "%Y-%m-%d").strf
 # Conta sabores com ③ médio significativo
 flat_h2 = dados["h2"]["flat"]
 n_alertas = sum(1 for r in flat_h2 if abs(r["media"]) > 100)
-col_d.metric("🚨 Sabores com viés sistemático", n_alertas, help="③ médio acima de ±100 und/dia")
+col_d.metric("🔎 Sabores com sinal forte", n_alertas, help="③ médio acima de ±100 und/dia — pista pra investigar, não diagnóstico confirmado")
 
 st.divider()
 
 # ════════════════════════════════════════════════════════════════════════════
-# 1. INSIGHT MASTER — Desbalanceamento por sabor
+# 1. INSIGHT MASTER — Sinal detectado (validar com mais dados)
 # ════════════════════════════════════════════════════════════════════════════
-st.header("🎯 Achado principal — Desbalanceamento de produção")
+st.header("🎯 Padrão detectado — possível viés por sabor (a validar)")
 
 st.markdown(
-    "<div class='insight-card-master'>"
-    "<b style='font-size:18px;color:#7B341E;'>O sistema descobriu um padrão sistemático:</b><br><br>"
-    "A produção <b>não está respeitando</b> a regra da Gestão (Tradicional = 2× Leite Condensado = 4× B/C/P). "
-    "Como consequência, alguns sabores <b>faltam</b> consistentemente, enquanto outros <b>sobram</b>. "
-    "É o pior cenário do PCP: perde venda <i>e</i> encalha estoque ao mesmo tempo."
-    "</div>",
+    f"<div class='insight-card-master'>"
+    f"<b style='font-size:18px;color:#7B341E;'>O sistema detectou um sinal nas {dados['n_folhas']} folhas analisadas:</b><br><br>"
+    f"Alguns sabores aparecem com Cortados ③ médio <b>persistentemente negativo</b> (produção abaixo do parâmetro real), "
+    f"outros com ③ médio <b>persistentemente positivo</b> (produção acima do parâmetro real). "
+    f"<br><br>"
+    f"<b>⚠️ Importante:</b> a Gestão confirmou (15/05/2026) que <b>NÃO sente</b> esse desbalanceamento na prática. "
+    f"Esse sinal pode ser:<br>"
+    f"&nbsp;&nbsp;• <b>Viés de amostra pequena</b> (só {dados['n_folhas']} folhas — precisa de 60-90 pra estabilizar)<br>"
+    f"&nbsp;&nbsp;• <b>Reflexo dos ajustes antecipados</b> da Gestão: o <code>param_real</code> do dia já embute pedidos da semana seguinte, então a produção 'atrasa' em relação ao parâmetro inflado.<br><br>"
+    f"<b>Tratar como pista pra investigar, não como conclusão fechada.</b>"
+    f"</div>",
     unsafe_allow_html=True,
 )
 
@@ -303,8 +307,8 @@ fig_h2.add_trace(go.Bar(
     hovertemplate="<b>%{y}</b><br>Média: %{x:+.0f} und/dia<extra></extra>",
 ))
 fig_h2.update_layout(
-    title="③ médio por sabor/tamanho — vermelho = falta · verde = sobra",
-    xaxis_title="Cortados ③ médio (unidades/dia úteis)",
+    title="③ médio por sabor/tamanho — vermelho = abaixo do param_real · verde = acima",
+    xaxis_title="Cortados ③ médio (unidades/dia útil)",
     yaxis_title="",
     height=420,
     margin=dict(l=20, r=80, t=60, b=40),
@@ -323,23 +327,34 @@ df_h2_tab.columns = ["Sabor", "Tamanho", "Total acumulado (und)", "Média por di
 with st.expander("📊 Ver tabela completa", expanded=False):
     st.dataframe(df_h2_tab, use_container_width=True, hide_index=True)
 
-# Caixa "O que isso significa?"
+# Caixa "Como ler os números"
 st.markdown(
-    "<div class='insight-card-warning'>"
-    "<b>🔴 O que isso significa na prática:</b><br>"
-    "• Quando um sabor tem média muito <b>negativa</b> (vermelho), a fábrica está produzindo <b>menos</b> do que o parâmetro da Gestão manda — quem chega na loja procurando esse sabor pode não encontrar.<br>"
-    "• Quando tem média muito <b>positiva</b> (verde escuro), está produzindo <b>mais</b> do que precisa — encalha no estoque, ocupa espaço, e tem risco de validade vencer."
+    "<div class='insight-card-info'>"
+    "<b>🔵 Como ler os números:</b><br>"
+    "• Média <b>negativa</b> (vermelho) → produção média ficou <b>abaixo</b> do <code>param_real</code> nas folhas analisadas.<br>"
+    "• Média <b>positiva</b> (verde) → produção média ficou <b>acima</b> do <code>param_real</code> nas folhas analisadas.<br>"
+    "• O <code>param_real</code> não é fixo — varia diariamente conforme a Gestão antecipa pedidos da semana seguinte. Por isso o sinal aqui é sensível a quando o pedido foi distribuído e quando a produção alcançou."
     "</div>",
     unsafe_allow_html=True,
 )
 
-# Perguntas pra discutir com a Gestão
-st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
+# Já respondido pela Gestão (15/05/2026)
+st.markdown(
+    "<div class='insight-card-good'>"
+    "<b>✅ Já discutido com a Gestão (15/05/2026):</b><br>"
+    "• <i>\"Eu não sinto Pé de Moça sobrando — talvez pareça por sempre ter no estoque acima, mas não tem me incomodado.\"</i><br>"
+    "• <i>\"A proporção T/L oscila porque eu antecipo pedidos da semana seguinte distribuindo entre os dias — não é capacidade, é planejamento.\"</i><br>"
+    "→ Recalibrado: este achado vira <b>sinal pra acompanhar</b>, não diagnóstico confirmado. Reavaliar quando houver 60+ folhas."
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+# Perguntas que continuam abertas
+st.markdown("#### 💬 Ainda em aberto pra acompanhar")
 perguntas_master = [
-    "Você sente esse padrão de falta de Tradicional e sobra de Pé de Moça?",
-    "Por que a proporção Tradicional/Leite Condensado oscila tanto? Limite de capacidade da Produção?",
-    "Pé de Moça que sobra vai pra pote? Vencimento? Doação? Algum cliente específico?",
-    "Tem demanda fixa de cliente que justifica produzir mais Pé de Moça? Quanto? Em quais dias?",
+    "O padrão se mantém quando temos 60+ folhas, ou some quando a amostra cresce?",
+    "Os ajustes antecipados (param_real − base) deveriam aparecer marcados na folha com origem do pedido (cliente X, semana Y)?",
+    "Quando o sistema mostrar 'sinal forte', a Gestão prefere ver no Insights ou no Painel do dia?",
 ]
 for p in perguntas_master:
     st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
@@ -350,13 +365,14 @@ st.divider()
 # 2. TACHOS PARCIAIS
 # ════════════════════════════════════════════════════════════════════════════
 h1 = dados["h1"]
-st.header(f"🔥 Tachos parciais — {h1['pct']:.0f}% das ordens não enchem tacho")
+st.header(f"🥥 Tachos parciais — conversão para potes ({h1['pct']:.0f}% das ordens)")
 
 st.markdown(
-    f"<div class='insight-card-warning'>"
-    f"<b>De {h1['total']} ordens de produção, {len(h1['parciais'])} pediram bandejas que não completam tacho cheio.</b><br><br>"
-    f"Cada tacho rende 8 bandejas (3 no caso do Zero). Quando a ordem é 18 em vez de 16 ou 24, "
-    f"o tacho sai parcial — sobra ingrediente, energia gasta, mão de obra usada pra produzir menos do que poderia."
+    f"<div class='insight-card-info'>"
+    f"<b>De {h1['total']} ordens de produção, {len(h1['parciais'])} têm bandejas que não fecham tacho cheio.</b><br><br>"
+    f"Cada tacho rende 8 bandejas (3 no Zero). Quando a Gestão ordena 18 em vez de 16 ou 24, "
+    f"a sobra do último tacho <b>não é perdida</b> — vai pra <b>potes 260g ou 605g</b> do mesmo sabor. "
+    f"Confirmado pela Gestão (15/05/2026): <i>\"o resto do tacho vai pros potes\"</i>."
     f"</div>",
     unsafe_allow_html=True,
 )
@@ -364,22 +380,30 @@ st.markdown(
 if h1["parciais"]:
     df_h1 = pd.DataFrame(h1["parciais"])
     df_h1["data"] = pd.to_datetime(df_h1["data"]).dt.strftime("%d/%m/%Y")
-    df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cheios", "Sobra (band)", "Pra completar próximo tacho"]
+    df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cheios", "Sobra (band) → potes", "Pra fechar próximo tacho"]
     st.dataframe(df_h1, use_container_width=True, hide_index=True)
 
 st.markdown(
-    "<div class='insight-card-info'>"
-    "<b>💡 Ideia de melhoria automática:</b> o sistema pode <b>sugerir arredondamento</b>. "
-    "Quando a Gestão escrever 18 band, mostrar: <i>\"18 = 2 tachos + 2 band soltas. Sugere: 16 (mais conservador) ou 24 (cobre próximo dia)?\"</i>"
+    "<div class='insight-card-good'>"
+    "<b>✅ Decisão intencional, não desperdício.</b> Tacho parcial é estratégia da Gestão pra balancear "
+    "bandejas (45g/Mini/Pet) <b>e</b> potes 260g/605g no mesmo dia, com a mesma massa do tacho. Sem perda de ingrediente."
     "</div>",
     unsafe_allow_html=True,
 )
 
-st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
+st.markdown(
+    "<div class='insight-card-info'>"
+    "<b>💡 Melhoria futura (UX):</b> quando a Gestão lançar <code>ord_prod_band = 18</code>, mostrar ao lado: "
+    "<i>\"18 = 2 tachos cheios (16 band) + sobra do 3º tacho (~10 kg de massa) — sugestão de pote: 605g × Y ou 260g × Z\"</i>. "
+    "Informativo, não impositivo."
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+st.markdown("#### 💬 Em aberto pra acompanhar")
 for p in [
-    "Quando produz 18 band de Tradicional em vez de 16 ou 24, o ingrediente extra vai pra onde?",
-    "Tachos parciais são por urgência de cliente, ou por planejamento mesmo?",
-    "Sistema sugerir arredondamento pra cima/baixo seria útil ou atrapalha o controle da Gestão?",
+    "Mistério dos 36 kg de Pé de Moça vs apenas 30 potes 260g (15/05) — pra onde foram os outros 28 kg?",
+    "Sistema deveria sugerir automaticamente ord_prod_potes a partir da sobra do tacho parcial?",
 ]:
     st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
 
@@ -394,8 +418,8 @@ st.header(f"🌾 Palha — {len(h5['anomalias'])} dia(s) com Leite em Pó domina
 if h5["anomalias"]:
     st.markdown(
         f"<div class='insight-card-warning'>"
-        f"<b>Em {len(h5['anomalias'])} dias, a ordem de Palha Leite em Pó ultrapassou a de Tradicional em mais de 30%.</b><br><br>"
-        f"Normalmente Tradicional é o sabor mais pedido. Quando Leite em Pó passa muito, ou é encomenda especial ou erro de lançamento."
+        f"<b>Em {len(h5['anomalias'])} dia(s), a ordem de Palha Leite em Pó ultrapassou Tradicional em mais de 30%.</b><br><br>"
+        f"Normalmente Tradicional é o sabor mais pedido. Quando Leite em Pó passa muito, costuma ser encomenda especial."
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -405,19 +429,28 @@ if h5["anomalias"]:
     df_h5["razao"] = df_h5["razao"].apply(lambda v: f"{v:.2f}x")
     df_h5.columns = ["Data", "Tradicional (band)", "Leite em Pó (band)", "Razão L/T"]
     st.dataframe(df_h5, use_container_width=True, hide_index=True)
+
+    st.markdown(
+        "<div class='insight-card-good'>"
+        "<b>✅ Detecção validada pela Gestão (15/05/2026):</b> "
+        "<i>\"Sim, me parece que nesses dias realmente foi maior. É interessante que o sistema sempre entregue isso.\"</i><br>"
+        "Manter este alerta ativo — é exatamente o tipo de sinal que vale acompanhar."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 else:
     st.markdown(
         "<div class='insight-card-good'>"
-        "✅ Nenhuma anomalia de palha detectada. Tradicional continua sendo o sabor dominante, como esperado."
+        "✅ Nenhuma anomalia de palha detectada no período. Tradicional continua dominando, como esperado."
         "</div>",
         unsafe_allow_html=True,
     )
 
 if h5["anomalias"]:
-    st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
+    st.markdown("#### 💬 Em aberto pra acompanhar")
     for p in [
-        "Nos dias com mais Leite em Pó do que Tradicional, teve encomenda específica de cliente?",
-        "Ou foi erro no preenchimento da folha?",
+        "Quando o sistema detectar nova anomalia, vale notificar a Gestão imediatamente (push/email) ou só ao abrir o app?",
+        "Existe lista de encomendas grandes esperadas (cliente X pede Y palha LP toda quinta)?",
     ]:
         st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
 
@@ -427,24 +460,49 @@ st.divider()
 # 4. SOBRECARGA EMBALAGEM
 # ════════════════════════════════════════════════════════════════════════════
 h4 = dados["h4"]
-st.header(f"📦 Embalagem — {len(h4['sobrecarga'])} dia(s) acima da capacidade")
+st.header("📦 Embalagem — capacidade VARIÁVEL (ajustar conforme equipe do dia)")
 
-cap = h4["capacidade"]
+# Capacidade configurável — a Gestão confirmou (15/05/2026) que não é fixa: varia
+# com quantas pessoas estão embalando e a velocidade individual de cada uma.
+cap = st.slider(
+    "Capacidade de embalagem assumida para este alerta (und/dia)",
+    min_value=800, max_value=5000,
+    value=int(h4["capacidade"]),
+    step=100,
+    help="Variável conforme quem está embalando. Padrão 3000 (1 pessoa rápida). "
+         "Reduza pra ~1500 quando só há 1 embalador devagar; suba pra 4000+ quando equipe completa.",
+)
+
+# Recalcula sobrecarga com a capacidade escolhida (sem ir ao banco de novo)
+sobrecarga_dinamica = [r for r in h4["todas"] if r["total"] > cap]
+
 st.markdown(
     f"<div class='insight-card-info'>"
-    f"<b>Capacidade aproximada da Embalagem:</b> {cap:,} unidades embaladas/dia.<br>"
-    f"Quando a ordem total ultrapassa, sobra trabalho pro próximo dia (estoque cortado parado) ou alguém precisa ajudar / fazer hora extra."
+    f"<b>Capacidade NÃO é fixa.</b> A Gestão confirmou (15/05/2026): "
+    f"<i>\"a capacidade de 3000 não é fixa, varia — às vezes tem mais pessoas, ou pessoas com capacidade maior\"</i>.<br><br>"
+    f"Com a capacidade atual de <b>{cap:,} und/dia</b>, <b>{len(sobrecarga_dinamica)} dia(s)</b> "
+    f"do histórico passariam do limite."
     f"</div>",
     unsafe_allow_html=True,
 )
 
-if h4["sobrecarga"]:
-    df_h4 = pd.DataFrame(h4["sobrecarga"])
+if sobrecarga_dinamica:
+    df_h4 = pd.DataFrame(sobrecarga_dinamica)
     df_h4["data"] = pd.to_datetime(df_h4["data"]).dt.strftime("%d/%m/%Y")
-    df_h4 = df_h4[["data", "emb_45g", "emb_mini", "total", "vs_meta"]]
-    df_h4["vs_meta"] = df_h4["vs_meta"].apply(lambda v: f"+{v:,}")
-    df_h4.columns = ["Data", "45g (und)", "Mini (und)", "Total", "Acima da capacidade"]
+    df_h4 = df_h4.copy()
+    df_h4["acima"] = df_h4["total"] - cap
+    df_h4 = df_h4[["data", "emb_45g", "emb_mini", "total", "acima"]]
+    df_h4["acima"] = df_h4["acima"].apply(lambda v: f"+{v:,}")
+    df_h4.columns = ["Data", "45g (und)", "Mini (und)", "Total", "Acima do limite assumido"]
     st.dataframe(df_h4, use_container_width=True, hide_index=True)
+else:
+    st.markdown(
+        "<div class='insight-card-good'>"
+        "✅ Nenhum dia do histórico ultrapassa essa capacidade. "
+        "Mova o slider pra baixo (ex: 1800) pra simular dias com equipe reduzida."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 # Gráfico de embalagem ao longo do tempo
 df_emb_all = pd.DataFrame(h4["todas"])
@@ -461,7 +519,7 @@ fig_h4.add_trace(go.Bar(
 ))
 fig_h4.add_hline(
     y=cap, line_dash="dash", line_color="#B91C1C",
-    annotation_text=f"Capacidade ≈ {cap:,}", annotation_position="top right",
+    annotation_text=f"Capacidade assumida ≈ {cap:,}", annotation_position="top right",
 )
 fig_h4.update_layout(
     title="Ordens de embalagem por dia",
@@ -474,14 +532,13 @@ fig_h4.update_layout(
 )
 st.plotly_chart(fig_h4, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
-if h4["sobrecarga"]:
-    st.markdown("#### 💬 Perguntas pra discutir com a Gestão")
-    for p in [
-        f"Nos dias acima de {cap:,} und, a Embalagem ficou até tarde? Alguém ajudou?",
-        "Hora extra da Embalagem tem custo direto que a Gestão acompanha?",
-        f"A capacidade real é {cap:,} mesmo? Tem dias melhores/piores?",
-    ]:
-        st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
+st.markdown("#### 💬 Em aberto pra acompanhar")
+for p in [
+    "Faz sentido a folha ter um campo 'embaladores presentes hoje' pra capacidade ser calculada automaticamente?",
+    "Existe registro de quanto cada pessoa embala em média (Popô × Leonília × extras)?",
+    "Hora extra da Embalagem é registrada em algum lugar (papel, sistema, planilha)?",
+]:
+    st.markdown(f"<div class='pergunta-eraldo'>❓ {p}</div>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -491,8 +548,10 @@ st.divider()
 st.header("📈 Proporção Tradicional / Leite Condensado ao longo do tempo")
 
 st.caption(
-    "A regra da Gestão prescreve **T/L = 2.0** (produz 2× mais Tradicional que Leite Condensado). "
-    "Quando o gráfico oscila pra cima ou pra baixo dessa linha, há desbalanceamento."
+    "A regra base da Gestão prescreve **T/L = 2.0** (T = 2× L em 45g). "
+    "Oscilações fora da banda 1.8–2.2 **não significam desbalanceamento automaticamente** — "
+    "podem refletir pedidos antecipados de cliente distribuídos pelos dias da semana "
+    "(confirmado pela Gestão 15/05/2026). Trate como contexto, não diagnóstico."
 )
 
 df_h6 = pd.DataFrame(dados["h6"]["rows"])
@@ -596,6 +655,8 @@ st.caption(
     f"atualizada a cada 60 segundos ou quando nova folha é salva."
 )
 st.caption(
-    "💡 Esta página é o **diagnóstico inicial** do sistema. Conforme novas folhas entram, padrões mais ricos emergem. "
-    "Achados confirmados com a Gestão viram **regras automatizadas** na Camada 2 (sugestão de corte)."
+    "💡 Esta página mostra **sinais a investigar** — não conclusões fechadas. "
+    "Conforme novas folhas entram, padrões mais ricos emergem e os falsos positivos diminuem. "
+    "Achados que a Gestão confirmar viram **regras automatizadas** na Camada 2 (sugestão de corte). "
+    "Achados que a Gestão refutar são marcados aqui e desligados como alerta."
 )
