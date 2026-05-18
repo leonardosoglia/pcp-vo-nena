@@ -49,6 +49,24 @@ Razão estratégica: capacidade pra Fase 3 do ROADMAP_IA (LLM "Pergunte ao Claud
 
 Sinal verde pra Claude API (~R$1/mês uso típico), Supabase Pro se necessário, features pagas que agreguem.
 
+### Insight crítico do Leonardo sobre Vendas — 17/05/2026
+
+> *"A Curva ABC mostra o que é produzido, não o que é vendido. Leonília organiza pedidos por destino (quiosques, feiras...). A gente não tem essas informações."*
+
+**Diagnóstico:** o módulo de **Vendas** é o **buraco central** que falta no sistema. Sem ele:
+- Curva ABC mede produção, não venda real
+- Não é possível medir perda de venda real (só perda de produção vs parâmetro)
+- Insights de demanda ficam "às cegas"
+
+**3 caminhos identificados:**
+1. **Ficha pra Leonília** — como controla pedidos hoje (caderno? planilha? mental?)
+2. **Sigee Cloud** — Mariana confirma se tem vendas por produto+data+cliente → CSV
+3. **Módulo Pedidos no sistema** — tabelas `pedidos` + `pedido_item` (só se 1 e 2 falharem)
+
+**Status:** **PRIORIZADO PRA DEPOIS DA FASE 1 ML**. Leonardo decidiu (17/05) focar em IA primeiro. Retomar após Detecção de Anomalia + Média Móvel.
+
+**Pra próxima sessão:** quando começar trabalho com Vendas, atacar Caminhos 1+2 em paralelo. Caminho 3 é Plano B.
+
 **Próximos passos imediatos:**
 - **Fase 1 ML** (semana 22-29/05, ~6h): Curva ABC + Detecção de Anomalia (Isolation Forest) + Média Móvel
 - **Fase 2 ML** (semana 29/05-04/06, ~10h): Detecção de tendência + projeção Prophet
