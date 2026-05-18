@@ -68,9 +68,19 @@ Sinal verde pra Claude API (~R$1/mês uso típico), Supabase Pro se necessário,
 **Pra próxima sessão:** quando começar trabalho com Vendas, atacar Caminhos 1+2 em paralelo. Caminho 3 é Plano B.
 
 **Próximos passos imediatos:**
-- **Fase 1 ML** (semana 22-29/05, ~6h): Curva ABC + Detecção de Anomalia (Isolation Forest) + Média Móvel
-- **Fase 2 ML** (semana 29/05-04/06, ~10h): Detecção de tendência + projeção Prophet
-- **Fase 3 LLM** (semana 04-12/06, ~4h): Botão "Pergunte ao Claude"
+- ✅ **Fase 1 ML COMPLETA (17/05/2026)** — adiantada do prazo original (22-29/05):
+  - Curva ABC (`pages/4_Curva_ABC.py`) — diagrama de Pareto + classificação 80/95
+  - Detecção de Anomalia (`pages/5_Anomalias_ML.py`) — Isolation Forest com features de estoque + fluxo
+  - Média Móvel (`pages/6_Media_Movel.py`) — comparativo base × observado por sabor × dia da semana
+- **Fase 2 ML** (semana 22-29/05, ~10h): Detecção de tendência + projeção Prophet
+- **Fase 3 LLM** (semana 29/05-12/06, ~4h): Botão "Pergunte ao Claude" (Claude Haiku 4.5 via API)
+- **Módulo Vendas** (após Fase 3 ou paralelo): ficha pra Leonília + integração CSV Sigee — depende de respostas pendentes
+
+**Correção crítica 17/05/2026 (insight do Leonardo):** Curva ABC inicialmente usava
+`emb_*` (estoque snapshot) somado entre dias = erro estatístico clássico. Corrigido
+para `ord_corte_*` (fluxo de bandejas — pode ser somado dia a dia). Detecção de
+Anomalia também reforçada com features de fluxo. Princípio stock vs flow
+(Forrester 1961) agora respeitado no sistema todo. Vai pro Cap 4 do TCC.
 
 Detalhes em `ROADMAP_IA.md`.
 
