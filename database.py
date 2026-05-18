@@ -182,8 +182,8 @@ def _get_pool():
         from psycopg.rows import dict_row
         _postgres_pool = ConnectionPool(
             DATABASE_URL,
-            min_size=2,  # 2 conexões prontas no startup (suporta queries paralelas)
-            max_size=5,
+            min_size=4,  # 4 conexões prontas — get_folha_completa dispara 4 queries paralelas
+            max_size=8,  # margem pra picos sem precisar reabrir TCP+TLS
             kwargs={
                 "row_factory": dict_row,
                 # prepare_threshold=None: PgBouncer transaction mode (porta 6543) não

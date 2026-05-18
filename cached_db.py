@@ -12,19 +12,27 @@ por:
 
 E chamam `invalidar_folha()` após salvar/excluir uma folha pra forçar releitura.
 
-TTLs escolhidos por taxa de mudança real do dado (revisado 14/05/2026 após
-feedback de lentidão na produção com latência Atlântico Supabase + manutenção):
+TTLs escolhidos por taxa de mudança real do dado (revisado 17/05/2026 após
+migração HF Spaces — latência transcontinental Supabase amplificou impacto
+do cache vazio entre interações):
     - Tabelas de referência (metas, conversões, estoque): 24h — quase nunca mudam.
-    - Folhas e derivados:                                  5 min — mudam quando o
+    - Folhas e derivados:                                  30 min — mudam quando o
       usuário salva. `invalidar_folha()` força releitura imediata após save/delete,
       então TTL pode ser longo sem prejudicar consistência percebida.
-    - Lista de datas (sidebar):                            5 min + invalidação no
+    - Lista de datas (sidebar):                            30 min + invalidação no
       save/delete (muda quando nova folha entra ou sai).
+    - Necessidades de Suprimentos:                         10 min (depende de
+      folha + estoque, ambos invalidam ao salvar).
 
 Trade-off do free tier:
     Latência Supabase pelo Atlântico = ~100-300 ms por query.
     Folha do dia carrega ~10-15 queries → ~2-4 s sem cache.
     Com cache hit, ~0 ms.
+
+TTL longo (30min) é seguro porque a invalidação manual (`invalidar_folha()`)
+é chamada sempre que o usuário salva via UI — então o usuário NUNCA vê dados
+desatualizados. O TTL é só pra expirar o cache caso outro processo edite o
+banco (cenário improvável no PCP Vó Nena, 1 pessoa edita por vez).
 """
 import streamlit as st
 import database as _db
@@ -67,7 +75,7 @@ listar_produtos_possiveis = _db.listar_produtos_possiveis
 # ════════════════════════════════════════════════════════════════════════════
 # LEITURAS DE FOLHA — TTL curto + invalidação manual no save
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_folha_completa(data):
     """Carrega cocada + palha + papelzinho + pmbd em UMA chamada (queries paralelas
     em Postgres, sequencial em SQLite). Reduz ~4 round-trips em 1.
@@ -75,37 +83,37 @@ def get_folha_completa(data):
     return _db.get_folha_completa(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_folha_cocada(data):
     return _db.get_folha_cocada(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_folha_palha(data):
     return _db.get_folha_palha(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_papelzinho_joel(data):
     return _db.get_papelzinho_joel(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_pm_balas_doces(data):
     return _db.get_pm_balas_doces(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def list_datas_folha():
     return _db.list_datas_folha()
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def calcular_cortados(data):
     return _db.calcular_cortados(data)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def calcular_viradas_pvirar(data):
     return _db.calcular_viradas_pvirar(data)
 
@@ -204,27 +212,27 @@ def invalidar_tudo():
 # ════════════════════════════════════════════════════════════════════════════
 # TTL médio (5min) pra suprimentos — mudam mais que metas (24h) mas menos que
 # folhas (que são salvas várias vezes ao dia).
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_insumos(categoria=None, somente_ativos=True):
     return _db.get_insumos(categoria=categoria, somente_ativos=somente_ativos)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_insumo(insumo_id):
     return _db.get_insumo(insumo_id)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_insumo_por_codigo(codigo):
     return _db.get_insumo_por_codigo(codigo)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_bom_produto(produto_chave):
     return _db.get_bom_produto(produto_chave)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_movimentos_insumo(insumo_id=None, data_inicio=None, data_fim=None, tipo=None, limite=100):
     return _db.get_movimentos_insumo(
         insumo_id=insumo_id, data_inicio=data_inicio, data_fim=data_fim,
@@ -232,7 +240,8 @@ def get_movimentos_insumo(insumo_id=None, data_inicio=None, data_fim=None, tipo=
     )
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def calcular_necessidades_do_dia(data):
-    """TTL curto (60s) — depende de folha atual + estoque atual, ambos podem mudar."""
+    """TTL médio (10min) — depende de folha atual + estoque atual.
+    Invalida via invalidar_suprimentos() após save."""
     return _db.calcular_necessidades_do_dia(data)

@@ -37,6 +37,27 @@ from cached_db import (
     SABORES_COCADA, SABORES_PALHA, SIGLA_COCADA, SIGLA_PALHA,
 )
 
+
+# Pre-warm dos caches mais consultados — paga o custo de TCP+TLS+round-trip
+# Atlântico UMA vez no startup, em vez de na primeira interação do usuário.
+# Crítico no HF Spaces (us-east-1) com Supabase (sa-east-1), latência ~150 ms/query.
+# Total ~1 s no startup, mas usuário vê navegação instantânea depois (cache hit).
+# Silencia exceções: se o banco estiver lento/indisponível, app sobe mesmo assim
+# e o lazy load entra em ação no primeiro acesso.
+@st.cache_resource(show_spinner=False)
+def _prewarm_cache():
+    try:
+        list_datas_folha()
+        get_metas_45g()
+        get_metas_mini_pet()
+        get_pvirar_ideal()
+    except Exception:
+        pass
+    return True
+
+
+_prewarm_cache()
+
 # Mapa weekday() -> coluna da tabela metas_45g
 DIAS_COL_METAS = {0: "segunda", 1: "terca", 2: "quarta", 3: "quinta", 4: "sexta"}
 
