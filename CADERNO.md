@@ -6,6 +6,58 @@
 
 ---
 
+## 0.3 Migração para Hugging Face Spaces — 17/05/2026
+
+**Plataforma de hospedagem trocada de Streamlit Community Cloud → Hugging Face Spaces.**
+
+### Por quê
+
+| Critério | Streamlit Cloud Free | HF Spaces Free |
+|---|---|---|
+| RAM | 1 GB | **16 GB** |
+| CPU | ~1 vCPU compartilhado | 2 vCPU |
+| Sleep | poucas horas | 48h |
+| Versão Streamlit | qualquer | qualquer (via Docker) |
+| Ecosistema ML/IA | nenhum | hub de modelos + datasets |
+
+Razão estratégica: capacidade pra Fase 3 do ROADMAP_IA (LLM "Pergunte ao Claude") + portfólio público pro TCC.
+
+### Como
+- **`Dockerfile`** novo no repo (Python 3.13-slim, user uid 1000, streamlit headless 8501)
+- **`README.md` YAML header** (`sdk: docker`, `app_port: 8501`, `colorFrom: red`, `colorTo: yellow`)
+- **Git LFS** configurado pra `*.pdf`, `*.docx`, `*.xlsx` (HF rejeita binários inline)
+- **2 remotes git:** `origin` (GitHub → Streamlit Cloud) e `hf` (Hugging Face)
+- Streamlit Cloud **mantido no ar** durante validação paralela
+
+### Problemas encontrados + lições
+1. `sdk: streamlit` no HF tá deprecado — força versão 1.25.0 antiga. **Solução:** Docker SDK.
+2. `colorFrom` só aceita 8 cores específicas (não tem `orange`). **Solução:** `red` + `colorTo: yellow`.
+3. PDFs/DOCXs no histórico do git impediam push. **Solução:** Git LFS migrate import.
+4. Force push da pasta principal sobrescreveu commits do worktree. **Lição:** sempre fetch antes de force push se trabalho está em múltiplas branches.
+
+### Performance pós-migração
+- Primeira observação do Leonardo: navegação entre datas ~1 min (anormal)
+- **3 quick wins aplicados** (commit `3424897`):
+  - TTL do cache: 5min → 30min
+  - Pre-warm no startup (`@st.cache_resource` chamando `list_datas_folha`, `metas_45g`, etc.)
+  - Pool psycopg `min_size 2→4`, `max_size 5→8`
+- Validação pendente após rebuild do HF
+
+### Adendo de IA / ML (palavras do Leonardo)
+
+> *"Eu quero uma plataforma muito interessante, a fim de trazer essa visão diferencial pra ela crescer pra todas as partes. Essa coisa de IA quero muito. Inclusive se você tiver outras possibilidades, outras ferramentas, mesmo que seja pago, você me fala."*
+
+Sinal verde pra Claude API (~R$1/mês uso típico), Supabase Pro se necessário, features pagas que agreguem.
+
+**Próximos passos imediatos:**
+- **Fase 1 ML** (semana 22-29/05, ~6h): Curva ABC + Detecção de Anomalia (Isolation Forest) + Média Móvel
+- **Fase 2 ML** (semana 29/05-04/06, ~10h): Detecção de tendência + projeção Prophet
+- **Fase 3 LLM** (semana 04-12/06, ~4h): Botão "Pergunte ao Claude"
+
+Detalhes em `ROADMAP_IA.md`.
+
+---
+
 ## 0.5 Reposicionamento estratégico — 15/05/2026
 
 **Após Etapa B estar pronta, Leonardo recalibrou a visão do projeto:**
