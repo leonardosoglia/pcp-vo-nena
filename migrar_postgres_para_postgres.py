@@ -121,14 +121,29 @@ def _copiar_tabela(tabela: str, conn_old, conn_new, dry_run: bool = False) -> tu
     cols = list(rows[0].keys())
     placeholders = ", ".join(["%s"] * len(cols))
     cols_str = ", ".join(f'"{c}"' for c in cols)
-    sql = f'INSERT INTO {tabela} ({cols_str}) VALUES ({placeholders})'
+
+    # Se a tabela tem coluna 'id' (que provavelmente é GENERATED ALWAYS AS IDENTITY
+    # quando criada por database.py em Postgres), precisa de OVERRIDING SYSTEM VALUE
+    # pra permitir inserção explícita do id e preservar relacionamentos/sequences.
+    if "id" in cols:
+        sql = (f'INSERT INTO {tabela} ({cols_str}) '
+               f'OVERRIDING SYSTEM VALUE '
+               f'VALUES ({placeholders})')
+    else:
+        sql = f'INSERT INTO {tabela} ({cols_str}) VALUES ({placeholders})'
 
     # TRUNCATE + INSERT em transação atômica
-    with conn_new.cursor() as c_new:
-        c_new.execute(f"TRUNCATE TABLE {tabela} RESTART IDENTITY CASCADE")
-        for row in rows:
-            c_new.execute(sql, [row[col] for col in cols])
-    conn_new.commit()
+    try:
+        with conn_new.cursor() as c_new:
+            c_new.execute(f"TRUNCATE TABLE {tabela} RESTART IDENTITY CASCADE")
+            for row in rows:
+                c_new.execute(sql, [row[col] for col in cols])
+        conn_new.commit()
+    except Exception:
+        # Rollback explícito pra liberar a conexão pras próximas tabelas
+        # (sem isso, todo INSERT subsequente falha com "transaction is aborted")
+        conn_new.rollback()
+        raise
 
     # Se a tabela tiver coluna 'id' do tipo IDENTITY, reseta a sequência
     # pra próximo INSERT seguir a partir de MAX(id)+1.
@@ -202,8 +217,15 @@ def main():
                 erros += 1
             print(f"{tabela:<28} {n_o:>10} {n_d:>10}   {status}")
         except Exception as e:
-            print(f"{tabela:<28} {'?':>10} {'?':>10}   ❌ {e}")
+            # Mensagem de erro curta (1 linha) pra não bagunçar a tabela
+            err_msg = str(e).split("\n")[0][:80]
+            print(f"{tabela:<28} {'?':>10} {'?':>10}   ❌ {err_msg}")
             erros += 1
+            # Garante que a conexão NEW está limpa pra próxima tabela
+            try:
+                conn_new.rollback()
+            except Exception:
+                pass
 
     conn_old.close()
     conn_new.close()
