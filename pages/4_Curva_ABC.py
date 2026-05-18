@@ -7,8 +7,15 @@ Classifica cada produto (sabor × tamanho) em 3 grupos:
     B — próximos 15% → cadência regular
     C — últimos 5% → cauda longa, lotes maiores e espaçados
 
-Fonte da verdade: EMBALADOS (produto acabado pronto pra venda), não ordens.
-Razão: ordem mostra intenção; embalado mostra realidade.
+MÉTRICA: BANDEJAS CORTADAS (`ord_corte_*`) acumuladas ao longo das folhas.
+Razão (descoberta com Leonardo 17/05/2026): EMBALADO é estoque (snapshot),
+NÃO se soma entre dias — "o que tem embalado na sexta também tá na prateleira
+segunda". Ordens de corte são FLUXO — cada folha registra a demanda do dia,
+e somar dia a dia faz sentido estatístico. Bandeja é a unidade comum de
+fluxo entre cocada e palha (não exige conversão por tipo).
+
+Pro Leonardo: o critério aqui responde "quais produtos a fábrica MAIS
+PRODUZ ao longo do tempo", não "qual estoque está maior agora".
 
 Atualiza automaticamente conforme novas folhas entram. Quanto mais histórico,
 mais confiável a classificação.
@@ -82,69 +89,89 @@ st.markdown("""
 # ════════════════════════════════════════════════════════════════════════════
 # CÁLCULOS
 # ════════════════════════════════════════════════════════════════════════════
-def _carregar_embalados_por_produto():
-    """Soma o total embalado de cada (sabor × tamanho) ao longo de TODAS as folhas.
+def _carregar_volume_corte_por_produto():
+    """Soma o total de BANDEJAS CORTADAS de cada (sabor × tamanho) ao longo de
+    TODAS as folhas registradas.
 
-    Cocada: EMB 45g, EMB Mini, EMB Pet (unidades)
-    Palha:  EMB 50g (× 10 = unidades de palha), EMB Pet (unidades)
+    MÉTRICA: ord_corte_* — ordens de corte do dia, em BANDEJAS.
+    É um FLUXO (cada folha registra demanda do dia), então pode ser somado
+    entre dias com significado estatístico válido.
+
+    Por que NÃO usar emb_* (Embalado):
+        emb_* é snapshot do estoque atual. Somar emb_45g de seg + ter +
+        qua = nonsense estatístico (mistura repetições do mesmo estoque).
+        Insight do Leonardo (17/05/2026): "o que tá embalado na sexta tá na
+        prateleira segunda também".
+
+    Cocada: ord_corte_45g, ord_corte_mini, ord_corte_pet (bandejas).
+        Zero 45g não existe — pula.
+    Palha:  ord_corte_50g, ord_corte_pet (bandejas).
+        Palha 50g só existe em T, L, CH.
 
     Retorna DataFrame com colunas:
-        produto (str)  — ex: "Cocada T 45g"
-        grupo (str)    — "Cocada" ou "Palha"
+        produto_completo (str)  — ex: "Cocada Tradicional 45g"
+        grupo (str)             — "Cocada" ou "Palha"
         sabor (str)
         tamanho (str)
-        volume_und (int)  — total embalado no período
+        volume_band (int)       — total de bandejas cortadas no período
     """
     datas = list_datas_folha()
     if not datas:
         return pd.DataFrame()
 
-    soma = {}  # chave (grupo, sabor, tamanho) -> total em unidades
+    soma = {}  # chave (grupo, sabor, tamanho) -> total em bandejas
 
-    # COCADA: emb_45g, emb_mini, emb_pet
+    # COCADA: ord_corte_45g, ord_corte_mini, ord_corte_pet (bandejas)
     for d in datas:
         for r in get_folha_cocada(d):
             s = r["sabor"]
             if s == "ZERO":
                 # Zero 45g não existe — só Mini e Pet
-                tamanhos = [("Mini", "emb_mini"), ("Pet", "emb_pet")]
+                tamanhos = [("Mini", "ord_corte_mini"), ("Pet", "ord_corte_pet")]
             else:
-                tamanhos = [("45g", "emb_45g"), ("Mini", "emb_mini"), ("Pet", "emb_pet")]
+                tamanhos = [
+                    ("45g", "ord_corte_45g"),
+                    ("Mini", "ord_corte_mini"),
+                    ("Pet", "ord_corte_pet"),
+                ]
             for tam, col in tamanhos:
                 qt = int(r.get(col) or 0)
                 if qt > 0:
                     chave = ("Cocada", s, tam)
                     soma[chave] = soma.get(chave, 0) + qt
 
-    # PALHA: emb_50g e emb_pet ambos em UNIDADES (schema database.py:516)
+    # PALHA: ord_corte_50g, ord_corte_pet (bandejas)
     for d in datas:
         for r in get_folha_palha(d):
             s = r["sabor"]
             # 50g só existe em T, L, CH
-            emb_50g = int(r.get("emb_50g") or 0)
-            if emb_50g > 0 and s in ("TRADICIONAL", "LEITE EM PÓ", "CHURROS"):
+            ord_50 = int(r.get("ord_corte_50g") or 0)
+            if ord_50 > 0 and s in ("TRADICIONAL", "LEITE EM PÓ", "CHURROS"):
                 chave = ("Palha", s, "50g")
-                soma[chave] = soma.get(chave, 0) + emb_50g
-            emb_pet = int(r.get("emb_pet") or 0)
-            if emb_pet > 0:
+                soma[chave] = soma.get(chave, 0) + ord_50
+            ord_pet = int(r.get("ord_corte_pet") or 0)
+            if ord_pet > 0:
                 chave = ("Palha", s, "Pet")
-                soma[chave] = soma.get(chave, 0) + emb_pet
+                soma[chave] = soma.get(chave, 0) + ord_pet
 
     if not soma:
         return pd.DataFrame()
 
     linhas = []
     for (grupo, sabor, tamanho), vol in soma.items():
+        # Capitaliza sabor pra ficar mais legível (TRADICIONAL → Tradicional)
+        sabor_nice = sabor.capitalize() if sabor.isupper() else sabor
+        # Palha "LEITE EM PÓ" fica "Leite em Pó" (mantém preposições minúsculas)
+        sabor_nice = sabor_nice.replace(" Em ", " em ").replace(" De ", " de ")
         linhas.append({
-            "produto": f"{grupo[:1]} {sabor[:3]} {tamanho}",
-            "produto_completo": f"{grupo} {sabor} {tamanho}",
+            "produto_completo": f"{grupo} {sabor_nice} {tamanho}",
             "grupo": grupo,
             "sabor": sabor,
             "tamanho": tamanho,
-            "volume_und": vol,
+            "volume_band": vol,
         })
     df = pd.DataFrame(linhas)
-    df = df.sort_values("volume_und", ascending=False).reset_index(drop=True)
+    df = df.sort_values("volume_band", ascending=False).reset_index(drop=True)
     return df
 
 
@@ -158,9 +185,9 @@ def _classificar_abc(df, corte_a=0.80, corte_b=0.95):
     """
     if df.empty:
         return df
-    total = df["volume_und"].sum()
+    total = df["volume_band"].sum()
     df = df.copy()
-    df["pct"] = df["volume_und"] / total
+    df["pct"] = df["volume_band"] / total
     df["pct_acumulado"] = df["pct"].cumsum()
 
     def _classe(pct_acum):
@@ -176,7 +203,7 @@ def _classificar_abc(df, corte_a=0.80, corte_b=0.95):
 
 @st.cache_data(ttl=1800, show_spinner="🔍 Calculando Curva ABC...")
 def calcular_curva_abc():
-    df = _carregar_embalados_por_produto()
+    df = _carregar_volume_corte_por_produto()
     if df.empty:
         return df
     return _classificar_abc(df)
@@ -198,12 +225,27 @@ geram 80% do volume**. A Curva ABC operacionaliza isso, separando o catálogo em
 
 | Classe | O que representa | Como tratar |
 |---|---|---|
-| **A** | Top produtos — somam **80%** do volume embalado | Atenção máxima. Estoque sempre cheio. Cabeça de ordem todo dia. |
+| **A** | Top produtos — somam **80%** do volume produzido | Atenção máxima. Estoque sempre cheio. Cabeça de ordem todo dia. |
 | **B** | Intermediários — próximos **15%** | Cadência regular. Tolera ficar sem 1 dia. |
 | **C** | Cauda longa — últimos **5%** | Lotes maiores e mais espaçados. Tolera 2-3 dias fora. |
 
-**Esta página usa EMBALADOS** (produto acabado pronto pra venda) como métrica,
-não ordens nem cortados. Razão: ordem mostra intenção; embalado mostra realidade.
+**Métrica usada:** **bandejas cortadas** (`ord_corte_*`), somadas ao longo de
+todas as folhas registradas.
+
+**Por que NÃO usar Embalados (snapshot da prateleira):**
+
+> *Insight do Leonardo (17/05/2026):* o campo "Embalado" é o ESTOQUE NA PRATELEIRA
+> em cada dia, não o que passou pela embalagem. Se segunda tem 1.000 embalados
+> e terça tem 950 (porque vendeu 50, não embalou nada novo), somar daria 1.950 —
+> como se 1.950 tivessem sido produzidos. Mas só 1.000 passaram pela embalagem.
+
+**Ordens de corte (`ord_corte_*`) são FLUXO:** cada folha registra quantas
+bandejas a Gestão pediu pra cortar naquele dia. Somar dias faz sentido
+estatístico — é igual somar entrada/saída de um caixa, não saldo final.
+
+**Bandejas (não unidades) porque:** cocada e palha têm rendimentos diferentes
+por bandeja. Bandeja é a unidade comum de fluxo entre os dois. Sem precisar
+converter (= sem inventar números).
 
 **Referência clássica:** Juran, J. M. (1951). *Quality Control Handbook*.
 Princípio originalmente proposto por Vilfredo Pareto (1896) ao estudar
@@ -216,8 +258,8 @@ df_abc = calcular_curva_abc()
 
 if df_abc.empty:
     st.warning(
-        "⚠️ Ainda não há folhas com EMBALADOS preenchidos. "
-        "Cadastra algumas folhas em Lançamento antes."
+        "⚠️ Ainda não há folhas com ordens de corte (`ord_corte_*`) preenchidas. "
+        "Cadastra algumas folhas com ordens de corte em Lançamento antes."
     )
     st.stop()
 
@@ -236,7 +278,7 @@ for col, classe, descricao, cor in [
 ]:
     df_grupo = df_abc[df_abc["classe"] == classe]
     qt = len(df_grupo)
-    vol = int(df_grupo["volume_und"].sum())
+    vol = int(df_grupo["volume_band"].sum())
     pct = float(df_grupo["pct"].sum()) * 100
     with col:
         st.markdown(
@@ -244,7 +286,7 @@ for col, classe, descricao, cor in [
             f"<b style='font-size:22px;'>Classe {classe}</b><br>"
             f"<span style='font-size:13px;opacity:0.9;'>{descricao}</span>"
             f"<hr style='border-color:rgba(255,255,255,0.3);margin:8px 0;'>"
-            f"<b>{qt}</b> produtos · <b>{vol:,}</b> und · <b>{pct:.1f}%</b>"
+            f"<b>{qt}</b> produtos · <b>{vol:,}</b> bandejas · <b>{pct:.1f}%</b>"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -258,9 +300,9 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 st.header("📈 Diagrama de Pareto")
 st.caption(
-    "Barras = volume de cada produto (eixo esquerdo). "
+    "Barras = bandejas cortadas (volume acumulado nas folhas registradas, eixo esquerdo). "
     "Linha = % acumulado do volume total (eixo direito). "
-    "A linha cruza 80% no fim da Classe A."
+    "A linha cruza 80% no fim da Classe A — a partir dali são produtos secundários."
 )
 
 fig = go.Figure()
@@ -270,21 +312,21 @@ cor_por_classe = {"A": "#059669", "B": "#B45309", "C": "#991B1B"}
 cores_barras = [cor_por_classe[c] for c in df_abc["classe"]]
 
 fig.add_trace(go.Bar(
-    x=df_abc["produto"],
-    y=df_abc["volume_und"],
-    name="Volume embalado (und)",
+    x=df_abc["produto_completo"],
+    y=df_abc["volume_band"],
+    name="Bandejas cortadas (acumulado)",
     marker_color=cores_barras,
-    text=[f"{v:,}" for v in df_abc["volume_und"]],
+    text=[f"{v:,}" for v in df_abc["volume_band"]],
     textposition="outside",
     hovertemplate=(
         "<b>%{x}</b><br>"
-        "Volume: %{y:,} und<br>"
+        "Volume: %{y:,} bandejas<br>"
         "<extra></extra>"
     ),
 ))
 
 fig.add_trace(go.Scatter(
-    x=df_abc["produto"],
+    x=df_abc["produto_completo"],
     y=df_abc["pct_acumulado"] * 100,
     name="% acumulado",
     yaxis="y2",
@@ -312,11 +354,11 @@ fig.add_hline(
 
 fig.update_layout(
     xaxis=dict(title="Produto", tickangle=-45),
-    yaxis=dict(title="Volume embalado (unidades)", side="left"),
+    yaxis=dict(title="Bandejas cortadas (acumulado)", side="left"),
     yaxis2=dict(title="% acumulado", side="right", overlaying="y",
                 range=[0, 105], ticksuffix="%"),
-    height=520,
-    margin=dict(l=20, r=20, t=40, b=120),
+    height=580,  # +60 pra acomodar nomes mais longos no eixo X
+    margin=dict(l=20, r=20, t=40, b=180),  # +60 de bottom pelos nomes longos
     plot_bgcolor="white",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     hovermode="x unified",
@@ -332,11 +374,11 @@ st.divider()
 st.header("📋 Detalhamento por produto")
 
 df_tab = df_abc.copy()
-df_tab["volume_und"] = df_tab["volume_und"].apply(lambda v: f"{v:,}")
+df_tab["volume_band"] = df_tab["volume_band"].apply(lambda v: f"{v:,}")
 df_tab["pct"] = (df_abc["pct"] * 100).apply(lambda v: f"{v:.1f}%")
 df_tab["pct_acumulado"] = (df_abc["pct_acumulado"] * 100).apply(lambda v: f"{v:.1f}%")
-df_tab = df_tab[["produto_completo", "classe", "volume_und", "pct", "pct_acumulado"]]
-df_tab.columns = ["Produto", "Classe", "Volume embalado (und)", "% do total", "% acumulado"]
+df_tab = df_tab[["produto_completo", "classe", "volume_band", "pct", "pct_acumulado"]]
+df_tab.columns = ["Produto", "Classe", "Bandejas cortadas", "% do total", "% acumulado"]
 
 st.dataframe(df_tab, use_container_width=True, hide_index=True)
 

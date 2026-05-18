@@ -106,6 +106,9 @@ def _features_de_folha(d):
 
     feat = {"data": d}
 
+    # ── FEATURES DE ESTOQUE (Embalados — snapshot do dia) ─────────────────
+    # Captura anomalias de NÍVEL DE ESTOQUE (encalhe, ruptura, contagem errada)
+
     # Embalados de cocada (totais por sabor — soma 45g + Mini + Pet)
     for s in SABORES_COCADA:
         r = cocada.get(s, {})
@@ -114,17 +117,48 @@ def _features_de_folha(d):
                      int(r.get("emb_pet") or 0))
         feat[f"emb_total_{s}"] = emb_total
 
-    # Embalados de palha
+    # Embalados de palha (estoque snapshot)
     for s in SABORES_PALHA:
         r = palha.get(s, {})
         emb_50 = int(r.get("emb_50g") or 0)
         emb_pt = int(r.get("emb_pet") or 0)
         feat[f"palha_emb_{s}"] = emb_50 + emb_pt
 
+    # ── FEATURES DE FLUXO (Ordens — demanda do dia) ───────────────────────
+    # Captura anomalias de DEMANDA (dia atípico de pedido, mudança de mix)
+    # Adicionado 17/05/2026 após insight do Leonardo: estoque e fluxo são
+    # variáveis complementares — capturam tipos diferentes de anomalia.
+
     # Ordens de produção (band) por sabor cocada
     for s in SABORES_COCADA:
         r = cocada.get(s, {})
         feat[f"ord_band_{s}"] = int(r.get("ord_prod_band") or 0)
+
+    # Ordens de corte por sabor cocada (45g, Mini, Pet — em bandejas)
+    for s in SABORES_COCADA:
+        r = cocada.get(s, {})
+        feat[f"ord_corte_total_{s}"] = (
+            int(r.get("ord_corte_45g") or 0) +
+            int(r.get("ord_corte_mini") or 0) +
+            int(r.get("ord_corte_pet") or 0)
+        )
+
+    # Ordens de embalagem por sabor cocada (45g + Mini em und)
+    for s in SABORES_COCADA:
+        r = cocada.get(s, {})
+        feat[f"ord_emb_total_{s}"] = (
+            int(r.get("ord_emb_45g") or 0) +
+            int(r.get("ord_emb_mini") or 0)
+        )
+
+    # Ordens de produção e corte da palha
+    for s in SABORES_PALHA:
+        r = palha.get(s, {})
+        feat[f"palha_ord_band_{s}"] = int(r.get("ord_prod_band") or 0)
+        feat[f"palha_ord_corte_{s}"] = (
+            int(r.get("ord_corte_50g") or 0) +
+            int(r.get("ord_corte_pet") or 0)
+        )
 
     # Razões da regra clássica (T = 2L = 4B/C/P em 45g embalados)
     t_45 = int((cocada.get("TRADICIONAL", {}).get("emb_45g") or 0))
@@ -214,13 +248,25 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 
     if nome_feat.startswith("emb_total_"):
         sabor = nome_feat.replace("emb_total_", "")
-        return f"Embalado de {sabor} {intensidade}{direcao} pro padrão"
+        return f"Estoque embalado de Cocada {sabor} {intensidade}{direcao}"
     if nome_feat.startswith("palha_emb_"):
         sabor = nome_feat.replace("palha_emb_", "")
-        return f"Embalado de Palha {sabor} {intensidade}{direcao}"
+        return f"Estoque embalado de Palha {sabor} {intensidade}{direcao}"
     if nome_feat.startswith("ord_band_"):
         sabor = nome_feat.replace("ord_band_", "")
-        return f"Ordem de bandejas de {sabor} {intensidade}{direcao}"
+        return f"Ordem de bandejas (tachos) de Cocada {sabor} {intensidade}{direcao}"
+    if nome_feat.startswith("ord_corte_total_"):
+        sabor = nome_feat.replace("ord_corte_total_", "")
+        return f"Ordem de corte de Cocada {sabor} {intensidade}{direcao}"
+    if nome_feat.startswith("ord_emb_total_"):
+        sabor = nome_feat.replace("ord_emb_total_", "")
+        return f"Ordem de embalagem de Cocada {sabor} {intensidade}{direcao}"
+    if nome_feat.startswith("palha_ord_band_"):
+        sabor = nome_feat.replace("palha_ord_band_", "")
+        return f"Ordem de bandejas (tachos) de Palha {sabor} {intensidade}{direcao}"
+    if nome_feat.startswith("palha_ord_corte_"):
+        sabor = nome_feat.replace("palha_ord_corte_", "")
+        return f"Ordem de corte de Palha {sabor} {intensidade}{direcao}"
     if nome_feat == "razao_T_L_45g":
         return f"Razão T/L em 45g {intensidade}{direcao} (esperado: ~2.0)"
     if nome_feat == "razao_T_BCP_45g":
@@ -234,7 +280,7 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
     if nome_feat == "total_ord_cocada":
         return f"Total de ordens de cocada {intensidade}{direcao}"
     if nome_feat == "pct_cocada":
-        return f"Mix cocada/palha {intensidade}{direcao}"
+        return f"Mix cocada/palha (% cocada do total embalado) {intensidade}{direcao}"
     return f"{nome_feat} {intensidade}{direcao}"
 
 
