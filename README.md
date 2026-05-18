@@ -1,7 +1,7 @@
 ---
-title: PCP Vó Nena
+title: PCP Vo Nena
 emoji: 🍬
-colorFrom: orange
+colorFrom: red
 colorTo: yellow
 sdk: docker
 app_port: 8501
