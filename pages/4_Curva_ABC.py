@@ -31,9 +31,13 @@ from datetime import datetime
 import sys
 import os
 
-# Bootstrap defensivo (entry point já fez, mas se a página for o primeiro hit, garante)
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# Bootstrap defensivo: entry point já faz, mas se a página for o primeiro hit,
+# garante. HF Spaces não tem secrets.toml — try/except evita StreamlitSecretNotFoundError.
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:
@@ -212,45 +216,72 @@ def calcular_curva_abc():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO DIDÁTICA
 # ════════════════════════════════════════════════════════════════════════════
-st.title("📊 Curva ABC de produtos")
+st.title("📊 Curva ABC — Classificação dos Produtos por Volume")
 st.caption(
-    "Classifica automaticamente os produtos da Vó Nena em 3 grupos de prioridade, "
-    "baseado no princípio de Pareto (80/20). Quanto mais histórico, mais confiável."
+    "Separa automaticamente os produtos da Vó Nena em 3 grupos de prioridade "
+    "(A, B, C), baseado em quanto cada um já foi produzido no histórico. "
+    "Foca atenção nos que mais movimentam — clássico de Engenharia de Produção."
 )
 
-with st.expander("ℹ️ Como funciona a Curva ABC (clica pra entender)", expanded=False):
+# Resumo curto em destaque
+st.markdown(
+    "<div class='didatica' style='margin-bottom:14px;'>"
+    "<b>📖 Como ler esta página em 30 segundos:</b><br>"
+    "1. A regra geral 'da indústria' é que <b>20% dos produtos respondem por "
+    "80% do volume produzido</b> (princípio de Pareto). A Curva ABC torna "
+    "isso operacional.<br>"
+    "2. O sistema soma todas as <b>bandejas cortadas</b> (ord_corte) de cada "
+    "produto ao longo de TODAS as folhas registradas.<br>"
+    "3. Ordena do maior pro menor e separa em <b>3 grupos</b>:<br>"
+    "&nbsp;&nbsp;• <b>Classe A 🟢</b> — os 'carros-chefe' que somam 80% do volume<br>"
+    "&nbsp;&nbsp;• <b>Classe B 🟡</b> — produtos intermediários (próximos 15%)<br>"
+    "&nbsp;&nbsp;• <b>Classe C 🔴</b> — cauda longa (últimos 5%)<br>"
+    "4. <b>Use pra priorizar:</b> Classe A merece atenção diária; Classe C "
+    "tolera ficar fora 2-3 dias."
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+with st.expander("📚 Explicação detalhada do método (opcional — pro TCC)", expanded=False):
     st.markdown("""
-**O princípio de Pareto** diz que numa fábrica, normalmente **20% dos produtos
-geram 80% do volume**. A Curva ABC operacionaliza isso, separando o catálogo em:
+**O princípio de Pareto** observou que **80% dos efeitos vêm de 20% das
+causas** em muitos contextos. Aplicado à indústria, **20% dos produtos
+geralmente respondem por 80% do volume produzido**.
 
-| Classe | O que representa | Como tratar |
+A **Curva ABC** operacionaliza essa observação, separando o catálogo em
+3 classes de prioridade:
+
+| Classe | Acumula | Como tratar |
 |---|---|---|
-| **A** | Top produtos — somam **80%** do volume produzido | Atenção máxima. Estoque sempre cheio. Cabeça de ordem todo dia. |
-| **B** | Intermediários — próximos **15%** | Cadência regular. Tolera ficar sem 1 dia. |
-| **C** | Cauda longa — últimos **5%** | Lotes maiores e mais espaçados. Tolera 2-3 dias fora. |
+| **A** | Os primeiros que somam até **80%** do volume | Atenção máxima. Estoque sempre cheio. Cabeça de ordem todo dia. Risco de perda de venda alto se faltar. |
+| **B** | Próximos produtos até **95%** | Cadência regular. Tolera ficar sem 1 dia. Atenção média. |
+| **C** | Últimos produtos (5% finais) | Lotes maiores e mais espaçados. Tolera 2-3 dias fora. Atenção mínima. |
 
-**Métrica usada:** **bandejas cortadas** (`ord_corte_*`), somadas ao longo de
-todas as folhas registradas.
+**Métrica usada nesta página: bandejas cortadas (`ord_corte_*`)** —
+acumuladas ao longo de TODAS as folhas registradas.
 
-**Por que NÃO usar Embalados (snapshot da prateleira):**
+**Por que NÃO somar "Embalados" (estoque na prateleira)?**
 
-> *Insight do Leonardo (17/05/2026):* o campo "Embalado" é o ESTOQUE NA PRATELEIRA
-> em cada dia, não o que passou pela embalagem. Se segunda tem 1.000 embalados
-> e terça tem 950 (porque vendeu 50, não embalou nada novo), somar daria 1.950 —
-> como se 1.950 tivessem sido produzidos. Mas só 1.000 passaram pela embalagem.
+> *Insight do Leonardo (17/05/2026):* o campo "Embalado" é o ESTOQUE NA
+> PRATELEIRA em cada dia, não o que passou pela embalagem. Se segunda tem
+> 1.000 embalados e terça tem 950 (porque vendeu 50 e não embalou nada
+> novo), somar daria 1.950 — como se 1.950 tivessem sido produzidos. Mas
+> só 1.000 passaram pela embalagem.
 
 **Ordens de corte (`ord_corte_*`) são FLUXO:** cada folha registra quantas
 bandejas a Gestão pediu pra cortar naquele dia. Somar dias faz sentido
 estatístico — é igual somar entrada/saída de um caixa, não saldo final.
+Princípio **estoque vs fluxo** (Forrester, 1961, *Industrial Dynamics*).
 
-**Bandejas (não unidades) porque:** cocada e palha têm rendimentos diferentes
-por bandeja. Bandeja é a unidade comum de fluxo entre os dois. Sem precisar
-converter (= sem inventar números).
+**Bandejas (não unidades) como unidade:** cocada e palha têm rendimentos
+diferentes por bandeja. Bandeja é a unidade comum de fluxo entre os dois.
+Evita conversões com números inventados.
 
 **Referência clássica:** Juran, J. M. (1951). *Quality Control Handbook*.
-Princípio originalmente proposto por Vilfredo Pareto (1896) ao estudar
-distribuição de renda na Itália — observou que 80% da terra pertencia a 20%
-da população.
+Princípio originalmente proposto por **Vilfredo Pareto (1896)** ao estudar
+distribuição de renda na Itália — observou que 80% da terra pertencia a
+20% da população. Generalizou-se como **"Lei de Pareto"** em economia,
+qualidade e gestão.
 """)
 
 

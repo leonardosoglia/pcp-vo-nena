@@ -21,9 +21,13 @@ from datetime import date, datetime, timedelta
 import sys
 import os
 
-# Bootstrap defensivo (entry point já fez, mas garante se a página for o primeiro hit)
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# Bootstrap defensivo: entry point já faz, mas garante se a página for o primeiro
+# hit. HF Spaces não tem secrets.toml — try/except evita StreamlitSecretNotFoundError.
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:

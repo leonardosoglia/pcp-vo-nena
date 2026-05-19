@@ -22,8 +22,14 @@ import sys, os
 # Bootstrap: Streamlit Cloud expõe secrets só via st.secrets, mas database.py
 # lê os.environ["DATABASE_URL"] em import time. Propaga aqui antes de importar database.
 # Preserva env var explícita (dev pode setar manualmente no shell pra rodar scripts).
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# Bootstrap defensivo: Streamlit Cloud expõe via st.secrets; HF Spaces usa
+# env vars diretas (sem secrets.toml — `in st.secrets` levantaria
+# StreamlitSecretNotFoundError). Try/except cobre os dois casos.
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 sys.path.insert(0, os.path.dirname(__file__))
 # Usa cached_db (wrapper @st.cache_data sobre database) — reduz latência

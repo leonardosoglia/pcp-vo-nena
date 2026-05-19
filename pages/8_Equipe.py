@@ -21,9 +21,12 @@ from datetime import datetime, date
 import sys
 import os
 
-# Bootstrap
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# Bootstrap defensivo (HF Spaces sem secrets.toml — try/except evita erro)
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:

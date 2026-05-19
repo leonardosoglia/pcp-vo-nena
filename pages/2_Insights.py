@@ -24,8 +24,12 @@ import sys
 import os
 
 # Bootstrap defensivo (entry point já fez, mas se a página for o primeiro hit, garante)
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# HF Spaces não tem secrets.toml — try/except evita StreamlitSecretNotFoundError
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:

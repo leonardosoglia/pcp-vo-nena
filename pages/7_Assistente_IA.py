@@ -17,11 +17,14 @@ from datetime import datetime
 import sys
 import os
 
-# Bootstrap
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
-if not os.getenv("ANTHROPIC_API_KEY") and "ANTHROPIC_API_KEY" in st.secrets:
-    os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
+# Bootstrap defensivo de secrets (vide pages/5_Anomalias_ML.py pra explicação).
+for _key in ("DATABASE_URL", "ANTHROPIC_API_KEY"):
+    if not os.getenv(_key):
+        try:
+            if _key in st.secrets:
+                os.environ[_key] = st.secrets[_key]
+        except Exception:
+            pass
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:

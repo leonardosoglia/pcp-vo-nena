@@ -11,10 +11,14 @@ import pandas as pd
 from datetime import date, datetime
 import sys, os
 
-# Bootstrap defensivo: o entry point (lancamento.py) já faz isso, mas idempotente
-# garante que se essa página for aberta direto não quebra.
-if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
-    os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+# Bootstrap defensivo: entry point já faz, mas se essa página for aberta direto
+# garante. HF Spaces não tem secrets.toml — try/except evita
+# StreamlitSecretNotFoundError ao verificar `in st.secrets`.
+try:
+    if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
+        os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
 
 # sys.path do pai pra importar cached_db / database / analise da raiz
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
