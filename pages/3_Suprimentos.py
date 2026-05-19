@@ -52,38 +52,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    [data-testid="metric-container"] {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 10px; padding: 12px 18px;
-    }
-    [data-testid="metric-container"] label {
-        color: #7B341E !important; font-size: 13px !important; font-weight: 600 !important;
-    }
-    .alerta-falta {
-        background: #FEF2F2; border-left: 5px solid #B91C1C;
-        padding: 10px 14px; border-radius: 6px; margin: 6px 0;
-        color: #7F1D1D; font-weight: 600;
-    }
-    .alerta-critico {
-        background: #FFFBEB; border-left: 5px solid #D97706;
-        padding: 10px 14px; border-radius: 6px; margin: 6px 0;
-        color: #92400E; font-weight: 600;
-    }
-    .alerta-ok {
-        background: #ECFDF5; border-left: 5px solid #059669;
-        padding: 10px 14px; border-radius: 6px; margin: 6px 0;
-        color: #065F46; font-weight: 600;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 # Idempotente — garante schema novo nos primeiros acessos pós-deploy
 init_db()
@@ -110,7 +81,7 @@ def _formatar_qtd(qtd: float, unidade: str) -> str:
 
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
-st.title("🏭 Suprimentos")
+st.title("Suprimentos")
 st.caption(
     "Controle de matéria-prima, embalagens, potes, cintas e displays. "
     "Conectado à folha de produção: quando a Etapa E for implementada, "

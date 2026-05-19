@@ -47,60 +47,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    [data-testid="metric-container"] {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 10px; padding: 12px 18px;
-    }
-    [data-testid="metric-container"] label {
-        color: #7B341E !important; font-size: 13px !important; font-weight: 600 !important;
-    }
-    .insight-card-master {
-        background: linear-gradient(135deg, #FFF8F2 0%, #FEF3C7 100%);
-        border-left: 6px solid #C05621;
-        border-radius: 8px;
-        padding: 20px 24px;
-        margin: 12px 0 20px 0;
-    }
-    .insight-card-warning {
-        background: #FEF2F2;
-        border-left: 5px solid #B91C1C;
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin: 8px 0;
-    }
-    .insight-card-good {
-        background: #ECFDF5;
-        border-left: 5px solid #059669;
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin: 8px 0;
-    }
-    .insight-card-info {
-        background: #EFF6FF;
-        border-left: 5px solid #2563EB;
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin: 8px 0;
-    }
-    .pergunta-eraldo {
-        background: #FFFBEB;
-        border: 1px dashed #D97706;
-        border-radius: 6px;
-        padding: 10px 14px;
-        margin: 6px 0;
-        font-style: italic;
-        color: #92400E;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -248,7 +197,7 @@ def calcular_todos_insights():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + DADOS
 # ════════════════════════════════════════════════════════════════════════════
-st.title("🔍 Insights & Diagnóstico")
+st.title("Insights & Diagnóstico")
 st.caption(
     "Sinais que o sistema detectou ao analisar todas as folhas registradas. "
     "Atualiza sozinho quando novas folhas entram. "

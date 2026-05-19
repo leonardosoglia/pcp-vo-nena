@@ -89,122 +89,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Tema visual ────────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-.block-container { padding-top: 1rem; padding-bottom: 4rem; }
-h1, h2, h3 { color: #C05621; font-weight: 700; }
-
-section[data-testid="stSidebar"] { background-color: #1C1410; }
-section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-section[data-testid="stSidebar"] .stButton > button {
-    background-color: #C05621; color: white !important; border: none;
-    font-weight: 600; width: 100%;
-}
-section[data-testid="stSidebar"] .stButton > button:hover { background-color: #7B341E; }
-
-/* Botões de popover na sidebar (o ⋮ ao lado de cada folha e o + Adicionar) */
-/* Vários seletores pra garantir que pegue independente da versão do Streamlit */
-section[data-testid="stSidebar"] [data-testid="stPopover"] button,
-section[data-testid="stSidebar"] [data-testid="stPopoverButton"],
-section[data-testid="stSidebar"] button[data-testid*="opover"],
-section[data-testid="stSidebar"] button[aria-haspopup="dialog"],
-section[data-testid="stSidebar"] button[kind="popover"],
-section[data-testid="stSidebar"] button[kind="secondary"] {
-    background-color: #B91C1C !important;       /* vermelho terra que combina com doce */
-    color: #FFFFFF !important;                  /* texto branco bem contrastante */
-    border: 2px solid #7F1D1D !important;       /* borda vermelho-escuro */
-    font-weight: 800 !important;
-    font-size: 16px !important;
-}
-section[data-testid="stSidebar"] [data-testid="stPopover"] button:hover,
-section[data-testid="stSidebar"] [data-testid="stPopoverButton"]:hover,
-section[data-testid="stSidebar"] button[aria-haspopup="dialog"]:hover,
-section[data-testid="stSidebar"] button[kind="popover"]:hover,
-section[data-testid="stSidebar"] button[kind="secondary"]:hover {
-    background-color: #7F1D1D !important;       /* mais escuro no hover */
-    color: #FFFFFF !important;
-    border-color: #450A0A !important;
-}
-/* Texto interno do botão popover — força branco em qualquer span/p */
-section[data-testid="stSidebar"] [data-testid="stPopover"] button *,
-section[data-testid="stSidebar"] [data-testid="stPopoverButton"] *,
-section[data-testid="stSidebar"] button[aria-haspopup="dialog"] *,
-section[data-testid="stSidebar"] button[kind="popover"] * {
-    color: #FFFFFF !important;
-}
-
-div[data-testid="stButton"] > button[kind="primary"] {
-    background-color: #C05621 !important; color: white !important;
-    font-weight: 700; border-radius: 6px; padding: 10px 18px;
-}
-
-/* Expanders na ÁREA CENTRAL (folha de produção) — cor creme clara */
-.main [data-testid="stExpander"],
-section.main [data-testid="stExpander"] {
-    border: 1px solid #E5DFD3 !important;
-    border-radius: 8px !important;
-    background: #FFFEFB !important;
-    margin: 6px 0 !important;
-}
-.main [data-testid="stExpander"] summary,
-.main [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"] + div {
-    color: #7B341E !important;
-    font-weight: 700 !important;
-    font-size: 14px !important;
-}
-.main [data-testid="stExpander"] summary:hover { background: #FFF8F2 !important; }
-
-/* Expanders NA SIDEBAR — cor marrom sólida pra destacar */
-section[data-testid="stSidebar"] [data-testid="stExpander"] {
-    background: #5C2A14 !important;       /* marrom escuro chocolate */
-    border: 2px solid #C05621 !important;
-    border-radius: 6px !important;
-    margin: 4px 0 !important;
-}
-section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
-section[data-testid="stSidebar"] [data-testid="stExpander"] details > summary,
-section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"] + div {
-    color: #F5E6D3 !important;            /* creme bem claro */
-    font-weight: 800 !important;
-    font-size: 14px !important;
-    background: transparent !important;
-}
-section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {
-    background: #7B341E !important;
-}
-/* Conteúdo interno do expander na sidebar — fundo um pouco mais claro pra contraste */
-section[data-testid="stSidebar"] [data-testid="stExpander"] details > div {
-    background: #2C1F18 !important;
-    padding: 8px !important;
-    border-radius: 0 0 4px 4px !important;
-}
-
-/* Badge ✅ Salvo */
-.badge-salvo {
-    background: #16A34A;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    display: inline-block;
-    text-align: center;
-    line-height: 1.3;
-}
-
-.status-box-novo {
-    background: #ECFDF5; border-left: 5px solid #059669;
-    padding: 10px 14px; border-radius: 6px; color: #065F46; font-weight: 600;
-}
-.status-box-edit {
-    background: #FFF8F2; border-left: 5px solid #C05621;
-    padding: 10px 14px; border-radius: 6px; color: #7B341E; font-weight: 600;
-}
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 init_db()
 
@@ -251,14 +138,29 @@ def celula_vazia(col, motivo="—"):
     )
 
 
-def num_input_compact(col, key, valor_inicial, step=1):
+def num_input_compact(col, key, valor_inicial, step=None):
+    """Input numérico compacto pra folha.
+
+    Decisão de UX (19/05/2026): campos vazios em vez de zero pré-preenchido.
+    - valor_inicial em (None, 0) → campo aparece VAZIO (placeholder)
+    - valor_inicial > 0 → mostra valor real
+    Retorna 0 quando vazio (compatibilidade com código a jusante que faz int()).
+
+    step=None desabilita os botões +/- do widget (setas do teclado movem
+    cursor no texto em vez de incrementar valor). Combinado com value=None,
+    dá experiência de planilha — usuário tabula entre células e digita números.
+    """
+    valor_int = int(valor_inicial or 0)
+    valor_exibir = None if valor_int == 0 else valor_int
     with col:
-        return st.number_input(
+        v = st.number_input(
             label=key, min_value=0,
-            value=int(valor_inicial or 0),
+            value=valor_exibir,
             step=step, key=key,
+            placeholder="",
             label_visibility="collapsed",
         )
+        return int(v) if v is not None else 0
 
 
 def estilo_dif(v):
@@ -400,7 +302,7 @@ with st.sidebar:
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
 col_t, col_d = st.columns([5, 2])
 with col_t:
-    st.title("📋 Folha de Produção — Doces Vó Nena")
+    st.title("Folha de Produção — Doces Vó Nena")
 with col_d:
     st.markdown(
         "<div style='margin-top:24px;text-align:right;color:#C05621;font-weight:700;font-size:15px;'>"
@@ -562,14 +464,14 @@ with col_papel:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✂️ P/ cortar</div>", unsafe_allow_html=True)
             bala_p_cortar = st.number_input(
                 label="bala_p_cortar", min_value=0,
-                value=int(pbd_atual.get("bala_p_cortar") or 0),
+                value=(int(pbd_atual.get("bala_p_cortar") or 0) or None),
                 key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✅ Cortadas</div>", unsafe_allow_html=True)
             bala_cortadas = st.number_input(
                 label="bala_cortadas", min_value=0,
-                value=int(pbd_atual.get("bala_cortadas") or 0),
+                value=(int(pbd_atual.get("bala_cortadas") or 0) or None),
                 key=f"bala_cortadas_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[2]:
@@ -591,14 +493,14 @@ with col_papel:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 PM inacabado (und)</div>", unsafe_allow_html=True)
             pm_inacabado = st.number_input(
                 label="pm_inacabado_und", min_value=0,
-                value=int(pbd_atual.get("pm_inacabado_und") or 0),
+                value=(int(pbd_atual.get("pm_inacabado_und") or 0) or None),
                 key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🎂 Bolos (×70)</div>", unsafe_allow_html=True)
             pm_bolos = st.number_input(
                 label="pm_bolos", min_value=0,
-                value=int(pbd_atual.get("pm_bolos") or 0),
+                value=(int(pbd_atual.get("pm_bolos") or 0) or None),
                 key=f"pm_bolos_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[2]:
@@ -614,7 +516,7 @@ with col_papel:
         st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
         cocada_assada = st.number_input(
             label="cocada_assada_und", min_value=0,
-            value=int(pbd_atual.get("cocada_assada_und") or 0),
+            value=(int(pbd_atual.get("cocada_assada_und") or 0) or None),
             key=f"cocada_assada_{data_str}", label_visibility="collapsed",
         )
 
@@ -1030,7 +932,7 @@ with col_folha:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📦 Displays (qtd)</div>", unsafe_allow_html=True)
             cnt_displays = st.number_input(
                 label="cnt_displays_palha", min_value=0,
-                value=int(pbd_atual.get("cnt_displays_palha") or 0),
+                value=(int(pbd_atual.get("cnt_displays_palha") or 0) or None),
                 key=f"cnt_displays_palha_{data_str}",
                 label_visibility="collapsed",
             )
@@ -1135,13 +1037,13 @@ with col_folha:
         with cnt_cols[0]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_pm = st.number_input(
-                label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
+                label="cnt_pm", min_value=0, value=(int(pbd_atual.get("cnt_pm") or 0) or None),
                 key=f"cnt_pm_{data_str}", label_visibility="collapsed",
             )
         with cnt_cols[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
             ord_pm = st.number_input(
-                label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
+                label="ord_pm", min_value=0, value=(int(pbd_atual.get("ord_pm") or 0) or None),
                 key=f"ord_pm_{data_str}", label_visibility="collapsed",
             )
 
@@ -1169,13 +1071,13 @@ with col_folha:
         with bal_cols[0]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍭 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_balas = st.number_input(
-                label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
+                label="cnt_balas", min_value=0, value=(int(pbd_atual.get("cnt_balas") or 0) or None),
                 key=f"cnt_balas_{data_str}", label_visibility="collapsed",
             )
         with bal_cols[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (tachos)</div>", unsafe_allow_html=True)
             ord_balas = st.number_input(
-                label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
+                label="ord_balas", min_value=0, value=(int(pbd_atual.get("ord_balas") or 0) or None),
                 key=f"ord_balas_{data_str}", label_visibility="collapsed",
             )
             if ord_balas > 0:
@@ -1193,7 +1095,7 @@ with col_folha:
 
         st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍫 Quantidade atual (unidades)</div>", unsafe_allow_html=True)
         cnt_doces = st.number_input(
-            label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
+            label="cnt_doces", min_value=0, value=(int(pbd_atual.get("cnt_doces_displays") or 0) or None),
             key=f"cnt_doces_{data_str}", label_visibility="collapsed",
         )
 

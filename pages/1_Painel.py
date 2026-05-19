@@ -35,25 +35,9 @@ from cached_db import (
 
 st.set_page_config(page_title="Painel • Doces Vó Nena", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    section[data-testid="stSidebar"] .stButton > button { background-color: #C05621; color: white; border: none; font-weight: 600; }
-    div[data-testid="stButton"] > button[kind="primary"] { background-color: #C05621 !important; color: white !important; font-weight: 700; border-radius: 6px; }
-    thead tr th { background-color: #F7EDE2 !important; color: #7B341E !important; font-weight: 700 !important; font-size: 13px !important; }
-    hr { border-color: #F7EDE2; }
-    .stTabs [data-baseweb="tab"] { font-weight: 600; font-size: 14px; color: #7B341E; }
-    .stTabs [aria-selected="true"] { border-bottom: 3px solid #C05621; color: #C05621 !important; }
-    [data-testid="metric-container"] { background: #FFF8F2; border: 1px solid #F7EDE2; border-radius: 10px; padding: 10px 16px; }
-    [data-testid="metric-container"] label { color: #7B341E !important; font-size: 12px !important; font-weight: 600 !important; }
-    [data-testid="stExpander"] summary { font-weight: 600; color: #C05621; }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 # init_db é idempotente — entry point já chamou, mas defensivo se a página
 # for o primeiro hit do processo (cold start).
@@ -134,7 +118,7 @@ df_est     = pd.DataFrame(get_estoque())
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
 col_t, col_d, col_r = st.columns([5,2,1])
-with col_t: st.title("🍬 PCP — Doces Vó Nena")
+with col_t: st.title("PCP — Doces Vó Nena")
 with col_d:
     if hoje == hoje_real:
         st.markdown(f"<div style='margin-top:14px;color:#7B341E;font-weight:600;'>📅 {datetime.today().strftime('%A, %d/%m/%Y').capitalize()}</div>", unsafe_allow_html=True)

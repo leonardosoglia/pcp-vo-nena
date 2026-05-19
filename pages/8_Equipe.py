@@ -49,41 +49,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    [data-testid="metric-container"] {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 10px; padding: 12px 18px;
-    }
-    [data-testid="metric-container"] label {
-        color: #7B341E !important; font-size: 13px !important; font-weight: 600 !important;
-    }
-    .didatica {
-        background: #FFFBEB; border-left: 5px solid #D97706;
-        border-radius: 6px; padding: 14px 18px; margin: 10px 0;
-    }
-    .card-funcionario {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 8px; padding: 14px 18px; margin: 8px 0;
-    }
-    .badge-ativo { background: #059669; color: white; padding: 2px 10px;
-                   border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .badge-inativo { background: #6B7280; color: white; padding: 2px 10px;
-                     border-radius: 12px; font-size: 11px; font-weight: 600; }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("👥 Equipe — Funcionários, Capacidades e Presença")
+st.title("Equipe — Funcionários, Capacidades e Presença")
 st.caption(
     "Cadastro de quem trabalha na fábrica + capacidades por atividade + "
     "presença diária. Alimenta o algoritmo de **Sugestão de Ordem do Dia** "

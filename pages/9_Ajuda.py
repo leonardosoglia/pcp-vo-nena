@@ -30,48 +30,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    .card-feature {
-        background: linear-gradient(135deg, #FFF8F2 0%, #FEF3C7 100%);
-        border-left: 5px solid #C05621;
-        border-radius: 8px;
-        padding: 16px 22px;
-        margin: 10px 0;
-    }
-    .glossario-termo {
-        background: #FFF8F2;
-        border: 1px solid #F7EDE2;
-        border-radius: 6px;
-        padding: 10px 16px;
-        margin: 6px 0;
-    }
-    .glossario-termo b { color: #7B341E; }
-    .ref-box {
-        background: #EFF6FF;
-        border-left: 4px solid #2563EB;
-        border-radius: 4px;
-        padding: 10px 14px;
-        margin: 6px 0;
-        font-size: 12px;
-        color: #1E3A8A;
-    }
-    .faq-q { font-weight: 600; color: #7B341E; margin-top: 12px; }
-    .faq-a { margin-left: 16px; color: #2D2D2D; }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("📖 Central de Ajuda")
+st.title("Central de Ajuda")
 st.caption(
     "Documentação completa do sistema PCP Vó Nena. Use o índice abaixo pra "
     "navegar até a seção que te interessa."

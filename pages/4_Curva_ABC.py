@@ -55,39 +55,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    [data-testid="metric-container"] {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 10px; padding: 12px 18px;
-    }
-    [data-testid="metric-container"] label {
-        color: #7B341E !important; font-size: 13px !important; font-weight: 600 !important;
-    }
-    .card-a {
-        background: linear-gradient(135deg, #065F46 0%, #047857 100%);
-        color: #ECFDF5; padding: 18px 22px; border-radius: 10px; margin: 8px 0;
-    }
-    .card-b {
-        background: linear-gradient(135deg, #92400E 0%, #B45309 100%);
-        color: #FFFBEB; padding: 18px 22px; border-radius: 10px; margin: 8px 0;
-    }
-    .card-c {
-        background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 100%);
-        color: #FEE2E2; padding: 18px 22px; border-radius: 10px; margin: 8px 0;
-    }
-    .didatica {
-        background: #FFFBEB; border-left: 5px solid #D97706;
-        border-radius: 6px; padding: 14px 18px; margin: 10px 0;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -216,7 +186,7 @@ def calcular_curva_abc():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO DIDÁTICA
 # ════════════════════════════════════════════════════════════════════════════
-st.title("📊 Curva ABC")
+st.title("Curva ABC")
 st.caption(
     "Classificação dos produtos por volume acumulado de bandejas cortadas. "
     "📖 [Saiba mais sobre Curva ABC](/Ajuda) na página de Ajuda."

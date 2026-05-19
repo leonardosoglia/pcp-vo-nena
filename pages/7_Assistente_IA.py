@@ -39,67 +39,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    .resposta-claude {
-        background: linear-gradient(135deg, #FFF8F2 0%, #FEF3C7 100%);
-        border-left: 6px solid #C05621;
-        border-radius: 10px;
-        padding: 20px 24px;
-        margin: 16px 0;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    .pergunta-user {
-        background: #1C1410;
-        color: #F5E6D3;
-        border-radius: 10px;
-        padding: 12px 18px;
-        margin: 12px 0;
-        font-style: italic;
-    }
-    .custo-info {
-        background: #ECFDF5;
-        border-left: 4px solid #059669;
-        border-radius: 4px;
-        padding: 6px 12px;
-        margin: 4px 0;
-        font-size: 11px;
-        color: #064E3B;
-    }
-    .exemplo-pergunta {
-        background: #FFFBEB;
-        border: 1px dashed #D97706;
-        border-radius: 6px;
-        padding: 10px 14px;
-        margin: 6px 0;
-        cursor: pointer;
-        font-size: 13px;
-        color: #92400E;
-    }
-    .exemplo-pergunta:hover { background: #FEF3C7; }
-    .erro-card {
-        background: #FEF2F2;
-        border-left: 5px solid #B91C1C;
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin: 10px 0;
-        color: #7F1D1D;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("🤖 Pergunte ao Claude")
+st.title("Pergunte ao Claude")
 st.caption(
     "Pergunte em português sobre a operação da Vó Nena. O sistema manda sua "
     "pergunta + dados da folha + histórico recente pro Claude, que responde "

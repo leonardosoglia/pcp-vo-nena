@@ -61,38 +61,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sora', sans-serif; font-size: 14px; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 1rem; }
-    h1, h2, h3 { color: #C05621; font-weight: 700; }
-    section[data-testid="stSidebar"] { background-color: #1C1410; }
-    section[data-testid="stSidebar"] * { color: #F5E6D3 !important; }
-    [data-testid="metric-container"] {
-        background: #FFF8F2; border: 1px solid #F7EDE2;
-        border-radius: 10px; padding: 12px 18px;
-    }
-    [data-testid="metric-container"] label {
-        color: #7B341E !important; font-size: 13px !important; font-weight: 600 !important;
-    }
-    .anomaly-card {
-        background: linear-gradient(135deg, #FFF8F2 0%, #FEE2E2 100%);
-        border-left: 6px solid #B91C1C;
-        border-radius: 8px;
-        padding: 16px 20px;
-        margin: 10px 0;
-    }
-    .didatica {
-        background: #FFFBEB; border-left: 5px solid #D97706;
-        border-radius: 6px; padding: 14px 18px; margin: 10px 0;
-    }
-    .limit-warning {
-        background: #EFF6FF; border-left: 5px solid #2563EB;
-        border-radius: 6px; padding: 14px 18px; margin: 10px 0;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Tema visual centralizado (Inter font + paleta clean)
+from ui_theme import aplicar_tema
+aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -295,7 +266,7 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("🤖 Folhas Atípicas")
+st.title("Folhas Atípicas")
 st.caption(
     "Detecção automática via Machine Learning (Isolation Forest). "
     "📖 [Saiba mais](/Ajuda) na página de Ajuda."
