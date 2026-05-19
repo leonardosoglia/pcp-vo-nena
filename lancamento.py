@@ -118,15 +118,16 @@ def folha_existe(data_str: str) -> bool:
 
 def hdr_cell(col, txt):
     col.markdown(
-        f"<div style='font-size:10px;font-weight:700;color:#7B341E;"
-        f"padding:0 0 3px 0;white-space:nowrap;letter-spacing:-0.01em;'>{txt}</div>",
+        f"<div style='font-size:11px;font-weight:700;color:#7B341E;"
+        f"padding:0 0 3px 0;white-space:nowrap;letter-spacing:-0.01em;"
+        f"line-height:1.2;'>{txt}</div>",
         unsafe_allow_html=True,
     )
 
 
 def label_sabor(col, sabor):
     col.markdown(
-        f"<div style='padding-top:7px;font-size:11px;font-weight:600;color:#1a1a1a;"
+        f"<div style='padding-top:6px;font-size:11px;font-weight:700;color:#1a1a1a;"
         f"white-space:nowrap;letter-spacing:-0.015em;line-height:1.2;'>{sabor}</div>",
         unsafe_allow_html=True,
     )
@@ -134,7 +135,8 @@ def label_sabor(col, sabor):
 
 def celula_vazia(col, motivo="—"):
     col.markdown(
-        f"<div style='padding-top:7px;font-size:11px;color:#bbb;text-align:center;'>{motivo}</div>",
+        f"<div style='padding-top:6px;font-size:11px;color:#bbb;text-align:center;"
+        f"line-height:1.2;'>{motivo}</div>",
         unsafe_allow_html=True,
     )
 

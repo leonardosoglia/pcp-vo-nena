@@ -90,44 +90,53 @@ html, body, .stApp {{
     max-width: 1200px;
 }}
 
-/* ─────────────────────────── TIPOGRAFIA (compacta) ─────────────────────────── */
-.main h1 {{
+/* ─────────────────────────── TIPOGRAFIA (compacta + universal) ─────────────────────────── */
+/* Seletores cobrem Streamlit moderno ([data-testid]) E legacy (.main) — Streamlit
+   recente deprecou .main em favor de [data-testid="stMain"]/[stHeading]. */
+
+.stApp h1, [data-testid="stHeading"] h1, [data-testid="stMain"] h1, .main h1,
+section[data-testid="stMain"] h1 {{
     color: {t['text_strong']} !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 15px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
-    line-height: 1.2;
+    line-height: 1.25;
     letter-spacing: -0.015em;
-    margin: 0 0 0.35rem 0 !important;
+    margin: 0 0 0.3rem 0 !important;
 }}
 
-.main h2 {{
+.stApp h2, [data-testid="stHeading"] h2, [data-testid="stMain"] h2, .main h2,
+section[data-testid="stMain"] h2 {{
     color: {t['text_strong']} !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     line-height: 1.3;
     letter-spacing: -0.005em;
-    margin: 0.85rem 0 0.35rem 0 !important;
+    margin: 0.7rem 0 0.3rem 0 !important;
 }}
 
-.main h3 {{
+.stApp h3, [data-testid="stHeading"] h3, [data-testid="stMain"] h3, .main h3,
+section[data-testid="stMain"] h3 {{
     color: {t['text']} !important;
     font-size: 11px !important;
     font-weight: 600 !important;
     line-height: 1.4;
-    margin: 0.65rem 0 0.25rem 0 !important;
+    margin: 0.55rem 0 0.2rem 0 !important;
 }}
 
-.main h4, .main h5, .main h6 {{
+.stApp h4, .stApp h5, .stApp h6, .main h4, .main h5, .main h6 {{
     color: {t['text']} !important;
     font-size: 11px !important;
     font-weight: 600 !important;
-    margin: 0.45rem 0 0.25rem 0 !important;
+    margin: 0.4rem 0 0.2rem 0 !important;
 }}
 
-.main p, .main li, .main .stMarkdown {{
+.stApp p, .stApp li, .stApp .stMarkdown,
+.main p, .main li, .main .stMarkdown,
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li {{
     color: {t['text']};
-    font-size: 11px;
+    font-size: 11px !important;
     line-height: 1.5;
 }}
 
