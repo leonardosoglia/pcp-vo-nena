@@ -62,6 +62,18 @@ upsert_bom_linha = _db.upsert_bom_linha
 excluir_bom_linha = _db.excluir_bom_linha
 registrar_movimento_insumo = _db.registrar_movimento_insumo
 
+# Equipe — escrita
+criar_funcionario = _db.criar_funcionario
+atualizar_funcionario = _db.atualizar_funcionario
+excluir_funcionario = _db.excluir_funcionario
+upsert_capacidade = _db.upsert_capacidade
+excluir_capacidade = _db.excluir_capacidade
+upsert_presenca = _db.upsert_presenca
+
+# Equipe — catálogos (em memória, sem cache)
+DEPARTAMENTOS_FUNCIONARIO = _db.DEPARTAMENTOS_FUNCIONARIO
+ATIVIDADES_CAPACIDADE = _db.ATIVIDADES_CAPACIDADE
+
 # Suprimentos — constantes e helpers de domínio (sem cache, em memória)
 CATEGORIAS_INSUMO = _db.CATEGORIAS_INSUMO
 UNIDADES_INSUMO = _db.UNIDADES_INSUMO
@@ -200,11 +212,64 @@ def invalidar_suprimentos():
     calcular_necessidades_do_dia.clear()
 
 
+def invalidar_equipe():
+    """Invalida cache de Equipe. Chamar após criar/editar/excluir funcionário,
+    capacidade ou registrar presença."""
+    get_funcionarios.clear()
+    get_funcionario.clear()
+    get_capacidades_funcionario.clear()
+    get_capacidade.clear()
+    get_capacidades_atividade.clear()
+    get_presenca_dia.clear()
+    get_capacidade_efetiva_dia.clear()
+
+
 def invalidar_tudo():
     """Limpa todo o cache de leitura. Útil em testes ou em botão de "atualizar"."""
     invalidar_folha()
     invalidar_referencias()
     invalidar_suprimentos()
+    invalidar_equipe()
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# EQUIPE — leituras com cache (TTL longo: dados mudam raro, exceto presença)
+# ════════════════════════════════════════════════════════════════════════════
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_funcionarios(somente_ativos=True):
+    return _db.get_funcionarios(somente_ativos=somente_ativos)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_funcionario(funcionario_id):
+    return _db.get_funcionario(funcionario_id)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_capacidades_funcionario(funcionario_id):
+    return _db.get_capacidades_funcionario(funcionario_id)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_capacidade(funcionario_id, atividade):
+    return _db.get_capacidade(funcionario_id, atividade)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_capacidades_atividade(atividade, somente_ativos=True):
+    return _db.get_capacidades_atividade(atividade, somente_ativos=somente_ativos)
+
+
+# Presença e capacidade efetiva têm TTL curto — mudam várias vezes ao dia
+# (Eraldo marca quem faltou de manhã, atualiza depois do almoço, etc).
+@st.cache_data(ttl=300, show_spinner=False)
+def get_presenca_dia(data):
+    return _db.get_presenca_dia(data)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_capacidade_efetiva_dia(data, atividade):
+    return _db.get_capacidade_efetiva_dia(data, atividade)
 
 
 # ════════════════════════════════════════════════════════════════════════════

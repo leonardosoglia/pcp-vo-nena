@@ -98,6 +98,45 @@ ORIGENS_MOVIMENTO = [
 ]
 
 
+# ── Equipe (módulo de funcionários + capacidades + presença) ─────────────────
+# Departamentos disponíveis pra cadastro de funcionário.
+# Alinhado com a renomeação da Etapa A (14/05/2026): UI usa departamentos,
+# não nomes pessoais. Aqui mantemos pra agrupar visualmente.
+DEPARTAMENTOS_FUNCIONARIO = [
+    "Gestão",
+    "Produção",
+    "Corte",
+    "Embalagem",
+    "Estoque/Contagem",
+    "Suprimentos",
+    "Auxiliar geral",
+]
+
+# Atividades padronizadas pra cadastro de capacidade. Lista controlada pra
+# permitir consultas estruturadas pelo algoritmo de Sugestão de Ordem (Ideia 4
+# Etapa C). Cada atividade tem uma unidade típica anotada nos comentários.
+ATIVIDADES_CAPACIDADE = [
+    # Cocada
+    "corte_cocada_45g",      # band/dia (Gil, Paulo)
+    "corte_cocada_mini",     # band/dia
+    "corte_cocada_pet",      # band/dia
+    "viracao_cocada",        # band/dia (Paulo, equipe Corte)
+    "producao_cocada",       # tachos/dia (Joel)
+    # Palha
+    "corte_palha_50g",       # band/dia (Maria, talvez Gil)
+    "corte_palha_pet",       # band/dia
+    "producao_palha",        # tachos/dia (Maria)
+    # Embalagem
+    "embalagem_plastico",    # und/dia (Popô)
+    "embalagem_cinta",       # und/dia (Leonília)
+    # Outros produtos
+    "producao_pm",           # bolos/dia
+    "producao_bala",         # tachos/dia
+    # Suporte
+    "contagem_estoque",      # operações completas/dia (Leonardo, 1 normalmente)
+]
+
+
 def chave_produto_cocada(sabor: str, tamanho: str) -> str:
     """Gera a chave canônica usada na tabela bom_produto pra cocada.
     Ex: ('TRADICIONAL', '45g') → 'cocada_T_45g_band'
@@ -682,6 +721,53 @@ def _ensure_v2_schema(c):
             referencia TEXT DEFAULT '',
             obs TEXT DEFAULT '',
             criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ════════════════════════════════════════════════════════════════════════
+    # EQUIPE — funcionários + capacidades + presença diária (Ideia 4 — 19/05/2026)
+    # Fundação pra Sugestão Automática de Ordem do Dia. Inputs principais:
+    # quem tá presente hoje × quanto cada um produz × quais atividades faz.
+    # ════════════════════════════════════════════════════════════════════════
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS funcionarios (
+            id {pk},
+            nome TEXT NOT NULL UNIQUE,
+            departamento TEXT NOT NULL,
+            ativo INTEGER DEFAULT 1,
+            observacao TEXT DEFAULT '',
+            criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Capacidades por atividade. Um funcionário pode ter várias linhas
+    # (Gil corta 45g E corta Mini, com valores diferentes). UNIQUE(func,atividade)
+    # garante 1 linha por par. valor_normal é o esperado; min/max delimitam
+    # banda observada (pra futuro algoritmo de sugestão usar como restrição).
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS capacidades_funcionario (
+            id {pk},
+            funcionario_id INTEGER NOT NULL,
+            atividade TEXT NOT NULL,
+            valor_normal REAL NOT NULL,
+            valor_min REAL DEFAULT 0,
+            valor_max REAL DEFAULT 0,
+            unidade TEXT DEFAULT '',
+            observacao TEXT DEFAULT '',
+            UNIQUE(funcionario_id, atividade)
+        )
+    """)
+
+    # Presença diária. Input simples (presente/ausente por funcionário por data).
+    # Usado pelo algoritmo de Sugestão pra calcular capacidade EFETIVA do dia.
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS presenca_diaria (
+            id {pk},
+            data TEXT NOT NULL,
+            funcionario_id INTEGER NOT NULL,
+            presente INTEGER DEFAULT 1,
+            observacao TEXT DEFAULT '',
+            UNIQUE(data, funcionario_id)
         )
     """)
 
@@ -1378,6 +1464,344 @@ def get_movimentos_insumo(insumo_id: int | None = None,
     rows = conn.execute(_sql(sql), tuple(params)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# EQUIPE — CRUD de funcionários, capacidades e presença (Ideia 4 — Etapa A)
+# ════════════════════════════════════════════════════════════════════════════
+def get_funcionarios(somente_ativos: bool = True) -> list[dict]:
+    """Lista funcionários cadastrados. Por padrão só ativos."""
+    conn = get_conn()
+    if somente_ativos:
+        rows = conn.execute(
+            _sql("SELECT * FROM funcionarios WHERE ativo = 1 ORDER BY departamento, nome")
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            _sql("SELECT * FROM funcionarios ORDER BY ativo DESC, departamento, nome")
+        ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_funcionario(funcionario_id: int) -> dict | None:
+    """Busca 1 funcionário por id. Retorna None se não existir."""
+    conn = get_conn()
+    row = conn.execute(
+        _sql("SELECT * FROM funcionarios WHERE id = ?"),
+        (funcionario_id,),
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def criar_funcionario(nome: str, departamento: str,
+                       observacao: str = "") -> int:
+    """Cria novo funcionário. Retorna ID criado. Levanta erro se nome já existe."""
+    if not nome or not nome.strip():
+        raise ValueError("Nome do funcionário não pode ser vazio.")
+    nome = nome.strip()
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        if IS_POSTGRES:
+            row = c.execute(
+                _sql("INSERT INTO funcionarios (nome, departamento, observacao) "
+                     "VALUES (?, ?, ?) RETURNING id"),
+                (nome, departamento, observacao),
+            ).fetchone()
+            new_id = row["id"]
+        else:
+            c.execute(
+                "INSERT INTO funcionarios (nome, departamento, observacao) "
+                "VALUES (?, ?, ?)",
+                (nome, departamento, observacao),
+            )
+            new_id = c.lastrowid
+        conn.commit()
+        return new_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def atualizar_funcionario(funcionario_id: int, **campos):
+    """Atualiza campos do funcionário. Campos aceitos: nome, departamento,
+    ativo, observacao."""
+    permitidos = {"nome", "departamento", "ativo", "observacao"}
+    campos_validos = {k: v for k, v in campos.items() if k in permitidos}
+    if not campos_validos:
+        return
+
+    set_clause = ", ".join(f"{k} = ?" for k in campos_validos)
+    params = list(campos_validos.values()) + [funcionario_id]
+
+    conn = get_conn()
+    try:
+        conn.execute(
+            _sql(f"UPDATE funcionarios SET {set_clause} WHERE id = ?"),
+            tuple(params),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def excluir_funcionario(funcionario_id: int):
+    """Soft delete: marca ativo=0. Preserva histórico de capacidades/presença."""
+    atualizar_funcionario(funcionario_id, ativo=0)
+
+
+def get_capacidades_funcionario(funcionario_id: int) -> list[dict]:
+    """Lista capacidades cadastradas pra um funcionário (todas atividades)."""
+    conn = get_conn()
+    rows = conn.execute(
+        _sql("SELECT * FROM capacidades_funcionario "
+             "WHERE funcionario_id = ? ORDER BY atividade"),
+        (funcionario_id,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_capacidade(funcionario_id: int, atividade: str) -> dict | None:
+    """Busca capacidade específica (1 funcionário × 1 atividade)."""
+    conn = get_conn()
+    row = conn.execute(
+        _sql("SELECT * FROM capacidades_funcionario "
+             "WHERE funcionario_id = ? AND atividade = ?"),
+        (funcionario_id, atividade),
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def upsert_capacidade(funcionario_id: int, atividade: str,
+                       valor_normal: float,
+                       valor_min: float = 0, valor_max: float = 0,
+                       unidade: str = "", observacao: str = "") -> int:
+    """Insere ou atualiza capacidade (funcionario, atividade). Idempotente.
+
+    Retorna ID da linha."""
+    if not atividade:
+        raise ValueError("Atividade não pode ser vazia.")
+    if valor_normal < 0:
+        raise ValueError("valor_normal deve ser >= 0.")
+
+    existente = get_capacidade(funcionario_id, atividade)
+    conn = get_conn()
+    try:
+        if existente:
+            conn.execute(
+                _sql("UPDATE capacidades_funcionario SET "
+                     "valor_normal = ?, valor_min = ?, valor_max = ?, "
+                     "unidade = ?, observacao = ? "
+                     "WHERE id = ?"),
+                (valor_normal, valor_min, valor_max,
+                 unidade, observacao, existente["id"]),
+            )
+            id_linha = existente["id"]
+        else:
+            c = conn.cursor()
+            if IS_POSTGRES:
+                row = c.execute(
+                    _sql("INSERT INTO capacidades_funcionario "
+                         "(funcionario_id, atividade, valor_normal, valor_min, "
+                         "valor_max, unidade, observacao) "
+                         "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id"),
+                    (funcionario_id, atividade, valor_normal,
+                     valor_min, valor_max, unidade, observacao),
+                ).fetchone()
+                id_linha = row["id"]
+            else:
+                c.execute(
+                    "INSERT INTO capacidades_funcionario "
+                    "(funcionario_id, atividade, valor_normal, valor_min, "
+                    "valor_max, unidade, observacao) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (funcionario_id, atividade, valor_normal,
+                     valor_min, valor_max, unidade, observacao),
+                )
+                id_linha = c.lastrowid
+        conn.commit()
+        return id_linha
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def excluir_capacidade(capacidade_id: int):
+    """Remove uma capacidade (hard delete — não tem histórico significativo)."""
+    conn = get_conn()
+    try:
+        conn.execute(
+            _sql("DELETE FROM capacidades_funcionario WHERE id = ?"),
+            (capacidade_id,),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_capacidades_atividade(atividade: str,
+                                somente_ativos: bool = True) -> list[dict]:
+    """Lista quem pode fazer uma atividade, com capacidades. JOIN com funcionarios.
+
+    Usado pelo algoritmo de Sugestão de Ordem (Etapa C) pra calcular
+    capacidade efetiva do dia (depende de quem está presente)."""
+    conn = get_conn()
+    sql = """
+        SELECT c.id AS cap_id, c.funcionario_id, c.atividade,
+               c.valor_normal, c.valor_min, c.valor_max, c.unidade,
+               c.observacao AS cap_obs,
+               f.nome, f.departamento, f.ativo
+        FROM capacidades_funcionario c
+        INNER JOIN funcionarios f ON f.id = c.funcionario_id
+        WHERE c.atividade = ?
+    """
+    params = [atividade]
+    if somente_ativos:
+        sql += " AND f.ativo = 1"
+    sql += " ORDER BY c.valor_normal DESC"
+    rows = conn.execute(_sql(sql), tuple(params)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_presenca_dia(data: str) -> list[dict]:
+    """Lista presença registrada de TODOS os funcionários ativos em uma data.
+
+    Pra funcionários ainda sem registro de presença na data, retorna entrada
+    com presente=NULL (UI trata como 'não marcado ainda'). JOIN com funcionarios.
+    """
+    conn = get_conn()
+    sql = """
+        SELECT f.id AS funcionario_id, f.nome, f.departamento,
+               p.id AS presenca_id, p.presente, p.observacao
+        FROM funcionarios f
+        LEFT JOIN presenca_diaria p
+            ON p.funcionario_id = f.id AND p.data = ?
+        WHERE f.ativo = 1
+        ORDER BY f.departamento, f.nome
+    """
+    rows = conn.execute(_sql(sql), (data,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_presenca(data: str, funcionario_id: int,
+                     presente: bool = True, observacao: str = "") -> int:
+    """Registra/atualiza presença de 1 funcionário em 1 data. Idempotente."""
+    conn = get_conn()
+    try:
+        existente = conn.execute(
+            _sql("SELECT id FROM presenca_diaria "
+                 "WHERE data = ? AND funcionario_id = ?"),
+            (data, funcionario_id),
+        ).fetchone()
+        if existente:
+            conn.execute(
+                _sql("UPDATE presenca_diaria SET presente = ?, observacao = ? "
+                     "WHERE id = ?"),
+                (1 if presente else 0, observacao, existente["id"]),
+            )
+            id_linha = existente["id"]
+        else:
+            c = conn.cursor()
+            if IS_POSTGRES:
+                row = c.execute(
+                    _sql("INSERT INTO presenca_diaria "
+                         "(data, funcionario_id, presente, observacao) "
+                         "VALUES (?, ?, ?, ?) RETURNING id"),
+                    (data, funcionario_id, 1 if presente else 0, observacao),
+                ).fetchone()
+                id_linha = row["id"]
+            else:
+                c.execute(
+                    "INSERT INTO presenca_diaria "
+                    "(data, funcionario_id, presente, observacao) "
+                    "VALUES (?, ?, ?, ?)",
+                    (data, funcionario_id, 1 if presente else 0, observacao),
+                )
+                id_linha = c.lastrowid
+        conn.commit()
+        return id_linha
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_capacidade_efetiva_dia(data: str, atividade: str) -> dict:
+    """Soma a capacidade total disponível pra uma atividade em uma data,
+    considerando APENAS funcionários presentes (presente=1).
+
+    Retorna dict:
+        {atividade, total_normal, total_min, total_max,
+         funcionarios_presentes: [...], funcionarios_ausentes: [...]}
+
+    Se um funcionário com capacidade na atividade não tem registro de presença,
+    é considerado AUSENTE (conservador).
+    """
+    conn = get_conn()
+    sql = """
+        SELECT c.valor_normal, c.valor_min, c.valor_max, c.unidade,
+               f.id AS func_id, f.nome,
+               COALESCE(p.presente, 0) AS presente
+        FROM capacidades_funcionario c
+        INNER JOIN funcionarios f ON f.id = c.funcionario_id
+        LEFT JOIN presenca_diaria p
+            ON p.funcionario_id = f.id AND p.data = ?
+        WHERE c.atividade = ? AND f.ativo = 1
+    """
+    rows = conn.execute(_sql(sql), (data, atividade)).fetchall()
+    conn.close()
+
+    presentes = []
+    ausentes = []
+    total_normal = 0.0
+    total_min = 0.0
+    total_max = 0.0
+    unidade = ""
+
+    for r in rows:
+        r = dict(r)
+        if r["presente"]:
+            presentes.append({"id": r["func_id"], "nome": r["nome"],
+                              "valor": r["valor_normal"]})
+            total_normal += float(r["valor_normal"] or 0)
+            total_min += float(r["valor_min"] or 0)
+            total_max += float(r["valor_max"] or 0)
+            if not unidade:
+                unidade = r["unidade"] or ""
+        else:
+            ausentes.append({"id": r["func_id"], "nome": r["nome"],
+                             "valor": r["valor_normal"]})
+
+    return {
+        "atividade": atividade,
+        "data": data,
+        "total_normal": total_normal,
+        "total_min": total_min,
+        "total_max": total_max,
+        "unidade": unidade,
+        "funcionarios_presentes": presentes,
+        "funcionarios_ausentes": ausentes,
+        "n_presentes": len(presentes),
+        "n_ausentes": len(ausentes),
+    }
 
 
 def calcular_necessidades_do_dia(data: str) -> list[dict]:
