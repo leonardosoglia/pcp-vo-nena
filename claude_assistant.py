@@ -359,6 +359,118 @@ def perguntar(pergunta: str, data_referencia: str,
         }
 
 
+def explicar_anomalia(data: str, top_features: list,
+                       anomaly_score: float,
+                       modelo: str = "claude-haiku-4-5",
+                       max_tokens: int = 600) -> dict:
+    """Pede ao Claude pra EXPLICAR EM PT-BR uma anomalia detectada pelo
+    Isolation Forest na página `pages/5_Anomalias_ML.py`.
+
+    Diferente da função `perguntar()` (Q&A livre), aqui o prompt é específico:
+    sistema recebe data + top 3 features anômalas com z-scores e gera uma
+    narrativa estruturada (o-quê / por-quê-provável / o-que-verificar).
+
+    Args:
+        data: data da folha anômala (YYYY-MM-DD)
+        top_features: list de tuples (nome_feature, z_score). Z-score positivo
+            = acima do normal; negativo = abaixo. Ex: [("emb_total_TRADICIONAL", 2.3), ...]
+        anomaly_score: score do Isolation Forest (maior = mais anômala)
+        modelo: model id (default Haiku 4.5)
+        max_tokens: limite de tokens da resposta
+
+    Returns:
+        dict com 'explicacao', 'tokens_input', 'tokens_output',
+        'tokens_cache_read', 'modelo', 'custo_usd', 'custo_brl', 'erro'.
+    """
+    client = _get_client()
+    contexto = montar_contexto_folha(data, n_dias_historico=7)
+
+    # Formata as features pra mensagem
+    features_str = "\n".join([
+        f"  {i+1}. **{feat}** = {z:+.2f}σ (z-score)"
+        for i, (feat, z) in enumerate(top_features)
+    ])
+
+    pergunta_estruturada = (
+        f"## ANOMALIA DETECTADA — folha {data}\n\n"
+        f"O algoritmo Isolation Forest classificou esta folha como anômala "
+        f"(score = {anomaly_score:.3f}). As 3 features que mais contribuíram "
+        f"foram:\n\n"
+        f"{features_str}\n\n"
+        f"## SUA TAREFA\n\n"
+        f"Em 3-5 frases (PT-BR direto, sem jargão), explica:\n\n"
+        f"1. **O QUÊ aconteceu** — quais campos da folha estão fora do padrão "
+        f"e em que direção (alto/baixo). Use os dados concretos do contexto "
+        f"acima.\n"
+        f"2. **POR QUÊ provável** — hipóteses plausíveis pra essa combinação "
+        f"de desvios. Use as regras de negócio (pedidos antecipados, calendário "
+        f"de corte, sazonalidade, encomendas específicas, etc.).\n"
+        f"3. **O QUE VERIFICAR** — 1 ou 2 ações concretas que o Eraldo poderia "
+        f"fazer pra confirmar a hipótese ou descartar (ex: 'verificar se houve "
+        f"pedido especial nessa data', 'comparar com outras folhas de mesma "
+        f"característica').\n\n"
+        f"**Importante:**\n"
+        f"- Não use bullets ou markdown pesado — escreva em parágrafos curtos.\n"
+        f"- Se a amostra é pequena (<30 folhas), reconheça isso.\n"
+        f"- Não invente dados que não estão no contexto.\n"
+        f"- Tom: especialista em PCP conversando com um gestor experiente."
+    )
+
+    try:
+        response = client.messages.create(
+            model=modelo,
+            max_tokens=max_tokens,
+            system=[
+                {
+                    "type": "text",
+                    "text": SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"{contexto}\n\n---\n\n{pergunta_estruturada}",
+                }
+            ],
+        )
+
+        explicacao = "".join(
+            block.text for block in response.content if hasattr(block, "text")
+        )
+        tokens_in = getattr(response.usage, "input_tokens", 0)
+        tokens_out = getattr(response.usage, "output_tokens", 0)
+        cache_read = getattr(response.usage, "cache_read_input_tokens", 0) or 0
+        cache_write = getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+
+        custo_usd = estimar_custo(tokens_in, tokens_out, cache_read, modelo)
+        custo_brl = usd_para_brl(custo_usd)
+
+        return {
+            "explicacao": explicacao,
+            "tokens_input": tokens_in,
+            "tokens_output": tokens_out,
+            "tokens_cache_read": cache_read,
+            "tokens_cache_write": cache_write,
+            "modelo": response.model,
+            "custo_usd": custo_usd,
+            "custo_brl": custo_brl,
+            "erro": None,
+        }
+    except Exception as e:
+        return {
+            "explicacao": "",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "tokens_cache_read": 0,
+            "tokens_cache_write": 0,
+            "modelo": modelo,
+            "custo_usd": 0,
+            "custo_brl": 0,
+            "erro": str(e),
+        }
+
+
 def estimar_custo(tokens_input: int, tokens_output: int,
                   tokens_cache_read: int = 0,
                   modelo: str = "claude-haiku-4-5") -> float:

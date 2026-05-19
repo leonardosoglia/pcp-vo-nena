@@ -36,6 +36,8 @@ import os
 # Bootstrap defensivo
 if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
     os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
+if not os.getenv("ANTHROPIC_API_KEY") and "ANTHROPIC_API_KEY" in st.secrets:
+    os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
 
 _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:
@@ -443,8 +445,16 @@ if anomalias.empty:
         unsafe_allow_html=True,
     )
 else:
+    # ── Inicializa cache de explicações por data na sessão ───────────────
+    if "explicacoes_anomalias" not in st.session_state:
+        st.session_state.explicacoes_anomalias = {}  # data -> dict resultado
+
+    # ── Checa se Claude está disponível (ANTHROPIC_API_KEY configurada) ─
+    api_key_disponivel = bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
+
     for i, row in anomalias.iterrows():
-        data_fmt = datetime.strptime(row["data"], "%Y-%m-%d").strftime("%d/%m/%Y (%A)")
+        data_iso = row["data"]
+        data_fmt = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y (%A)")
         dias_pt = {
             "Monday": "Segunda", "Tuesday": "Terça", "Wednesday": "Quarta",
             "Thursday": "Quinta", "Friday": "Sexta", "Saturday": "Sábado",
@@ -472,6 +482,73 @@ else:
             f"</div>",
             unsafe_allow_html=True,
         )
+
+        # ── Botão "🤖 Explicar via IA" + área de exibição ────────────────
+        col_btn, col_status = st.columns([1, 3])
+        with col_btn:
+            btn_label = "🤖 Explicar via IA"
+            btn_key = f"explicar_{data_iso}_{i}"
+            btn_clicked = st.button(
+                btn_label, key=btn_key, use_container_width=True,
+                disabled=not api_key_disponivel,
+                help=(
+                    "Pede ao Claude (IA) pra explicar essa anomalia em PT-BR. "
+                    "~R$0,03 por chamada."
+                    if api_key_disponivel
+                    else "ANTHROPIC_API_KEY não configurada. Ative no Settings > "
+                         "Variables and secrets do HF Spaces pra liberar."
+                ),
+            )
+        with col_status:
+            if not api_key_disponivel:
+                st.caption(
+                    "🔒 *Explicação via IA requer `ANTHROPIC_API_KEY` configurada "
+                    "no HF Spaces (Settings > Variables and secrets).*"
+                )
+
+        # Se já tem explicação em cache, exibe; senão, se botão foi clicado, chama Claude
+        if data_iso in st.session_state.explicacoes_anomalias:
+            resultado = st.session_state.explicacoes_anomalias[data_iso]
+            if resultado.get("erro"):
+                st.markdown(
+                    f"<div class='anomaly-card' style='background:#FEF2F2;border-color:#B91C1C;'>"
+                    f"<b>❌ Erro ao consultar Claude:</b><br>"
+                    f"<code>{resultado['erro']}</code>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                cache_info = ""
+                if resultado.get("tokens_cache_read", 0) > 0:
+                    pct = (resultado["tokens_cache_read"] / max(resultado["tokens_input"], 1)) * 100
+                    cache_info = f" · 💾 cache hit: {pct:.0f}%"
+                st.markdown(
+                    f"<div class='anomaly-card' style='background:linear-gradient(135deg,#FFF8F2 0%,#FEF3C7 100%);border-color:#C05621;'>"
+                    f"<b>🤖 Análise do Claude ({resultado.get('modelo', '?')}):</b><br><br>"
+                    f"{resultado.get('explicacao', '').replace(chr(10), '<br>')}"
+                    f"<hr style='border-color:#FED7AA;margin:10px 0;'>"
+                    f"<span style='font-size:11px;color:#7B341E;'>"
+                    f"📊 {resultado['tokens_input']} tokens in + {resultado['tokens_output']} out = "
+                    f"<b>~R$ {resultado['custo_brl']:.3f}</b>{cache_info}"
+                    f"</span>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+        elif btn_clicked and api_key_disponivel:
+            try:
+                from claude_assistant import explicar_anomalia
+                with st.spinner(f"🤖 Claude analisando {data_fmt}..."):
+                    resultado = explicar_anomalia(
+                        data=data_iso,
+                        top_features=list(top3),
+                        anomaly_score=float(score),
+                    )
+                st.session_state.explicacoes_anomalias[data_iso] = resultado
+                st.rerun()
+            except ImportError as e:
+                st.error(f"❌ Erro ao importar claude_assistant: {e}")
+            except Exception as e:
+                st.error(f"❌ Erro inesperado: {e}")
 
     st.markdown(
         "<div class='didatica'>"
