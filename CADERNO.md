@@ -6,6 +6,43 @@
 
 ---
 
+## 0.2 Migração Supabase sa-east-1 → us-east-1 (18-19/05/2026)
+
+**Resolução definitiva da lentidão pós-HF Spaces.**
+
+### Sintoma
+Após migrar pro HF Spaces (17/05), navegação entre datas no app levava **~1 min**.
+Quick wins de cache (30min TTL, pre-warm, pool maior — commit `3424897`) não
+resolveram. Causa raiz: latência transcontinental Supabase sa-east-1 ↔ HF us-east-1
+(~150ms por query), amplificada por re-renders do Streamlit.
+
+### Solução
+Migração do banco Supabase do **Brasil** (`sa-east-1`) pra **EUA** (`us-east-1`),
+mesma região do HF Spaces.
+
+### Como
+1. Criado novo projeto Supabase `pcp-vo-nena-us` em us-east-1 (free tier, NANO compute)
+2. Script `migrar_postgres_para_postgres.py` criado e iterado:
+   - Bug 1: `cannot insert non-DEFAULT value into column id` → corrigido com `OVERRIDING SYSTEM VALUE`
+   - Bug 2: `current transaction is aborted` em cascata → corrigido com rollback explícito por tabela
+3. Migração concluída: **338/338 linhas em 13 tabelas, todas ✅ OK**
+4. `DATABASE_URL` trocada no HF Spaces secret + restart Space
+5. Reset da senha do banco (boa prática — vazou em prints durante setup)
+
+### Resultado
+- Latência por query: **~150ms → ~5ms** (redução de ~97%)
+- Banco antigo (`pcp-vo-nena` sa-east-1) **MANTIDO PAUSADO** por 1-2 semanas como backup vivo (rollback de 30s se necessário)
+- Aprendizado pro TCC: estoque vs fluxo (Forrester 1961) — princípio que também
+  corrigiu erro conceitual na Curva ABC (somar `emb_*` vs `ord_corte_*`)
+
+### Lições de operação
+- HF Spaces tem bug visual no badge "Restarting" (cache JS) — `Ctrl+F5` resolve
+- Aba `Logs > Container` do HF mostra runtime logs (não só build)
+- Senhas em `.txt` no Notepad são vulneráveis (OneDrive sync + print) — usar gerenciador (Bitwarden)
+- `OVERRIDING SYSTEM VALUE` necessário pra colunas IDENTITY no Postgres 17+
+
+---
+
 ## 0.3 Migração para Hugging Face Spaces — 17/05/2026
 
 **Plataforma de hospedagem trocada de Streamlit Community Cloud → Hugging Face Spaces.**
