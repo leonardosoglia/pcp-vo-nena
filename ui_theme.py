@@ -94,41 +94,41 @@ html, body, .stApp {{
 .main h1 {{
     color: {t['text_strong']} !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 28px !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
     line-height: 1.2;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
     margin: 0 0 0.5rem 0 !important;
 }}
 
 .main h2 {{
     color: {t['text_strong']} !important;
-    font-size: 22px !important;
+    font-size: 17px !important;
     font-weight: 600 !important;
     line-height: 1.3;
-    letter-spacing: -0.015em;
-    margin: 2rem 0 0.75rem 0 !important;
+    letter-spacing: -0.01em;
+    margin: 1.5rem 0 0.5rem 0 !important;
 }}
 
 .main h3 {{
     color: {t['text']} !important;
-    font-size: 17px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     line-height: 1.4;
-    margin: 1.5rem 0 0.5rem 0 !important;
+    margin: 1rem 0 0.4rem 0 !important;
 }}
 
 .main h4, .main h5, .main h6 {{
     color: {t['text']} !important;
-    font-size: 15px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    margin: 1rem 0 0.5rem 0 !important;
+    margin: 0.75rem 0 0.4rem 0 !important;
 }}
 
 .main p, .main li, .main .stMarkdown {{
     color: {t['text']};
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.55;
 }}
 
 .main a {{
@@ -344,7 +344,7 @@ section[data-testid="stSidebar"] .stCaption {{
 
 .main [data-testid="metric-container"] [data-testid="stMetricValue"] {{
     color: {t['text_strong']} !important;
-    font-size: 26px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
     line-height: 1.2;
 }}
@@ -468,9 +468,9 @@ section[data-testid="stSidebar"] .stCaption {{
 
 .main [data-testid="stExpander"] summary {{
     color: {t['text']} !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
 }}
 
 .main [data-testid="stExpander"] summary:hover {{
