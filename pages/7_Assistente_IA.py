@@ -34,7 +34,7 @@ from cached_db import list_datas_folha
 
 st.set_page_config(
     page_title="Pergunte ao Claude • Doces Vó Nena",
-    page_icon="🤖",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -98,7 +98,7 @@ api_key_configurada = bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
 if not api_key_configurada:
     st.markdown(
         "<div class='erro-card'>"
-        "<b>⚠️ ANTHROPIC_API_KEY não configurada.</b><br><br>"
+        "<b>️ ANTHROPIC_API_KEY não configurada.</b><br><br>"
         "Pra ativar essa página, configure a secret <code>ANTHROPIC_API_KEY</code> "
         "no Hugging Face Spaces:<br>"
         "1. Vai em <code>Settings &gt; Variables and secrets</code><br>"
@@ -122,7 +122,7 @@ try:
 except ImportError as e:
     st.markdown(
         f"<div class='erro-card'>"
-        f"<b>❌ Erro ao importar claude_assistant:</b> {e}<br>"
+        f"<b> Erro ao importar claude_assistant:</b> {e}<br>"
         f"Provavelmente a biblioteca <code>anthropic</code> não está instalada. "
         f"Confere o <code>requirements.txt</code>."
         f"</div>",
@@ -148,10 +148,10 @@ col_data, col_modelo = st.columns([2, 1])
 with col_data:
     datas_disponiveis = sorted(list_datas_folha(), reverse=True)
     if not datas_disponiveis:
-        st.warning("⚠️ Nenhuma folha registrada no banco. Cadastra alguma em Lançamento antes.")
+        st.warning("️ Nenhuma folha registrada no banco. Cadastra alguma em Lançamento antes.")
         st.stop()
     data_ref = st.selectbox(
-        "📅 Data de referência (qual folha consultar)",
+        " Data de referência (qual folha consultar)",
         options=datas_disponiveis,
         index=0,
         help="O Claude vai analisar essa folha + as 7 anteriores como contexto.",
@@ -159,7 +159,7 @@ with col_data:
 
 with col_modelo:
     modelo = st.selectbox(
-        "🧠 Modelo",
+        " Modelo",
         options=["claude-haiku-4-5", "claude-sonnet-4-6"],
         index=0,
         help="Haiku 4.5 é mais barato e rápido (~R$0,03/consulta). "
@@ -168,7 +168,7 @@ with col_modelo:
 
 
 # Exemplos de perguntas pra clicar
-st.markdown("##### 💡 Exemplos de perguntas (clica pra usar)")
+st.markdown("#####  Exemplos de perguntas (clica pra usar)")
 exemplos = [
     "Resume pra mim a folha do dia em 3 linhas: o que foi produzido, o que tá pendente.",
     "Comparado com a semana passada no mesmo dia da semana, como foi a produção hoje?",
@@ -187,7 +187,7 @@ for i, exemplo in enumerate(exemplos):
 # Campo principal de pergunta
 pergunta_default = st.session_state.get("_pergunta_input", "")
 pergunta = st.text_area(
-    "✍️ Sua pergunta",
+    "️ Sua pergunta",
     value=pergunta_default,
     height=100,
     placeholder="Ex: 'Por que estamos sugerindo cortar 20 bandejas de Tradicional hoje?'",
@@ -195,9 +195,9 @@ pergunta = st.text_area(
 
 col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 4])
 with col_btn1:
-    perguntar_clicked = st.button("🤖 Perguntar", type="primary", use_container_width=True)
+    perguntar_clicked = st.button(" Perguntar", type="primary", use_container_width=True)
 with col_btn2:
-    limpar = st.button("🗑️ Limpar histórico", use_container_width=True)
+    limpar = st.button("️ Limpar histórico", use_container_width=True)
 
 if limpar:
     st.session_state.historico_perguntas = []
@@ -211,9 +211,9 @@ if limpar:
 if perguntar_clicked:
     pergunta_limpa = (pergunta or "").strip()
     if not pergunta_limpa:
-        st.warning("⚠️ Escreve uma pergunta antes de clicar em Perguntar.")
+        st.warning("️ Escreve uma pergunta antes de clicar em Perguntar.")
     else:
-        with st.spinner("🤖 Claude está pensando..."):
+        with st.spinner(" Claude está pensando..."):
             resultado = perguntar(
                 pergunta=pergunta_limpa,
                 data_referencia=data_ref,
@@ -223,7 +223,7 @@ if perguntar_clicked:
         if resultado["erro"]:
             st.markdown(
                 f"<div class='erro-card'>"
-                f"<b>❌ Erro ao consultar o Claude:</b><br>"
+                f"<b> Erro ao consultar o Claude:</b><br>"
                 f"<code>{resultado['erro']}</code><br><br>"
                 f"<b>Causas comuns:</b><br>"
                 f"• API key inválida ou sem créditos<br>"
@@ -270,13 +270,13 @@ if perguntar_clicked:
 # ════════════════════════════════════════════════════════════════════════════
 if st.session_state.historico_perguntas:
     st.divider()
-    st.header("💬 Conversa")
+    st.header(" Conversa")
 
     for i, item in enumerate(st.session_state.historico_perguntas):
         # Pergunta do usuário
         st.markdown(
             f"<div class='pergunta-user'>"
-            f"<b>🧑 {item['timestamp']} · folha {item['data_ref']}:</b><br>"
+            f"<b> {item['timestamp']} · folha {item['data_ref']}:</b><br>"
             f"{item['pergunta']}"
             f"</div>",
             unsafe_allow_html=True,
@@ -284,7 +284,7 @@ if st.session_state.historico_perguntas:
         # Resposta
         st.markdown(
             f"<div class='resposta-claude'>"
-            f"<b>🤖 Claude ({item['modelo']}):</b><br><br>"
+            f"<b> Claude ({item['modelo']}):</b><br><br>"
             f"{item['resposta'].replace(chr(10), '<br>')}"
             f"</div>",
             unsafe_allow_html=True,
@@ -293,10 +293,10 @@ if st.session_state.historico_perguntas:
         cache_info = ""
         if item["tokens_cache_read"] > 0:
             pct_cache = (item["tokens_cache_read"] / item["tokens_input"]) * 100
-            cache_info = f" · 💾 cache hit: {pct_cache:.0f}%"
+            cache_info = f" ·  cache hit: {pct_cache:.0f}%"
         st.markdown(
             f"<div class='custo-info'>"
-            f"📊 {item['tokens_input']} tokens in + {item['tokens_output']} tokens out "
+            f" {item['tokens_input']} tokens in + {item['tokens_output']} tokens out "
             f"= <b>~R$ {item['custo_brl']:.3f}</b> (US$ {item['custo_usd']:.5f}){cache_info}"
             f"</div>",
             unsafe_allow_html=True,
@@ -307,7 +307,7 @@ if st.session_state.historico_perguntas:
     total_perguntas = len(st.session_state.historico_perguntas)
     st.divider()
     st.caption(
-        f"💰 Total da sessão: **{total_perguntas} perguntas · ~R$ {total_brl:.2f}** "
+        f" Total da sessão: **{total_perguntas} perguntas · ~R$ {total_brl:.2f}** "
         f"(média ~R$ {total_brl/total_perguntas:.3f} por consulta)"
     )
 
@@ -317,12 +317,12 @@ if st.session_state.historico_perguntas:
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
 st.caption(
-    "🤖 Powered by **Claude** (Anthropic) · "
+    " Powered by **Claude** (Anthropic) · "
     f"Sessão iniciada {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     "Custos exibidos são estimativas baseadas no pricing público vigente."
 )
 st.caption(
-    "💡 **Lembrete pro TCC:** este é o componente que coroa a Camada 2 do sistema. "
+    " **Lembrete pro TCC:** este é o componente que coroa a Camada 2 do sistema. "
     "Capítulo associado: \"Integração com LLMs como camada cognitiva em PCP\". "
     "Métricas pra o Cap 5: tempo médio de resposta, satisfação subjetiva do Eraldo (escala 1-5), "
     "custo médio por consulta, % de perguntas que levaram a decisão concreta."

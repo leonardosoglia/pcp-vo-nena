@@ -6,10 +6,10 @@ Esta versão usa **expanders** (caixas que abrem/fecham) em cada quadro.
 
 LAYOUT (na tela):
     ┌─────────────────────────────────────┬──────────────────────────────┐
-    │  📋 FOLHA DE PRODUÇÃO (lado esq.)   │  📝 PAPELZINHO DO JOEL       │
+    │   FOLHA DE PRODUÇÃO (lado esq.)   │   PAPELZINHO DO JOEL       │
     │  Quadros 1-12 da folha oficial      │  + Orientações do dia        │
     └─────────────────────────────────────┴──────────────────────────────┘
-                       [💾 SALVAR FOLHA COMPLETA]
+                       [ SALVAR FOLHA COMPLETA]
 
 Sidebar: lista de datas já preenchidas (atalho rápido para histórico).
 """
@@ -84,7 +84,7 @@ CALENDARIO_CORTE = {
 # ── Configuração da página ──────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Folha de Produção • Vó Nena",
-    page_icon="📋",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -184,7 +184,7 @@ def _fmt_data_pt(d_str):
 
 with st.sidebar:
     # ── Botão "Adicionar folha" no topo ───────────────────────────────────────
-    with st.popover("➕ Adicionar nova folha", use_container_width=True):
+    with st.popover(" Adicionar nova folha", use_container_width=True):
         st.caption("Escolha a data — passada, hoje ou futura.")
         nova_data = st.date_input(
             "Data da nova folha:",
@@ -194,7 +194,7 @@ with st.sidebar:
         )
         col_a, col_b = st.columns(2)
         with col_a:
-            if st.button("✅ Abrir", use_container_width=True, type="primary", key="btn_nova"):
+            if st.button(" Abrir", use_container_width=True, type="primary", key="btn_nova"):
                 st.session_state["data_selecionada"] = nova_data.isoformat()
                 st.rerun()
         with col_b:
@@ -202,12 +202,12 @@ with st.sidebar:
 
     st.divider()
 
-    # ── Botão-toggle pai: "📋 Folhas de Produção" ─────────────────────────────
+    # ── Botão-toggle pai: " Folhas de Produção" ─────────────────────────────
     if "mostrar_folhas" not in st.session_state:
         st.session_state["mostrar_folhas"] = True
 
     icone = "▼" if st.session_state["mostrar_folhas"] else "▶"
-    if st.button(f"{icone}  📋 Folhas de Produção", use_container_width=True, key="toggle_folhas"):
+    if st.button(f"{icone}   Folhas de Produção", use_container_width=True, key="toggle_folhas"):
         st.session_state["mostrar_folhas"] = not st.session_state["mostrar_folhas"]
         st.rerun()
 
@@ -232,11 +232,11 @@ with st.sidebar:
             for i, (ano, mes) in enumerate(meses_ordenados):
                 folhas_mes = por_mes[(ano, mes)]
                 nome_mes = MESES_PT.get(mes, str(mes))
-                label_mes = f"📅 {nome_mes} / {ano}  ·  {len(folhas_mes)} folha{'s' if len(folhas_mes) > 1 else ''}"
+                label_mes = f" {nome_mes} / {ano}  ·  {len(folhas_mes)} folha{'s' if len(folhas_mes) > 1 else ''}"
                 # Primeiro mês (mais recente) abre por padrão
                 with st.expander(label_mes, expanded=(i == 0)):
                     for d in folhas_mes:
-                        label = f"📅 {_fmt_data_pt(d)}"
+                        label = f" {_fmt_data_pt(d)}"
                         # 2 colunas: botão folha + popover ⋮
                         cols = st.columns([5, 1])
                         with cols[0]:
@@ -246,7 +246,7 @@ with st.sidebar:
                         with cols[1]:
                             with st.popover("⋮", use_container_width=True):
                                 st.caption(f"Folha de {_fmt_data_pt(d)}")
-                                if st.button("✏️ Abrir / Editar", key=f"act_edit_{d}", use_container_width=True):
+                                if st.button("️ Abrir / Editar", key=f"act_edit_{d}", use_container_width=True):
                                     st.session_state["data_selecionada"] = d
                                     st.rerun()
                                 # Exportar XLSX (gera sob demanda)
@@ -254,7 +254,7 @@ with st.sidebar:
                                     from exportar import gerar_xlsx_folha
                                     xlsx_bytes = gerar_xlsx_folha(d)
                                     st.download_button(
-                                        "📥 Exportar Excel",
+                                        " Exportar Excel",
                                         data=xlsx_bytes,
                                         file_name=f"folha_pcp_vonena_{d}.xlsx",
                                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -263,7 +263,7 @@ with st.sidebar:
                                     )
                                 except Exception as e:
                                     st.caption(f"Erro Excel: {e}")
-                                if st.button("🗑️ Excluir folha", key=f"act_del_{d}", use_container_width=True):
+                                if st.button("️ Excluir folha", key=f"act_del_{d}", use_container_width=True):
                                     st.session_state["confirm_excluir"] = d
                                     st.rerun()
 
@@ -271,22 +271,22 @@ with st.sidebar:
     pendente = st.session_state.get("confirm_excluir")
     if pendente:
         st.divider()
-        st.warning(f"⚠️ Excluir folha de **{_fmt_data_pt(pendente)}**? Não há undo.")
+        st.warning(f"️ Excluir folha de **{_fmt_data_pt(pendente)}**? Não há undo.")
         cc1, cc2 = st.columns(2)
         with cc1:
-            if st.button("✅ Confirmar", type="primary", use_container_width=True, key="btn_confirm_del"):
+            if st.button(" Confirmar", type="primary", use_container_width=True, key="btn_confirm_del"):
                 try:
                     excluir_folha(pendente)
                     db.invalidar_folha(pendente)  # força releitura no próximo rerun
                     st.session_state.pop("confirm_excluir", None)
                     if st.session_state.get("data_selecionada") == pendente:
                         st.session_state.pop("data_selecionada", None)
-                    st.success(f"✅ Folha {_fmt_data_pt(pendente)} excluída.")
+                    st.success(f" Folha {_fmt_data_pt(pendente)} excluída.")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Erro ao excluir: {e}")
         with cc2:
-            if st.button("❌ Cancelar", use_container_width=True, key="btn_cancel_del"):
+            if st.button(" Cancelar", use_container_width=True, key="btn_cancel_del"):
                 st.session_state.pop("confirm_excluir", None)
                 st.rerun()
 
@@ -306,7 +306,7 @@ with col_t:
 with col_d:
     st.markdown(
         "<div style='margin-top:24px;text-align:right;color:#C05621;font-weight:700;font-size:15px;'>"
-        "🍬 PCP Vó Nena · v2.1</div>",
+        " PCP Vó Nena · v2.1</div>",
         unsafe_allow_html=True,
     )
 
@@ -323,7 +323,7 @@ else:
 col_dp, col_st = st.columns([2, 5])
 with col_dp:
     data_sel = st.date_input(
-        "📅 Data da folha",
+        " Data da folha",
         value=default_dt,
         format="DD/MM/YYYY",
         help="Escolha qualquer data — passada, hoje ou futura.",
@@ -335,17 +335,17 @@ data_label = f"{data_sel.strftime('%d/%m/%Y')} ({nome_dia})"
 with col_st:
     if folha_existe(data_str):
         st.markdown(
-            f"<div class='status-box-edit'>📝 <b>Editando folha existente</b> — "
+            f"<div class='status-box-edit'> <b>Editando folha existente</b> — "
             f"{data_label}. Clique nos quadros abaixo para abrir e editar.</div>",
             unsafe_allow_html=True,
         )
     else:
         if data_sel == date.today():
-            box = "novo"; icon = "✨"; tag = "Nova folha de hoje"
+            box = "novo"; icon = ""; tag = "Nova folha de hoje"
         elif data_sel < date.today():
-            box = "novo"; icon = "✏️"; tag = "Nova folha (preenchimento retroativo)"
+            box = "novo"; icon = "️"; tag = "Nova folha (preenchimento retroativo)"
         else:
-            box = "edit"; icon = "📅"; tag = "Folha futura"
+            box = "edit"; icon = ""; tag = "Folha futura"
         st.markdown(
             f"<div class='status-box-{box}'>{icon} <b>{tag}</b> — {data_label}. "
             f"Clique nos quadros abaixo e preencha. Salve no final da página.</div>",
@@ -358,7 +358,7 @@ if prioridade_corte:
     st.markdown(
         f"<div style='background:#FEF3C7; border-left:5px solid #D97706; "
         f"padding:8px 14px; border-radius:6px; color:#92400E; font-weight:600; margin:6px 0;'>"
-        f"📅 <b>{nome_dia}</b> — dia de prioridade de corte: <b>{prioridade_corte}</b> "
+        f" <b>{nome_dia}</b> — dia de prioridade de corte: <b>{prioridade_corte}</b> "
         f"<span style='font-weight:400; font-size:12px;'>(referência da Gestão; não exclusivo)</span>"
         f"</div>",
         unsafe_allow_html=True,
@@ -383,9 +383,9 @@ col_folha, col_papel = st.columns([3, 2])
 # ║ Renderizado primeiro pra alimentar derivados em tempo real               ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 with col_papel:
-    st.markdown("### 📝 Papelzinho do Joel & Orientações")
+    st.markdown("###  Papelzinho do Joel & Orientações")
 
-    with st.expander("📝 Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
+    with st.expander(" Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
         st.caption(
             "Contagem matinal da Produção · **45g, 30g (=Mini)** em unidades · "
             "**P (Pet), PV, V** em **bandejas** · Z não tem 45g. "
@@ -418,11 +418,11 @@ with col_papel:
                 "joel_pv": jpv, "joel_v": jv,
             }
         st.caption(
-            "💡 Os valores acima alimentam **Cortados ②**, **Viradas** e **P/Virar** "
+            " Os valores acima alimentam **Cortados ②**, **Viradas** e **P/Virar** "
             "no lado esquerdo em tempo real."
         )
 
-    with st.expander("📋 Orientações do dia", expanded=False):
+    with st.expander(" Orientações do dia", expanded=False):
         st.caption(
             "Avisos da Gestão para a equipe. Pode mencionar quem é o destinatário no próprio texto "
             "(ex: \"Corte: cortar cumbucas após 14h · Embalagem: até 16h e depois sobe pra cortar bala\")."
@@ -438,7 +438,7 @@ with col_papel:
                                  + f"[{legado_label}]: {extra}")
 
         obs_geral = st.text_area(
-            "📢 Orientações",
+            " Orientações",
             value=valor_inicial,
             height=180, key=f"obs_geral_{data_str}",
             placeholder=(
@@ -455,20 +455,20 @@ with col_papel:
         obs_leonilia_v = ""
 
     # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
-    with st.expander("🍭 Bala de Doce de Leite — papelzinho do Joel", expanded=False):
+    with st.expander(" Bala de Doce de Leite — papelzinho do Joel", expanded=False):
         st.caption(
             "Contagem do papelzinho separado da Produção. Total = P/cortar + Cortadas (automático)."
         )
         cols_bdl = st.columns([1, 1, 1])
         with cols_bdl[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✂️ P/ cortar</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
             bala_p_cortar = st.number_input(
                 label="bala_p_cortar", min_value=0,
                 value=int(pbd_atual.get("bala_p_cortar") or 0),
                 key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✅ Cortadas</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Cortadas</div>", unsafe_allow_html=True)
             bala_cortadas = st.number_input(
                 label="bala_cortadas", min_value=0,
                 value=int(pbd_atual.get("bala_cortadas") or 0),
@@ -483,21 +483,21 @@ with col_papel:
             )
 
     # ── Pão de Mel inacabado + Bolos + Cocada Assada ─────────────────────────
-    with st.expander("🍞 Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
+    with st.expander(" Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
         st.caption(
-            "🍞 **PM inacabado** em unidades · **Bolos** (1 bolo = 70 und de PM). "
+            " **PM inacabado** em unidades · **Bolos** (1 bolo = 70 und de PM). "
             "**ASS / Cocada Assada** é outro produto independente, em unidades."
         )
         cols_pm = st.columns([1, 1, 1])
         with cols_pm[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 PM inacabado (und)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> PM inacabado (und)</div>", unsafe_allow_html=True)
             pm_inacabado = st.number_input(
                 label="pm_inacabado_und", min_value=0,
                 value=int(pbd_atual.get("pm_inacabado_und") or 0),
                 key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🎂 Bolos (×70)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Bolos (×70)</div>", unsafe_allow_html=True)
             pm_bolos = st.number_input(
                 label="pm_bolos", min_value=0,
                 value=int(pbd_atual.get("pm_bolos") or 0),
@@ -512,7 +512,7 @@ with col_papel:
                 unsafe_allow_html=True,
             )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:12px;'>🔥 Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:12px;'> Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
         st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
         cocada_assada = st.number_input(
             label="cocada_assada_und", min_value=0,
@@ -524,10 +524,10 @@ with col_papel:
 # ║ LADO ESQUERDO: folha de produção oficial                                 ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 with col_folha:
-    st.markdown("### 📋 Folha de Produção Oficial")
+    st.markdown("###  Folha de Produção Oficial")
 
     # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
-    with st.expander("🎁 Embalados — Cocada", expanded=False):
+    with st.expander(" Embalados — Cocada", expanded=False):
         st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
         cols_h = st.columns([1.2, 1, 1, 1, 1, 1])
         for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
@@ -551,7 +551,7 @@ with col_folha:
             }
 
     # ── 2. CORTADOS ① — Cocada ───────────────────────────────────────────────
-    with st.expander("✂️ Cortados ① — Cocada (em unidades)", expanded=False):
+    with st.expander("️ Cortados ① — Cocada (em unidades)", expanded=False):
         st.caption(
             "**①** = cortados hoje (lado embalagem) em **unidades** · "
             "**②** = ① + Embalados + Joel · **③** = ② − Parâmetro Real."
@@ -573,7 +573,7 @@ with col_folha:
             cort_v[sabor] = {"cort1_45g": c1_45, "cort1_mini": c1_mi, "cort1_pet": c1_pt}
 
     # ── 3. CORTE DE COCADA — Ordens ──────────────────────────────────────────
-    with st.expander("🔪 Corte de Cocada — Ordens (bandejas)", expanded=False):
+    with st.expander(" Corte de Cocada — Ordens (bandejas)", expanded=False):
         st.caption(
             "Em **bandejas** · conversão para unidades em cinza ao lado. "
             "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
@@ -612,7 +612,7 @@ with col_folha:
             }
 
     # ── 4. PARÂMETRO REAL DO DIA (45g + Mini + Pet) ──────────────────────────
-    with st.expander("⚙️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
+    with st.expander("️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
         st.caption(
             "**Base** vem da tabela de referência · **Ajuste** = +/- da Gestão (passos de 100) · "
             "**Real** alimenta a coluna ③ do Cortados acima."
@@ -623,7 +623,7 @@ with col_folha:
 
         if col_metas is None:
             st.warning(
-                f"📅 {nome_dia} — sem produção de 45g programada (tabela cobre Seg-Sex)."
+                f" {nome_dia} — sem produção de 45g programada (tabela cobre Seg-Sex)."
             )
 
         tab_45, tab_mi, tab_pt = st.tabs(["45g", "Mini (30g)", "Pet"])
@@ -735,7 +735,7 @@ with col_folha:
                 param_real_v["pet"][sabor] = real
 
     # ── 5. CORTADOS ②③ — derivado (read-only) ────────────────────────────────
-    with st.expander("📊 Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
+    with st.expander(" Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
         st.caption(
             "Atualiza em tempo real conforme você edita Embalados, Cortados① e Papelzinho do Joel."
         )
@@ -787,7 +787,7 @@ with col_folha:
         )
 
     # ── 6. VIRADAS — derivado ────────────────────────────────────────────────
-    with st.expander("🔄 Viradas — Cocada (derivado, read-only)", expanded=False):
+    with st.expander(" Viradas — Cocada (derivado, read-only)", expanded=False):
         st.caption(
             "① puxa do papelzinho · ② = ① − (corte 45g + Mini + Pet)."
         )
@@ -811,7 +811,7 @@ with col_folha:
         )
 
     # ── 7. P/VIRAR — derivado ────────────────────────────────────────────────
-    with st.expander("📦 P/Virar — Cocada (derivado, read-only)", expanded=False):
+    with st.expander(" P/Virar — Cocada (derivado, read-only)", expanded=False):
         st.caption(
             "① puxa do papelzinho · ② = ① + Viradas② · Meta = referência fixa por sabor."
         )
@@ -839,7 +839,7 @@ with col_folha:
         )
 
     # ── 8. PRODUÇÃO — Cocada (Ordens) ────────────────────────────────────────
-    with st.expander("🏭 Produção — Cocada (Ordens)", expanded=False):
+    with st.expander(" Produção — Cocada (Ordens)", expanded=False):
         st.caption(
             "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
         )
@@ -872,12 +872,12 @@ with col_folha:
         soma_z = ord_prod_v["ZERO"]["ord_prod_band"]
         if soma_n + soma_z > 0:
             st.caption(
-                f"📊 **Total a produzir:** {soma_n + soma_z} bandejas "
+                f" **Total a produzir:** {soma_n + soma_z} bandejas "
                 f"≈ **{soma_n / 8 + soma_z / 3:.1f} tachos** (Zero conta 1/3)"
             )
 
     # ── 9. EMBALAGEM — Cocada (Ordens) ───────────────────────────────────────
-    with st.expander("📦 Embalagem — Cocada (Ordens, em unidades)", expanded=False):
+    with st.expander(" Embalagem — Cocada (Ordens, em unidades)", expanded=False):
         st.caption("Unidades a embalar hoje. Z não tem 45g.")
         cols_h6 = st.columns([1.2, 1, 1])
         for col, lbl in zip(cols_h6, ["Sabor", "45g (und)", "Mini (und)"]):
@@ -896,10 +896,10 @@ with col_folha:
         t45 = sum(ord_emb_v[s]["ord_emb_45g"] for s in SABORES_COCADA)
         tmi = sum(ord_emb_v[s]["ord_emb_mini"] for s in SABORES_COCADA)
         if t45 + tmi > 0:
-            st.caption(f"📦 **Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
+            st.caption(f" **Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
 
     # ── 10. EMBALADOS — Palha ────────────────────────────────────────────────
-    with st.expander("🌾 Embalados — Palha", expanded=False):
+    with st.expander(" Embalados — Palha", expanded=False):
         st.caption("**50g** apenas em T, L, CH · **Pet 160g** em todos · em **unidades**.")
         cols_hpe = st.columns([1.4, 1, 1])
         for col, lbl in zip(cols_hpe, ["Sabor", "50g (und)", "Pet 160g (und)"]):
@@ -921,7 +921,7 @@ with col_folha:
             emb_palha_v[sabor] = {"emb_50g": v50, "emb_pet": vpt}
 
     # ── 10b. DISPLAYS DE PALHA 50g — contagem manual ─────────────────────────
-    with st.expander("📦 Displays de Palha 50g", expanded=False):
+    with st.expander(" Displays de Palha 50g", expanded=False):
         st.caption(
             "Quantos displays você tem hoje em estoque. "
             "Cada display contém **10 palhas** (4 Tradicional + 4 Leite em pó + 2 Churros)."
@@ -929,7 +929,7 @@ with col_folha:
         meta_dia = META_DISPLAYS_PALHA.get(nome_dia, 0)
         cols_disp = st.columns([1, 1])
         with cols_disp[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📦 Displays (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Displays (qtd)</div>", unsafe_allow_html=True)
             cnt_displays = st.number_input(
                 label="cnt_displays_palha", min_value=0,
                 value=int(pbd_atual.get("cnt_displays_palha") or 0),
@@ -940,7 +940,7 @@ with col_folha:
             if meta_dia > 0:
                 st.markdown(
                     f"<div style='font-size:12px;color:#7B341E;padding-top:6px;'>"
-                    f"📅 Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
+                    f" Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
                     unsafe_allow_html=True,
                 )
             else:
@@ -951,7 +951,7 @@ with col_folha:
                 )
 
     # ── 11. PRODUÇÃO PALHA ───────────────────────────────────────────────────
-    with st.expander("🏭 Produção Palha — Ordens", expanded=False):
+    with st.expander(" Produção Palha — Ordens", expanded=False):
         st.caption("Bandejas a produzir de palha (não se produz palha todo dia).")
         cols_hpp = st.columns([1.4, 1])
         for col, lbl in zip(cols_hpp, ["Sabor", "Bandejas"]):
@@ -969,11 +969,11 @@ with col_folha:
             prod_palha_v[sabor] = {"ord_prod_band": pb}
         tot_pp = sum(prod_palha_v[s]["ord_prod_band"] for s in SABORES_PALHA)
         if tot_pp > 0:
-            st.caption(f"📊 **Total produção palha:** {tot_pp} bandejas")
+            st.caption(f" **Total produção palha:** {tot_pp} bandejas")
 
     # ── 12. CORTE PALHA — Ordens (renderizado ANTES da Coluna PALHA porque
     #       seus valores alimentam o cálculo de "Pós-corte" do quadro Coluna PALHA)
-    with st.expander("🔪 Corte Palha — Ordens (bandejas)", expanded=False):
+    with st.expander(" Corte Palha — Ordens (bandejas)", expanded=False):
         st.caption("**50g** apenas em T, L, CH · **Pet** em todos.")
         cols_hcp = st.columns([1.4, 1, 1])
         for col, lbl in zip(cols_hcp, ["Sabor", "50g (band)", "Pet (band)"]):
@@ -996,7 +996,7 @@ with col_folha:
 
     # ── 13. COLUNA PALHA — Bandejas (Leonardo) ─────────────────────────────
     # Bandejas = input · Pós-corte = DERIVADO (Bandejas − Corte 50g − Corte Pet)
-    with st.expander("🌾 Coluna PALHA — Bandejas (Leonardo)", expanded=False):
+    with st.expander(" Coluna PALHA — Bandejas (Leonardo)", expanded=False):
         st.caption(
             "**Bandejas (band)** = você conta a quantidade total de bandejas de palha por sabor. "
             "**Pós-corte (band)** = calculado automaticamente subtraindo o que foi definido em "
@@ -1026,8 +1026,8 @@ with col_folha:
             )
             cont_palha_v[sabor] = {"cont_band_palha": cb, "cont_band_pos_corte": pos_corte}
 
-    # ── 14. 🍞 PÃO DE MEL — caixa unificada ──────────────────────────────────
-    with st.expander("🍞 Pão de Mel", expanded=False):
+    # ── 14.  PÃO DE MEL — caixa unificada ──────────────────────────────────
+    with st.expander(" Pão de Mel", expanded=False):
         st.caption(
             "Tudo sobre Pão de Mel num só lugar: quantidade atual + ordem do dia + "
             "lembrete pro próximo dia útil. Produzido pela Produção + uma auxiliar."
@@ -1035,19 +1035,19 @@ with col_folha:
 
         cnt_cols = st.columns([1, 1])
         with cnt_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_pm = st.number_input(
                 label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
                 key=f"cnt_pm_{data_str}", label_visibility="collapsed",
             )
         with cnt_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
             ord_pm = st.number_input(
                 label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
                 key=f"ord_pm_{data_str}", label_visibility="collapsed",
             )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'>📅 PM pro próximo dia útil</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'> PM pro próximo dia útil</div>", unsafe_allow_html=True)
         st.caption(
             "Lembrete pra Produção: quantos PM produzir no próximo dia útil. "
             "Ex: na sexta, escrever '4' lembra Joel de produzir 4 PM na segunda."
@@ -1060,8 +1060,8 @@ with col_folha:
             label_visibility="collapsed",
         )
 
-    # ── 15. 🍭 BALAS — caixa unificada ───────────────────────────────────────
-    with st.expander("🍭 Balas", expanded=False):
+    # ── 15.  BALAS — caixa unificada ───────────────────────────────────────
+    with st.expander(" Balas", expanded=False):
         st.caption(
             "Balas de doce de leite (produto distinto do PM). Produzidas pela Produção e "
             "cortadas pelo Popô. **Ordem em TACHOS** (1 tacho = 30 balas)."
@@ -1069,13 +1069,13 @@ with col_folha:
 
         bal_cols = st.columns([1, 1])
         with bal_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍭 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_balas = st.number_input(
                 label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
                 key=f"cnt_balas_{data_str}", label_visibility="collapsed",
             )
         with bal_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (tachos)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (tachos)</div>", unsafe_allow_html=True)
             ord_balas = st.number_input(
                 label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
                 key=f"ord_balas_{data_str}", label_visibility="collapsed",
@@ -1086,14 +1086,14 @@ with col_folha:
                     unsafe_allow_html=True,
                 )
 
-    # ── 16. 🍫 DOCES — caixa unificada ───────────────────────────────────────
-    with st.expander("🍫 Doces", expanded=False):
+    # ── 16.  DOCES — caixa unificada ───────────────────────────────────────
+    with st.expander(" Doces", expanded=False):
         st.caption(
             "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
             "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
         )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍫 Quantidade atual (unidades)</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (unidades)</div>", unsafe_allow_html=True)
         cnt_doces = st.number_input(
             label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
             key=f"cnt_doces_{data_str}", label_visibility="collapsed",
@@ -1106,21 +1106,21 @@ st.divider()
 col_btn, col_badge, col_info = st.columns([2, 1.2, 4])
 with col_btn:
     salvar_clicked = st.button(
-        "💾 Salvar folha completo",
+        " Salvar folha completo",
         type="primary",
         use_container_width=True,
     )
 with col_badge:
-    # Badge "✓ Salvo" só aparece após o clique em salvar (mesma sessão, mesma data)
+    # Badge " Salvo" só aparece após o clique em salvar (mesma sessão, mesma data)
     if st.session_state.get("folha_salva_em") == data_str:
         st.markdown(
             "<div class='badge-salvo' style='margin-top:10px;text-align:center;"
-            "padding:8px 12px;font-size:13px;'>✓ Salvo</div>",
+            "padding:8px 12px;font-size:13px;'> Salvo</div>",
             unsafe_allow_html=True,
         )
 with col_info:
     st.caption(
-        "💡 Salva **toda** a folha (cocada + palha + papelzinho + PM/Balas + orientações + parâmetros) "
+        " Salva **toda** a folha (cocada + palha + papelzinho + PM/Balas + orientações + parâmetros) "
         "em uma única transação atômica."
     )
 
@@ -1178,22 +1178,22 @@ if salvar_clicked:
             pm_balas_doces=pm_balas_doces_dict,
         )
         db.invalidar_folha(data_str)  # força releitura no próximo rerun
-        # Marca a folha como recém-salva (mostra badge ✓ Salvo ao lado do botão)
+        # Marca a folha como recém-salva (mostra badge  Salvo ao lado do botão)
         st.session_state["folha_salva_em"] = data_str
         st.success(
-            f"✅ Folha de **{data_sel.strftime('%d/%m/%Y')} ({nome_dia})** "
+            f" Folha de **{data_sel.strftime('%d/%m/%Y')} ({nome_dia})** "
             f"salva! Os dados aparecem na sidebar e no Painel."
         )
         st.balloons()
         st.rerun()
 
     except Exception as e:
-        st.error(f"❌ Erro ao salvar: {type(e).__name__}: {e}")
+        st.error(f" Erro ao salvar: {type(e).__name__}: {e}")
         st.exception(e)
 
 # ── Rodapé ─────────────────────────────────────────────────────────────────────
 st.divider()
 st.caption(
-    f"📋 Folha de Produção — PCP Doces Vó Nena v2.1 · "
+    f" Folha de Produção — PCP Doces Vó Nena v2.1 · "
     f"Sessão aberta em {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 )

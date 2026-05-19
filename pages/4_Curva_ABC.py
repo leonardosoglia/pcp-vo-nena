@@ -50,7 +50,7 @@ from cached_db import (
 
 st.set_page_config(
     page_title="Curva ABC • Doces Vó Nena",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -175,7 +175,7 @@ def _classificar_abc(df, corte_a=0.80, corte_b=0.95):
     return df
 
 
-@st.cache_data(ttl=1800, show_spinner="🔍 Calculando Curva ABC...")
+@st.cache_data(ttl=1800, show_spinner=" Calculando Curva ABC...")
 def calcular_curva_abc():
     df = _carregar_volume_corte_por_produto()
     if df.empty:
@@ -189,7 +189,7 @@ def calcular_curva_abc():
 st.title("Curva ABC")
 st.caption(
     "Classificação dos produtos por volume acumulado de bandejas cortadas. "
-    "📖 [Saiba mais sobre Curva ABC](/Ajuda) na página de Ajuda."
+    " [Saiba mais sobre Curva ABC](/Ajuda) na página de Ajuda."
 )
 
 
@@ -197,7 +197,7 @@ df_abc = calcular_curva_abc()
 
 if df_abc.empty:
     st.warning(
-        "⚠️ Ainda não há folhas com ordens de corte (`ord_corte_*`) preenchidas. "
+        "️ Ainda não há folhas com ordens de corte (`ord_corte_*`) preenchidas. "
         "Cadastra algumas folhas com ordens de corte em Lançamento antes."
     )
     st.stop()
@@ -237,7 +237,7 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 # GRÁFICO DE PARETO (barras + linha cumulativa)
 # ════════════════════════════════════════════════════════════════════════════
-st.header("📈 Diagrama de Pareto")
+st.header(" Diagrama de Pareto")
 st.caption(
     "Barras = bandejas cortadas · Linha = % acumulado · "
     "Linha tracejada a 80% marca o fim da Classe A."
@@ -309,7 +309,7 @@ st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, 
 # TABELA DETALHADA
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("📋 Detalhamento por produto")
+st.header(" Detalhamento por produto")
 
 df_tab = df_abc.copy()
 df_tab["volume_band"] = df_tab["volume_band"].apply(lambda v: f"{v:,}")
@@ -325,12 +325,12 @@ st.dataframe(df_tab, use_container_width=True, hide_index=True)
 # RECOMENDAÇÕES OPERACIONAIS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🎯 Produtos por classe")
+st.header(" Produtos por classe")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("### 🟢 Classe A")
+    st.markdown("###  Classe A")
     produtos_a = df_abc[df_abc["classe"] == "A"]["produto_completo"].tolist()
     if produtos_a:
         for p in produtos_a:
@@ -339,7 +339,7 @@ with col1:
         st.caption("_(vazia)_")
 
 with col2:
-    st.markdown("### 🟡 Classe B")
+    st.markdown("###  Classe B")
     produtos_b = df_abc[df_abc["classe"] == "B"]["produto_completo"].tolist()
     if produtos_b:
         for p in produtos_b:
@@ -348,7 +348,7 @@ with col2:
         st.caption("_(vazia)_")
 
 with col3:
-    st.markdown("### 🔴 Classe C")
+    st.markdown("###  Classe C")
     produtos_c = df_abc[df_abc["classe"] == "C"]["produto_completo"].tolist()
     if produtos_c:
         for p in produtos_c:
@@ -359,6 +359,6 @@ with col3:
 
 st.divider()
 st.caption(
-    f"📊 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f" Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     f"{len(df_abc)} produtos · cache de 30 min."
 )

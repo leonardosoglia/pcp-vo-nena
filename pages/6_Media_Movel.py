@@ -45,7 +45,7 @@ from cached_db import (
 
 st.set_page_config(
     page_title="Média Móvel • Doces Vó Nena",
-    page_icon="📈",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -151,7 +151,7 @@ def _calcular_media_movel(df, janela=4):
     return pd.DataFrame(linhas)
 
 
-@st.cache_data(ttl=1800, show_spinner="📊 Calculando médias móveis...")
+@st.cache_data(ttl=1800, show_spinner=" Calculando médias móveis...")
 def calcular_tudo(janela=4):
     df_obs = _carregar_observacoes_45g()
     if df_obs.empty:
@@ -166,7 +166,7 @@ def calcular_tudo(janela=4):
 st.title("Calibração de Metas")
 st.caption(
     "Compara as metas fixas da tabela `metas_45g` com a média das últimas semanas. "
-    "📖 [Saiba mais](/Ajuda) na página de Ajuda."
+    " [Saiba mais](/Ajuda) na página de Ajuda."
 )
 
 
@@ -181,7 +181,7 @@ with col_slider:
     )
 with col_info:
     st.caption(
-        f"⚙️ Considerando as últimas **{janela}** ocorrências de cada dia da semana."
+        f"️ Considerando as últimas **{janela}** ocorrências de cada dia da semana."
     )
 
 
@@ -189,7 +189,7 @@ df_obs, df_mm = calcular_tudo(janela=janela)
 
 if df_obs.empty:
     st.warning(
-        "⚠️ Ainda não há folhas com ordens de embalagem 45g (`ord_emb_45g`) preenchidas. "
+        "️ Ainda não há folhas com ordens de embalagem 45g (`ord_emb_45g`) preenchidas. "
         "Cadastra algumas folhas em Lançamento antes."
     )
     st.stop()
@@ -207,25 +207,25 @@ n_atencao = (df_mm["severidade"] == "Atenção").sum()
 
 col_a, col_b, col_c, col_d = st.columns(4)
 col_a.metric(
-    "📋 Folhas analisadas (45g)", n_obs,
+    " Folhas analisadas (45g)", n_obs,
     help="Quantas linhas de folha tem ordem de embalagem 45g preenchida",
 )
 col_b.metric(
-    "🎯 Combinações analisadas", n_combos,
+    " Combinações analisadas", n_combos,
     help="5 sabores × 5 dias úteis = até 25 combinações possíveis",
 )
 col_c.metric(
-    "🔴 Sugestões de recalibrar", int(n_recalibrar),
+    " Sugestões de recalibrar", int(n_recalibrar),
     help="Combinações em que a média móvel diverge mais de 20% da meta — "
          "sistema sugere atualizar a meta da tabela",
 )
 col_d.metric(
-    "🟡 Sob atenção", int(n_atencao),
+    " Sob atenção", int(n_atencao),
     help="Combinações com desvio entre 10% e 20% — ainda OK mas vale observar",
 )
 
 st.caption(
-    "**Status:** ✅ OK (<10%) · 🟡 Atenção (10-20%) · 🔴 Recalibrar (>20%)"
+    "**Status:**  OK (<10%) ·  Atenção (10-20%) ·  Recalibrar (>20%)"
 )
 
 
@@ -233,7 +233,7 @@ st.caption(
 # TABELA COMPARATIVA — base × média móvel × desvio
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("📊 Meta × Realidade")
+st.header(" Meta × Realidade")
 
 df_tab = df_mm.copy()
 df_tab["sabor"] = df_tab["sabor"].apply(lambda s: s.capitalize() if s.isupper() else s)
@@ -250,7 +250,7 @@ df_tab["desvio_fmt"] = df_tab.apply(
 )
 
 # Coluna de severidade com emoji
-emoji_sev = {"OK": "✅ OK", "Atenção": "🟡 Atenção", "Recalibrar": "🔴 Recalibrar"}
+emoji_sev = {"OK": " OK", "Atenção": " Atenção", "Recalibrar": " Recalibrar"}
 df_tab["sev_fmt"] = df_tab["severidade"].map(emoji_sev)
 
 df_display = df_tab[[
@@ -280,7 +280,7 @@ st.dataframe(df_display, use_container_width=True, hide_index=True)
 # HEATMAP — visualização Sabor × Dia
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🔥 Mapa de calor")
+st.header(" Mapa de calor")
 st.caption(
     "Verde = OK · Amarelo = atenção · Vermelho = recalibrar · Branco = sem dados."
 )
@@ -340,7 +340,7 @@ st.plotly_chart(fig_heat, use_container_width=True, config={"displayModeBar": Fa
 # DETALHE TEMPORAL — gráfico de linha por sabor
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("📉 Evolução temporal")
+st.header(" Evolução temporal")
 st.caption(
     "Cores = dias da semana · linha tracejada = meta média semanal."
 )
@@ -420,14 +420,14 @@ st.plotly_chart(fig_lin, use_container_width=True, config={"displayModeBar": Fal
 # RECOMENDAÇÕES PRÁTICAS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🎯 Sugestões de recalibração")
+st.header(" Sugestões de recalibração")
 
 recalibrar = df_mm[df_mm["severidade"] == "Recalibrar"].sort_values(
     "desvio_pct", key=lambda s: s.abs(), ascending=False
 )
 
 if recalibrar.empty:
-    st.success("✅ Nenhuma meta precisa de atualização. Todas dentro de ±20%.")
+    st.success(" Nenhuma meta precisa de atualização. Todas dentro de ±20%.")
 else:
     # Tabela compacta em vez de cards longos
     df_sug = pd.DataFrame([
@@ -450,6 +450,6 @@ else:
 
 st.divider()
 st.caption(
-    f"📈 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f" Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     f"{n_obs} observações · janela {janela} · cache 30 min."
 )

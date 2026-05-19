@@ -25,7 +25,7 @@ except Exception:
 
 st.set_page_config(
     page_title="Ajuda • Doces Vó Nena",
-    page_icon="📖",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -49,18 +49,18 @@ st.caption(
 # ÍNDICE
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("""
-### 🧭 Índice
+###  Índice
 
 | Seção | O que tem |
 |---|---|
-| 📘 [Como usar o sistema](#como-usar) | Fluxo do dia, abas principais, atalhos |
-| 📊 [Páginas de Análise](#paginas-analise) | Insights, Curva ABC, Anomalias ML, Média Móvel |
-| 📦 [Suprimentos](#suprimentos) | Insumos, BOM, Movimentações, Necessidades |
-| 👥 [Equipe](#equipe) | Funcionários, Capacidades, Presença |
-| 🤖 [Assistente IA](#assistente-ia) | Como funciona, custos, status atual |
-| 📚 [Glossário](#glossario) | Termos técnicos explicados |
-| ❓ [Perguntas Frequentes](#faq) | FAQ sobre o sistema |
-| 📑 [Referências Bibliográficas](#referencias) | Pro TCC |
+|  [Como usar o sistema](#como-usar) | Fluxo do dia, abas principais, atalhos |
+|  [Páginas de Análise](#paginas-analise) | Insights, Curva ABC, Anomalias ML, Média Móvel |
+|  [Suprimentos](#suprimentos) | Insumos, BOM, Movimentações, Necessidades |
+|  [Equipe](#equipe) | Funcionários, Capacidades, Presença |
+|  [Assistente IA](#assistente-ia) | Como funciona, custos, status atual |
+|  [Glossário](#glossario) | Termos técnicos explicados |
+|  [Perguntas Frequentes](#faq) | FAQ sobre o sistema |
+|  [Referências Bibliográficas](#referencias) | Pro TCC |
 """)
 
 st.divider()
@@ -70,7 +70,7 @@ st.divider()
 # COMO USAR O SISTEMA
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='como-usar'></a>", unsafe_allow_html=True)
-st.header("📘 Como usar o sistema")
+st.header(" Como usar o sistema")
 
 st.markdown("""
 **Fluxo típico de um dia:**
@@ -107,10 +107,10 @@ st.divider()
 # PÁGINAS DE ANÁLISE
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='paginas-analise'></a>", unsafe_allow_html=True)
-st.header("📊 Páginas de Análise")
+st.header(" Páginas de Análise")
 
 # --- Insights ---
-st.subheader("🔍 Insights")
+st.subheader(" Insights")
 st.markdown("""
 <div class='card-feature'>
 <b>O que faz:</b> diagnóstico operacional automático baseado em <b>regras hardcoded</b>.
@@ -127,16 +127,16 @@ Sinaliza padrões conhecidos sem precisar de Machine Learning.<br><br>
 """, unsafe_allow_html=True)
 
 # --- Curva ABC ---
-st.subheader("📊 Curva ABC")
+st.subheader(" Curva ABC")
 st.markdown("""
 <div class='card-feature'>
 <b>O que faz:</b> separa automaticamente os produtos em 3 classes de prioridade,
 baseado no princípio de Pareto (80/20).<br><br>
 <b>Classes:</b>
 <ul>
-<li><b>A 🟢</b> — produtos que somam 80% do volume produzido. Atenção máxima.</li>
-<li><b>B 🟡</b> — próximos 15%. Cadência regular.</li>
-<li><b>C 🔴</b> — últimos 5%. Lotes maiores e espaçados.</li>
+<li><b>A </b> — produtos que somam 80% do volume produzido. Atenção máxima.</li>
+<li><b>B </b> — próximos 15%. Cadência regular.</li>
+<li><b>C </b> — últimos 5%. Lotes maiores e espaçados.</li>
 </ul>
 <b>Métrica usada:</b> <code>ord_corte_*</code> (fluxo de bandejas), somada ao longo de
 todas as folhas registradas. <b>NÃO usa Embalados</b> (que é estoque na prateleira,
@@ -145,7 +145,7 @@ não pode ser somado entre dias — princípio Forrester 1961).
 """, unsafe_allow_html=True)
 
 # --- Anomalias ML ---
-st.subheader("🤖 Anomalias ML")
+st.subheader(" Anomalias ML")
 st.markdown("""
 <div class='card-feature'>
 <b>O que faz:</b> usa <b>Machine Learning não-supervisionado</b> (algoritmo Isolation
@@ -163,7 +163,7 @@ programar regra.<br><br>
 """, unsafe_allow_html=True)
 
 # --- Média Móvel ---
-st.subheader("📈 Média Móvel")
+st.subheader(" Média Móvel")
 st.markdown("""
 <div class='card-feature'>
 <b>O que faz:</b> compara a meta fixa da tabela <code>metas_45g</code> (ex: "Tradicional
@@ -171,9 +171,9 @@ st.markdown("""
 descolou da meta, sinaliza pra recalibrar.<br><br>
 <b>Status dos desvios:</b>
 <ul>
-<li><b>✅ OK</b> — diferença &lt; 10% (meta calibrada)</li>
-<li><b>🟡 Atenção</b> — 10-20% (acompanhar)</li>
-<li><b>🔴 Recalibrar</b> — &gt; 20% (meta provavelmente desatualizada)</li>
+<li><b> OK</b> — diferença &lt; 10% (meta calibrada)</li>
+<li><b> Atenção</b> — 10-20% (acompanhar)</li>
+<li><b> Recalibrar</b> — &gt; 20% (meta provavelmente desatualizada)</li>
 </ul>
 <b>Janela móvel ajustável:</b> 2-8 ocorrências do mesmo dia da semana. Padrão 4.<br>
 <b>Métrica usada:</b> <code>ord_emb_45g</code> (fluxo de embalagem 45g). Não usa Embalados.
@@ -187,7 +187,7 @@ st.divider()
 # SUPRIMENTOS
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='suprimentos'></a>", unsafe_allow_html=True)
-st.header("📦 Suprimentos")
+st.header(" Suprimentos")
 
 st.markdown("""
 <div class='card-feature'>
@@ -195,10 +195,10 @@ st.markdown("""
 item consumível. Aplica MRP simplificado (Material Requirements Planning).<br><br>
 <b>4 abas:</b>
 <ul>
-<li><b>📋 Insumos</b> — cadastro de cada item (nome, código, unidade, estoque atual, estoque mínimo, fornecedor, lead time)</li>
-<li><b>📝 BOM</b> — receitas (Bill of Materials): pra produzir 1 tacho de Tradicional → 19L leite + 8kg açúcar + 4kg coco + ...</li>
-<li><b>📦 Movimentações</b> — histórico de entradas (compras) e saídas (consumo na produção)</li>
-<li><b>⚠️ Necessidades do dia</b> — cruza folha do dia × BOM × estoque atual → "Vai faltar X kg de Y"</li>
+<li><b> Insumos</b> — cadastro de cada item (nome, código, unidade, estoque atual, estoque mínimo, fornecedor, lead time)</li>
+<li><b> BOM</b> — receitas (Bill of Materials): pra produzir 1 tacho de Tradicional → 19L leite + 8kg açúcar + 4kg coco + ...</li>
+<li><b> Movimentações</b> — histórico de entradas (compras) e saídas (consumo na produção)</li>
+<li><b>️ Necessidades do dia</b> — cruza folha do dia × BOM × estoque atual → "Vai faltar X kg de Y"</li>
 </ul>
 <b>Status atual:</b> schema pronto, aguardando cadastro real de insumos (depende de
 entrevista com Eraldo + exportação CSV do Sigee Cloud com Mariana).
@@ -212,7 +212,7 @@ st.divider()
 # EQUIPE
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='equipe'></a>", unsafe_allow_html=True)
-st.header("👥 Equipe")
+st.header(" Equipe")
 
 st.markdown("""
 <div class='card-feature'>
@@ -220,9 +220,9 @@ st.markdown("""
 Fundação da Camada 2 do sistema (Sugestão Automática de Ordem do Dia — em construção).<br><br>
 <b>3 abas:</b>
 <ul>
-<li><b>👥 Funcionários</b> — CRUD agrupado por departamento (Gestão, Produção, Corte, Embalagem, etc.)</li>
-<li><b>💪 Capacidades</b> — pra cada funcionário, quanto produz por atividade (ex: "Gil corta 30 band 45g/dia")</li>
-<li><b>📅 Presença do dia</b> — quem trabalhou em cada data, com observações (chegou tarde, etc.)</li>
+<li><b> Funcionários</b> — CRUD agrupado por departamento (Gestão, Produção, Corte, Embalagem, etc.)</li>
+<li><b> Capacidades</b> — pra cada funcionário, quanto produz por atividade (ex: "Gil corta 30 band 45g/dia")</li>
+<li><b> Presença do dia</b> — quem trabalhou em cada data, com observações (chegou tarde, etc.)</li>
 </ul>
 <b>Como será usado (próxima etapa):</b> o algoritmo de Sugestão de Ordem vai calcular
 a <b>capacidade efetiva do dia</b> = soma(capacidade × presente) e usar como restrição
@@ -237,7 +237,7 @@ st.divider()
 # ASSISTENTE IA
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='assistente-ia'></a>", unsafe_allow_html=True)
-st.header("🤖 Assistente IA")
+st.header(" Assistente IA")
 
 st.markdown("""
 <div class='card-feature'>
@@ -267,7 +267,7 @@ st.divider()
 # GLOSSÁRIO
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='glossario'></a>", unsafe_allow_html=True)
-st.header("📚 Glossário")
+st.header(" Glossário")
 st.caption("Termos técnicos do sistema, em ordem alfabética.")
 
 termos = [
@@ -346,7 +346,7 @@ st.divider()
 # FAQ
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='faq'></a>", unsafe_allow_html=True)
-st.header("❓ Perguntas Frequentes (FAQ)")
+st.header(" Perguntas Frequentes (FAQ)")
 
 faqs = [
     ("Por que algumas páginas usam ord_corte_* e não emb_* nos cálculos?",
@@ -381,7 +381,7 @@ faqs = [
 ]
 
 for q, a in faqs:
-    st.markdown(f"<div class='faq-q'>❓ {q}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='faq-q'> {q}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='faq-a'>{a}</div>", unsafe_allow_html=True)
 
 st.divider()
@@ -391,7 +391,7 @@ st.divider()
 # REFERÊNCIAS
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown("<a id='referencias'></a>", unsafe_allow_html=True)
-st.header("📑 Referências Bibliográficas")
+st.header(" Referências Bibliográficas")
 st.caption("Pra usar no TCC (Capítulo 2 — Revisão de Literatura).")
 
 st.markdown("""
@@ -460,7 +460,7 @@ Fundamentos do treinamento de modelos da família Claude (usados no Assistente I
 
 st.divider()
 st.caption(
-    "📖 Esta página é a fonte central de documentação do sistema. "
+    " Esta página é a fonte central de documentação do sistema. "
     "Quando tiver dúvida sobre alguma feature, comece por aqui antes de chamar o dev. "
     "Atualizada conforme o sistema evolui."
 )

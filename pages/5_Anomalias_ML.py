@@ -56,7 +56,7 @@ from cached_db import (
 
 st.set_page_config(
     page_title="Anomalias ML • Doces Vó Nena",
-    page_icon="🤖",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -165,7 +165,7 @@ def _features_de_folha(d):
     return feat
 
 
-@st.cache_data(ttl=1800, show_spinner="🤖 Treinando modelo de detecção de anomalias...")
+@st.cache_data(ttl=1800, show_spinner=" Treinando modelo de detecção de anomalias...")
 def detectar_anomalias(contamination=0.1):
     """Roda Isolation Forest sobre todas as folhas + retorna DataFrame com score.
 
@@ -269,7 +269,7 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 st.title("Folhas Atípicas")
 st.caption(
     "Detecção automática via Machine Learning (Isolation Forest). "
-    "📖 [Saiba mais](/Ajuda) na página de Ajuda."
+    " [Saiba mais](/Ajuda) na página de Ajuda."
 )
 
 
@@ -286,7 +286,7 @@ with col_slider:
 with col_info:
     n_estimado = int(round(contamination * 100))
     st.caption(
-        f"⚙️ Critério atual: **{n_estimado}%** das folhas mais diferentes serão "
+        f"️ Critério atual: **{n_estimado}%** das folhas mais diferentes serão "
         f"marcadas como atípicas. _Mais baixo = mais restrito._"
     )
 
@@ -295,7 +295,7 @@ df_result, status = detectar_anomalias(contamination=contamination)
 
 if status == "amostra_insuficiente":
     st.warning(
-        "⚠️ Precisa de pelo menos **5 folhas** no banco pra treinar o modelo. "
+        "️ Precisa de pelo menos **5 folhas** no banco pra treinar o modelo. "
         "Cadastra mais folhas em Lançamento e volta aqui."
     )
     st.stop()
@@ -318,20 +318,20 @@ st.divider()
 
 col_a, col_b, col_c, col_d = st.columns(4)
 col_a.metric(
-    "📋 Folhas analisadas", n_folhas,
+    " Folhas analisadas", n_folhas,
     help="Total de folhas registradas no banco e usadas no treinamento do modelo.",
 )
 col_b.metric(
-    "🚨 Folhas atípicas detectadas", n_anomalias,
+    " Folhas atípicas detectadas", n_anomalias,
     help="Quantas dessas folhas o algoritmo marcou como diferentes do padrão.",
 )
 col_c.metric(
-    "🎯 Critério usado",
+    " Critério usado",
     f"{int(contamination*100)}% mais diferentes",
     help="Reflete a posição atual do slider acima.",
 )
 col_d.metric(
-    "⚙️ Método",
+    "️ Método",
     "Isolation Forest",
     help="Algoritmo de Machine Learning não-supervisionado.",
 )
@@ -341,7 +341,7 @@ col_d.metric(
 # RANKING DE ANOMALIAS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🏆 Score por data")
+st.header(" Score por data")
 st.caption(
     "Barras vermelhas = atípicas · cinzas = normais · maior = mais diferente do padrão."
 )
@@ -383,7 +383,7 @@ st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, 
 # DETALHES DE CADA ANOMALIA
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🔍 Detalhes")
+st.header(" Detalhes")
 st.caption(
     "Top 3 campos que mais contribuíram pro desvio. _σ = desvios-padrão acima/abaixo do normal._"
 )
@@ -393,7 +393,7 @@ anomalias = df_result[df_result["is_anomaly"] == -1]
 if anomalias.empty:
     st.markdown(
         "<div class='didatica'>"
-        "✅ Nenhuma folha foi marcada como atípica com o critério atual. "
+        " Nenhuma folha foi marcada como atípica com o critério atual. "
         "Mova o slider acima pra um valor maior se quiser forçar mais detecções."
         "</div>",
         unsafe_allow_html=True,
@@ -428,7 +428,7 @@ else:
 
         st.markdown(
             f"<div class='anomaly-card'>"
-            f"<b style='font-size:18px;color:#7B341E;'>📅 {data_fmt}</b><br>"
+            f"<b style='font-size:18px;color:#7B341E;'> {data_fmt}</b><br>"
             f"<span style='color:#991B1B;font-weight:600;'>Score de anomalia: {score:.3f}</span>"
             f"<hr style='border-color:#FECACA;margin:10px 0;'>"
             f"<b>O que mais contribuiu (top 3 features):</b><br>"
@@ -437,10 +437,10 @@ else:
             unsafe_allow_html=True,
         )
 
-        # ── Botão "🤖 Explicar via IA" + área de exibição ────────────────
+        # ── Botão " Explicar via IA" + área de exibição ────────────────
         col_btn, col_status = st.columns([1, 3])
         with col_btn:
-            btn_label = "🤖 Explicar via IA"
+            btn_label = " Explicar via IA"
             btn_key = f"explicar_{data_iso}_{i}"
             btn_clicked = st.button(
                 btn_label, key=btn_key, use_container_width=True,
@@ -456,7 +456,7 @@ else:
         with col_status:
             if not api_key_disponivel:
                 st.caption(
-                    "🔒 *Explicação via IA requer `ANTHROPIC_API_KEY` configurada "
+                    " *Explicação via IA requer `ANTHROPIC_API_KEY` configurada "
                     "no HF Spaces (Settings > Variables and secrets).*"
                 )
 
@@ -466,7 +466,7 @@ else:
             if resultado.get("erro"):
                 st.markdown(
                     f"<div class='anomaly-card' style='background:#FEF2F2;border-color:#B91C1C;'>"
-                    f"<b>❌ Erro ao consultar Claude:</b><br>"
+                    f"<b> Erro ao consultar Claude:</b><br>"
                     f"<code>{resultado['erro']}</code>"
                     f"</div>",
                     unsafe_allow_html=True,
@@ -475,14 +475,14 @@ else:
                 cache_info = ""
                 if resultado.get("tokens_cache_read", 0) > 0:
                     pct = (resultado["tokens_cache_read"] / max(resultado["tokens_input"], 1)) * 100
-                    cache_info = f" · 💾 cache hit: {pct:.0f}%"
+                    cache_info = f" ·  cache hit: {pct:.0f}%"
                 st.markdown(
                     f"<div class='anomaly-card' style='background:linear-gradient(135deg,#FFF8F2 0%,#FEF3C7 100%);border-color:#C05621;'>"
-                    f"<b>🤖 Análise do Claude ({resultado.get('modelo', '?')}):</b><br><br>"
+                    f"<b> Análise do Claude ({resultado.get('modelo', '?')}):</b><br><br>"
                     f"{resultado.get('explicacao', '').replace(chr(10), '<br>')}"
                     f"<hr style='border-color:#FED7AA;margin:10px 0;'>"
                     f"<span style='font-size:11px;color:#7B341E;'>"
-                    f"📊 {resultado['tokens_input']} tokens in + {resultado['tokens_output']} out = "
+                    f" {resultado['tokens_input']} tokens in + {resultado['tokens_output']} out = "
                     f"<b>~R$ {resultado['custo_brl']:.3f}</b>{cache_info}"
                     f"</span>"
                     f"</div>",
@@ -491,7 +491,7 @@ else:
         elif btn_clicked and api_key_disponivel:
             try:
                 from claude_assistant import explicar_anomalia
-                with st.spinner(f"🤖 Claude analisando {data_fmt}..."):
+                with st.spinner(f" Claude analisando {data_fmt}..."):
                     resultado = explicar_anomalia(
                         data=data_iso,
                         top_features=list(top3),
@@ -500,9 +500,9 @@ else:
                 st.session_state.explicacoes_anomalias[data_iso] = resultado
                 st.rerun()
             except ImportError as e:
-                st.error(f"❌ Erro ao importar claude_assistant: {e}")
+                st.error(f" Erro ao importar claude_assistant: {e}")
             except Exception as e:
-                st.error(f"❌ Erro inesperado: {e}")
+                st.error(f" Erro inesperado: {e}")
 
     # (Explicação detalhada do σ está na página Ajuda — caption acima já resume)
 
@@ -510,9 +510,9 @@ else:
 # ════════════════════════════════════════════════════════════════════════════
 # TABELA COMPLETA (TODAS AS FOLHAS COM SCORE)
 # ════════════════════════════════════════════════════════════════════════════
-with st.expander("📋 Ver todas as folhas com score (não só anomalias)", expanded=False):
+with st.expander(" Ver todas as folhas com score (não só anomalias)", expanded=False):
     df_tab = df_result[["data", "anomaly_score"]].copy()
-    df_tab["status"] = df_result["is_anomaly"].map({-1: "🚨 Atípica", 1: "✅ Normal"})
+    df_tab["status"] = df_result["is_anomaly"].map({-1: " Atípica", 1: " Normal"})
     df_tab["data"] = pd.to_datetime(df_tab["data"]).dt.strftime("%d/%m/%Y")
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
@@ -522,6 +522,6 @@ with st.expander("📋 Ver todas as folhas com score (não só anomalias)", expa
 
 st.divider()
 st.caption(
-    f"🤖 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f" Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     f"{n_folhas} folhas · cache 30 min."
 )

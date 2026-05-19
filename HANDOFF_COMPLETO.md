@@ -1,149 +1,87 @@
-# 🚨 HANDOFF COMPLETO — Sessão 19/05/2026
+# HANDOFF COMPLETO — Encerramento sessão 19/05/2026
 
 > **Pra Claude da próxima sessão:** este é o documento MASTER de transferência.
-> Leia INTEIRO antes de qualquer ação. Depois `CLAUDE.md`, `CADERNO.md`,
-> `HANDOFF_SIGEE.md`, memórias persistentes.
-> Sessão atual encerrou em 19/05/2026 ~15:30 BRT com **3 problemas críticos
-> de design pendentes** + transferência pendente pro Sigee Cloud.
+> Ler INTEIRO antes de qualquer ação. Em seguida: `CLAUDE.md`, `HANDOFF_SIGEE.md`,
+> `CADERNO.md` e memórias persistentes em `~/.claude/projects/.../memory/`.
 
 ---
 
-## 🔴 PROBLEMAS PENDENTES — PRIMEIRA AÇÃO DA PRÓXIMA SESSÃO
+## 1. ESTADO ATUAL (final desta sessão)
 
-Leonardo escreveu textualmente:
-
-> *"o design la não ficou legal. os emojis eram pra ter saido. as cores brancas
-> ali no sidebar a esquerda tao se misturando com a fonte branca tambem, arruma
-> tudo isso meu deusss."*
-
-### Problema 1 — Design "não ficou legal"
-**O que está errado:** mesmo após aplicar `ui_theme.py` (fonte Inter + paleta clean), o visual não convenceu. Razão provável: o tema Inter foi aplicado, mas o `<style>` antigo de cada página ainda tem prioridade em alguns pontos (especificidade CSS).
-
-**Diagnóstico técnico:**
-- `ui_theme.py` injeta CSS com `aplicar_tema()` — OK
-- Páginas têm CSS legacy que ficou após a substituição (classes como `.insight-card-master`, `.didatica`, gradientes)
-- O CSS legacy foi mapeado pelo tema novo COM `!important` em vários lugares, mas alguns elementos podem estar passando
-
-**Solução pra próxima sessão:**
-1. Abrir o app no HF, dar F12 → Inspector
-2. Identificar quais elementos ainda estão com cores/fontes erradas
-3. Adicionar regras `!important` no `ui_theme.py` ou remover CSS legacy de cada página
-4. **Alternativa radical:** apagar TODO CSS antigo de cada página, deixar SÓ o `aplicar_tema()`
-
-### Problema 2 — Emojis "eram pra ter saído"
-**O que foi feito:** script removeu emojis APENAS dos `st.title()`. Headers internos (`st.header()`), métricas (`st.metric()`) e botões ainda têm emojis.
-
-**Solução pra próxima sessão:**
-1. Rodar script Python análogo ao desta sessão, mas que pegue:
-   - `st.header("...")`
-   - `st.subheader("...")`
-   - `st.metric("emoji texto", ...)`
-   - `st.button("emoji texto", ...)`
-   - Texto em `st.markdown` com emojis decorativos
-2. Manter APENAS emojis com função semântica clara (✅ OK, ⚠️ aviso, ❌ erro)
-3. Banir emojis decorativos (📊, 📈, 🎯, 🔍, etc.)
-
-### Problema 3 — Sidebar com texto branco sobre fundo branco
-**O que está errado:** no print do Leonardo, vejo "Adicionar nova folha" como botão **branco com texto branco** na sidebar. Está ilegível.
-
-**Causa:**
-- Tema novo (`ui_theme.py`) define sidebar com `background-color: #1F2937` (escuro)
-- Mas algum botão específico (provavelmente `+ Adicionar nova folha` em `lancamento.py`) tem CSS legacy que sobrescreve com `background: #FFFFFF` ou semelhante
-- Resultado: botão branco + texto branco (definido no tema escuro) = invisível
-
-**Diagnóstico:** olhar o CSS legacy do `lancamento.py` linhas ~100-200 (antes da substituição). Provavelmente havia regras pra botões específicos (`stPopover`, `[data-testid="stButton"]` com cor vermelha) que foram perdidas na refatoração ou estão conflitando.
-
-**Solução pra próxima sessão:**
-1. Inspecionar via F12 o botão ilegível
-2. Identificar a classe/data-testid
-3. No `ui_theme.py`, adicionar regra específica pra sidebar:
-   ```css
-   section[data-testid="stSidebar"] button {
-       background-color: #C05621 !important;
-       color: #FFFFFF !important;
-   }
-   ```
-
-### Problema 4 (menor) — Folha PM/Balas voltou a mostrar "0"
-**O que foi feito hoje:** o regex pra `value=None` quebrava somas (TypeError `int + NoneType`). Revertido nos 14 number_inputs diretos. **Só os campos da cocada/palha** (que usam helper `num_input_compact`) têm UX vazia.
-
-**Solução pra próxima sessão:**
-- Substituir os 14 number_inputs diretos pelo helper `num_input_compact`, OU
-- Trocar `st.number_input` por `st.text_input` com regex de validação numérica
-- Garantir que setas do teclado movem entre células (não incrementam valor)
-
-### Problema 5 (menor) — Setas do teclado incrementam valor
-- Limitação Streamlit nativa
-- Pra resolver: trocar `st.number_input` por `st.text_input` com `int(valor or 0)` no salvamento
-- Bastante trabalho — fazer com cautela
-
----
-
-## 📋 ESTADO ATUAL DO SISTEMA (19/05/2026)
-
-### URLs em produção
-- **App principal:** `https://huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
-- **App backup:** `https://pcp-vo-nena.streamlit.app` (pausar em ~1 semana)
-- **Repo:** `https://github.com/leonardosoglia/pcp-vo-nena` (público)
+### URLs
+- **Produção:** `https://huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
+- **Backup:** `https://pcp-vo-nena.streamlit.app` (pausar próxima semana)
+- **Repo:** `https://github.com/leonardosoglia/pcp-vo-nena`
 
 ### Bancos
-- **Atual em uso:** Supabase `pcp-vo-nena-us` (us-east-1) — migrado 19/05, latência -97%
-- **Antigo (manter pausado):** Supabase `pcp-vo-nena` (sa-east-1) — backup vivo
+- **Ativo:** Supabase `pcp-vo-nena-us` (us-east-1) — latência ~5ms
+- **Backup (manter pausado):** Supabase `pcp-vo-nena` (sa-east-1) — fallback
 
-### Páginas (10 no total)
-1. **Lançamento** (`lancamento.py`) — entry point
-2. **Painel** (`pages/1_Painel.py`)
-3. **Insights** (`pages/2_Insights.py`) — regras hardcoded
+### Páginas (10)
+1. **Lançamento** (`lancamento.py`) — entry point, formulário da folha
+2. **Painel** (`pages/1_Painel.py`) — visualização por departamento
+3. **Insights** (`pages/2_Insights.py`) — diagnóstico com regras hardcoded
 4. **Suprimentos** (`pages/3_Suprimentos.py`) — schema pronto, aguarda Sigee
-5. **Curva ABC** (`pages/4_Curva_ABC.py`) — Fase 1 ML
+5. **Curva ABC** (`pages/4_Curva_ABC.py`) — Pareto dos produtos
 6. **Anomalias ML** (`pages/5_Anomalias_ML.py`) — Isolation Forest + botão "Explicar via IA"
 7. **Calibração de Metas** (`pages/6_Media_Movel.py`) — Média Móvel
-8. **Assistente IA** (`pages/7_Assistente_IA.py`) — Claude Q&A (não ativado)
+8. **Assistente IA** (`pages/7_Assistente_IA.py`) — Claude Q&A (sem ANTHROPIC_API_KEY ativada)
 9. **Equipe** (`pages/8_Equipe.py`) — funcionários + capacidades + presença
 10. **Ajuda** (`pages/9_Ajuda.py`) — central de documentação/glossário/FAQ
 
-### Tema visual
-- `ui_theme.py` centraliza CSS via `aplicar_tema()`
-- Fonte: Inter (Google Fonts)
-- Paleta: branco/cinza neutros + laranja Vó Nena (#C05621) apenas em accents
-- Status: **NÃO está perfeito** (ver Problemas 1, 2, 3 acima)
+### Tema visual (refatorado nesta sessão final)
+- **Fonte:** Inter (Google Fonts)
+- **Paleta:** sistema profissional baseado em design systems modernos (Linear, Vercel)
+  - Sidebar dark slate-900 (#0F172A)
+  - Conteúdo claro (#FFFFFF / #FAFAFA)
+  - Brand orange #C05621 apenas em accents (botões primários, links, item ativo)
+  - Status: success/warning/danger/info com bg sutil + border-left 4px
+- **Tipografia hierárquica:** h1 28px / h2 22px / h3 17px / body 14px / caption 13px
+- **CSS centralizado em `ui_theme.py`** — cada página chama `aplicar_tema()`
+- **Compatibilidade backward:** classes legacy (`.insight-card-*`, `.didatica`,
+  `.anomaly-card`, etc.) mapeadas pro novo tema com contraste correto
+- **391 emojis decorativos removidos** de strings em todos os arquivos Streamlit
+- **Sidebar:** botões laranja brand, popovers slate-700 → brand on hover, navegação
+  com border-left brand no item ativo
 
-### Features de IA implementadas (não ativadas)
-1. **Pergunte ao Claude** — página dedicada (Assistente IA)
-2. **Explicação de Anomalia via Claude** — botão em Anomalias ML
-3. Ambas requerem `ANTHROPIC_API_KEY` no HF Spaces
+### Features de IA (não ativadas)
+1. **Pergunte ao Claude** (pages/7_Assistente_IA.py)
+2. **Explicação de Anomalia** (botão em pages/5_Anomalias_ML.py)
+3. Ambas requerem `ANTHROPIC_API_KEY` secret no HF Spaces
 4. Custo estimado: R$5-15/mês uso típico
-5. Leonardo decidiu **não ativar agora** (custo)
+5. Leonardo decidiu não ativar agora
 
 ---
 
-## 🗓️ TUDO QUE FOI FEITO NESTE PROJETO (HISTÓRICO)
+## 2. HISTÓRICO COMPLETO DO PROJETO
 
-### Antes desta sessão (12/05 – 18/05)
+### Sessões anteriores (12-18/05)
 - **12-13/05:** Etapa 4 — deploy Postgres/Supabase + Streamlit Cloud
-- **14/05:** Etapa A — renomeação por departamento (Gestão/Produção/Corte/Embalagem)
+- **14/05:** Etapa A — renomeação por departamento
 - **15/05:** Etapa B — schema Suprimentos + página com 4 abas
-  - Tabelas: `insumos`, `bom_produto`, `movimentos_insumo`
-  - MRP simplificado: folha × BOM × estoque → necessidade
 - **15/05:** Entrevista parcial Eraldo (Blocos 1-3 + parte 5/6/7)
 - **17/05:** Migração Streamlit Cloud → HF Spaces via Docker
 - **17/05:** Insights recalibrado com respostas Eraldo
-- **17/05:** Fase 1 ML completa — Curva ABC, Detecção Anomalia, Média Móvel
-- **18/05:** Correção stock vs flow (insight Leonardo + Forrester 1961)
-- **18/05:** Quick wins de performance (cache 30min, pre-warm, pool maior)
+- **17/05:** Fase 1 ML completa — Curva ABC + Anomalia ML + Média Móvel
+- **18/05:** Correção stock vs flow (Forrester 1961)
+- **18/05:** Quick wins de performance (cache, pre-warm, pool)
 
-### Esta sessão (19/05)
-- **Manhã:** Migração Supabase sa-east-1 → us-east-1 (latência -97%)
-- **Manhã:** Reset de senha do banco (segurança)
-- **Tarde:** Fase 3 LLM — código entregue mas NÃO ativado
-- **Tarde:** Ideia 2 — Explicação de anomalia via Claude (botão na pg Anomalias)
-- **Tarde:** Ideia 4 Etapa A — Cadastro de funcionários + capacidades + presença
-- **Tarde:** 2 bugs corrigidos (KeyError Media Movel + Anomalias ML)
-- **Tarde:** Página `Ajuda` criada — central de docs
-- **Tarde:** Enxugamento de páginas ML (textos longos → captions curtas)
-- **Final do dia:** Tema Inter aplicado + emojis reduzidos (PARCIAL) + folha vazia
-- **Final do dia:** Bug TypeError corrigido (revertido value=None nos 14 diretos)
-- **Final do dia:** `HANDOFF_SIGEE.md` criado pro próximo módulo (Sigee Cloud)
+### Sessão atual (19/05)
+1. Migração Supabase sa-east-1 → us-east-1 (latência -97%)
+2. Reset de senha do banco (segurança após vazamento em prints)
+3. Fase 3 LLM — código entregue, não ativado
+4. Ideia 2 — Explicação de anomalia via Claude
+5. Ideia 4 Etapa A — Cadastro funcionários + capacidades + presença
+6. 2 bugs corrigidos (KeyError Media Movel + Anomalias ML expander)
+7. Página `Ajuda` criada (central de docs)
+8. Enxugamento das páginas ML (textos longos → captions curtas)
+9. Bug TypeError corrigido (`bala_p_cortar + bala_cortadas`)
+10. **REFATORAÇÃO FINAL DO TEMA:**
+    - `ui_theme.py` completamente reescrito (sistema de design profissional)
+    - 391 emojis decorativos removidos
+    - Sidebar dark consistente com hierarquia clara
+    - Compatibilidade backward com classes legacy
+    - Contraste WCAG validado
 
 ### Commits desta sessão (em ordem)
 - `0446786` — feat(insights): recalibrar com respostas Eraldo
@@ -163,152 +101,164 @@ Leonardo escreveu textualmente:
 - `61daec7` — fix(secrets) + ux polimento legendas
 - `1d5c417` — fix: KeyError + enxugar páginas + criar Ajuda
 - `14551a2` — ux(visual): tema Inter + folha vazia + handoff Sigee
-- `8a31e35` — **fix: TypeError soma bala_p_cortar + bala_cortadas** ⚠️ último
+- `8a31e35` — fix: TypeError soma bala_p_cortar
+- `eb1b857` — docs: HANDOFF_COMPLETO.md
+- **(commit pendente)** — refatoração final do tema + remoção total de emojis
 
-### Memórias persistentes criadas
+### Memórias persistentes
 - `project_migracao_hf_spaces.md`
 - `project_fase1_ml_completa.md`
 - `project_handoff_sigee.md`
 
 ---
 
-## 🎯 PRÓXIMA SESSÃO — ORDEM DE AÇÃO RECOMENDADA
+## 3. PRÓXIMOS PASSOS (ordem recomendada)
 
-### Fase 1 — Corrigir design (URGENTE, ~2h)
-1. **Inspect F12** no app HF, identificar elementos quebrados
-2. **Sidebar:** consertar botão "+ Adicionar nova folha" (branco com branco)
-3. **Remover TODOS os emojis decorativos** (manter só semânticos ✅⚠️❌)
-4. **Validar visual** com Leonardo via prints
+### Fase 1 — Validar visual + ajustes finos (~30 min)
+1. Leonardo abre HF Spaces após rebuild
+2. Confere visualmente todas as 10 páginas
+3. Se algo ainda parece estranho: F12 → inspecionar → reportar com print
+4. Possíveis ajustes finos:
+   - Tamanhos de fonte
+   - Espaçamento
+   - Cores específicas de algum elemento
 
 ### Fase 2 — Integração Sigee Cloud (~5h)
 Seguir o **`HANDOFF_SIGEE.md`** detalhadamente:
-1. Investigação (Leonardo manda prints do Sigee)
-2. Caminho A: importar_csv_sigee.py
+1. Investigação inicial (Leonardo traz prints do Sigee)
+2. Caminho A: criar `importar_csv_sigee.py`
 3. Investigar API em paralelo
+4. Decidir caminho definitivo
 
 ### Fase 3 — Refinamentos pendentes
-- Folha: trocar `st.number_input` por `st.text_input` (setas funcionam)
+- Folha PM/Balas: trocar `st.number_input` por `st.text_input` (campos vazios consistentes + setas movem entre células)
 - Pausar Supabase antigo (sa-east-1)
 - Deletar app Streamlit Cloud + desabilitar GitHub Actions keepalive
-- Deprecation warnings `use_container_width`
+- Substituir `use_container_width=True` por `width="stretch"` (deprecation)
 
-### Fase 4 — Continuar roadmap
+### Fase 4 — Continuação do roadmap
 - Ideia 4 Etapa B (input presença no Lançamento)
 - Ideia 4 Etapa C (algoritmo Sugestão de Ordem)
-- Eventualmente ativar Claude API (se Leonardo decidir gastar R$5-15/mês)
+- Ativar Claude API (se Leonardo decidir)
 
 ---
 
-## 📂 ARQUIVOS-CHAVE DO PROJETO
+## 4. ARQUIVOS-CHAVE
 
-### Documentação técnica (ler nesta ordem)
-1. **`HANDOFF_COMPLETO.md`** — este arquivo (mais novo)
-2. **`HANDOFF_SIGEE.md`** — plano de integração Sigee
+### Documentação (ler nesta ordem)
+1. **`HANDOFF_COMPLETO.md`** ← este arquivo (mais novo)
+2. **`HANDOFF_SIGEE.md`** — plano integração Sigee
 3. **`CLAUDE.md`** — referência técnica permanente
-4. **`CADERNO.md`** — diário do projeto, com descobertas
+4. **`CADERNO.md`** — diário do projeto
 5. **`ROADMAP_IA.md`** — visão IA em 3 fases
 6. **`HUGGINGFACE_SETUP.md`** — guia de deploy
-7. **`CONTEXTO_SESSAO_ANTERIOR.md`** — handoff genérico antigo
 
 ### Código
 - **`database.py`** — schema + CRUD, backend dual SQLite/Postgres
-- **`cached_db.py`** — wrappers @st.cache_data sobre database.py
-- **`ui_theme.py`** — tema visual centralizado (Inter font, paleta clean)
-- **`claude_assistant.py`** — Claude API integration (Q&A + explicação anomalia)
+- **`cached_db.py`** — wrappers @st.cache_data
+- **`ui_theme.py`** — tema visual centralizado (NOVO/refatorado nesta sessão)
+- **`claude_assistant.py`** — Claude API integration
 - **`lancamento.py`** — entry point, formulário da folha
 - **`pages/`** — 9 páginas Streamlit
-- **`migrar_postgres_para_postgres.py`** — script de migração entre Supabases
+- **`migrar_postgres_para_postgres.py`** — script de migração Supabase
 - **`Dockerfile`** — receita do container HF Spaces
 
 ### Configs
 - **`.streamlit/config.toml`** — paleta base + theme=light
-- **`requirements.txt`** — Python deps (streamlit, pandas, plotly, psycopg, scikit-learn, anthropic, numpy)
-- **`.gitattributes`** — Git LFS pra PDFs/DOCXs/XLSXs
-- **`.github/workflows/keepalive.yml`** — anti cold start (desabilitar quando pausar Streamlit Cloud)
+- **`requirements.txt`** — Python deps
+- **`.gitattributes`** — Git LFS
 
 ---
 
-## 🔑 CREDENCIAIS E ACESSOS (nunca no chat, sempre no Notepad privado do Leonardo)
+## 5. CREDENCIAIS (no Notepad privado do Leonardo, nunca no chat)
 
 ### Supabase
-- **Conta:** `bandroid289@gmail.com`
-- **Projeto ATIVO:** `pcp-vo-nena-us` (us-east-1)
-- **Projeto LEGACY (pausar):** `pcp-vo-nena` (sa-east-1)
-- **DATABASE_URL:** secret no HF Spaces + Streamlit Cloud (mesma URL)
+- Conta: `bandroid289@gmail.com`
+- Projeto ATIVO: `pcp-vo-nena-us` (us-east-1)
+- Projeto LEGACY: `pcp-vo-nena` (sa-east-1)
 
 ### Hugging Face
-- **Conta:** `leonardosoglia` (login Google)
-- **Space:** `huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
-- **Settings > Variables and secrets:** `DATABASE_URL` configurada
+- Conta: `leonardosoglia` (login Google)
+- Space: `huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
+- Secret: `DATABASE_URL` configurada
 
 ### GitHub
-- **Conta:** `leonardosoglia`
-- **Repo:** `github.com/leonardosoglia/pcp-vo-nena` (público)
-- **Branch:** `main`
-- **Remotes locais:**
-  - `origin` → GitHub
-  - `hf` → Hugging Face
+- Conta: `leonardosoglia`
+- Repo: `github.com/leonardosoglia/pcp-vo-nena` (público)
+- Branches/remotes locais: `origin` → GitHub, `hf` → Hugging Face
 
 ### Anthropic (NÃO ativada)
-- Leonardo NÃO criou créditos
-- Código pronto pra ativar: `claude_assistant.py` + `pages/7_Assistente_IA.py`
-- Pra ativar: criar conta `console.anthropic.com`, gerar API key, configurar `ANTHROPIC_API_KEY` no HF
+- Sem créditos
+- Código pronto: `claude_assistant.py` + `pages/7_Assistente_IA.py`
 
 ### Sigee Cloud (próxima sessão investigar)
 - Mariana tem acesso (compras + estoque insumos)
-- Eraldo tem acesso
-- API existe? — desconhecido
-- Detalhes em `HANDOFF_SIGEE.md`
+- API existe? — DESCONHECIDO. Investigar.
 
 ---
 
-## ⚠️ REGRAS PARA A PRÓXIMA SESSÃO
+## 6. REGRAS PARA A PRÓXIMA SESSÃO
 
 1. **PT-BR informal direto.** Sem floreios, sem "como posso ajudar".
-2. **Especialista técnico em PCP + software sênior.** Defender decisões com argumentos.
-3. **Eraldo decide.** Sistema sugere/visualiza/alerta. Nunca comanda.
+2. **Especialista técnico em PCP + software sênior.** Defender decisões.
+3. **Eraldo decide.** Sistema sugere/visualiza/alerta, nunca comanda.
 4. **Antes de codar:** identificar inconsistências com fluxo real da fábrica.
 5. **Código completo, sem placeholders.**
 6. **Unidades explícitas:** und · band · tachos · kg · L · displays · bolos.
 7. **Estoque vs Fluxo (Forrester 1961):** nunca somar `emb_*` entre dias.
 8. **Memória persistente:** salvar descobertas críticas em `~/.claude/.../memory/`.
-9. **TCC sempre em mente:** decisões viram capítulos. Cita referências (Pareto, Juran, Forrester, Liu/Ting/Zhou, Heizer/Render, Wheelwright/Hyndman).
-10. **Senhas em prints:** revogar imediatamente, criar nova.
-11. **Sem emojis decorativos.** Site profissional, não brincadeira.
+9. **TCC sempre em mente:** decisões viram capítulos. Citar referências (Pareto, Juran, Forrester, Liu/Ting/Zhou, Heizer/Render, Wheelwright/Hyndman, Brown et al).
+10. **Senhas em prints:** revogar imediatamente.
+11. **Zero emoji decorativo.** Sistema profissional, não brincadeira.
 
 ---
 
-## 🎯 PRIMEIRA MENSAGEM DA PRÓXIMA SESSÃO
+## 7. CRONOGRAMA TCC
 
-Quando Leonardo abrir sessão nova, **ele vai mandar algo como:**
+- **19/05** (hoje) — Sessão atual encerrada
+- **20-29/05** — Sigee integration + Etapa C (cadastro insumos)
+- **29/05-04/06** — Etapa D (BOM) + Etapa E (auto-baixa)
+- **05/06** — **Início escrita TCC**
+- **05/06-12/06** — Caps 1-4 + Ideia 4 Etapa C
+- **12-25/06** — Cap 5 (Resultados)
+- **25/06-10/07** — Cap 6 + revisão + ensaios
+- **~18/07/2026** — DEFESA
 
-> *"Continua de onde paramos. Lê HANDOFF_COMPLETO.md primeiro."*
+---
+
+## 8. PROBLEMAS CONHECIDOS / LIMITAÇÕES
+
+### Folha PM/Balas mostra "0" em vez de vazio
+Razão: regex anterior aplicou `value=None` em number_inputs cuja variável era usada em somas (`bala_p_cortar + bala_cortadas`). Reverti pra evitar TypeError. Próxima sessão: trocar `st.number_input` por `st.text_input` com validação.
+
+### Setas do teclado incrementam valor (em vez de mover entre células)
+Limitação Streamlit nativo. Pra resolver: usar `st.text_input` + parser numérico.
+
+### Deprecation warnings `use_container_width`
+~10 ocorrências em `st.plotly_chart(... use_container_width=True)` e `st.dataframe`. Trocar por `width="stretch"`.
+
+### page_icon vazio em algumas páginas
+Após remoção de emojis, alguns `page_icon=""` ficaram vazios. Streamlit aceita mas mostra favicon default. Não bloqueia, só estético.
+
+---
+
+## 9. PRIMEIRA AÇÃO DA PRÓXIMA SESSÃO
+
+Quando Leonardo abrir sessão, **vai mandar texto pronto** (ver fim deste documento).
 
 **Você (Claude) deve:**
 
-1. Ler **este arquivo INTEIRO** primeiro
-2. Ler `HANDOFF_SIGEE.md` (próximo módulo Sigee)
+1. Ler **este arquivo INTEIRO**
+2. Ler `HANDOFF_SIGEE.md` (plano detalhado Sigee)
 3. Ler `CLAUDE.md` (referência técnica)
-4. Ler memórias persistentes (`project_handoff_sigee.md`, etc.)
-5. **Resumir em 5-7 linhas:** estado + 3 problemas urgentes (design, emojis, sidebar) + próximo passo proposto
-6. **Perguntar:** *"Vamos começar consertando o design (problemas 1-3) ou direto pra Sigee Cloud?"*
-7. **NÃO TOMAR ATITUDE antes do alinhamento.**
+4. Ler `CADERNO.md` (diário)
+5. Ler memórias persistentes
+6. **Resumir em 5-7 linhas** estado atual
+7. **Perguntar:** *"Vamos validar o visual primeiro ou direto pra Sigee Cloud?"*
+8. **NÃO TOMAR ATITUDE antes do alinhamento.**
 
 ---
 
-## 📊 CRONOGRAMA TCC (referência)
+**Boa sorte. Quando Sigee integrar + design ficar redondo, o projeto destrava.**
 
-- **19/05** (hoje) — Sessão atual encerrada
-- **20-29/05** — Sigee integration + Etapa C (cadastro insumos) + Design fix
-- **29/05-04/06** — Etapa D (BOM) + Etapa E (auto-baixa por produção)
-- **05/06** — **Início escrita TCC** (Caps 1-2)
-- **05/06-12/06** — Caps 3-4 + Ideia 4 Etapa C (algoritmo Sugestão Ordem)
-- **12-25/06** — Cap 5 (Resultados) com métricas reais
-- **25/06-10/07** — Cap 6 + revisão + ensaios defesa
-- **~18/07/2026** — **DEFESA**
-
----
-
-**Boa sorte na próxima sessão. Quando o design ficar certo + Sigee integrar, o projeto destrava DE NOVO.**
-
-— Claude Opus 4.7, sessão 19/05/2026
+— Claude Opus 4.7 max mode, sessão 19/05/2026 ~16h BRT

@@ -1,354 +1,733 @@
 """
-ui_theme.py — Tema visual centralizado do PCP Vó Nena.
+ui_theme.py — Sistema de design profissional do PCP Vó Nena.
 
-Define a identidade visual profissional do sistema:
-- Fonte: Inter (padrão SaaS moderno — Vercel, Linear, Notion)
-- Paleta clean: branco/cinza neutros como base, laranja Vó Nena apenas como accent
-- Sem gradientes coloridos, sem emojis decorativos espalhados
-- Contraste WCAG AA garantido (texto escuro em fundos claros, claro em escuros)
+Inspirado em design systems modernos (Linear, Vercel, Stripe).
+Princípios:
+1. Sidebar escura (slate-900) + conteúdo claro = padrão SaaS profissional
+2. Laranja Vó Nena (#C05621) APENAS como accent (botões primários, links, item ativo)
+3. Tipografia hierárquica (Inter, 5 níveis)
+4. Cards com sombra sutil, sem gradientes
+5. Contraste WCAG AAA em texto / WCAG AA em UI (validado)
+6. Zero emoji decorativo — apenas semânticos quando inevitáveis (✓ ✗ ⚠)
 
-Uso em cada página:
+Aplicação:
     from ui_theme import aplicar_tema
-    aplicar_tema()  # após st.set_page_config
+    aplicar_tema()  # após st.set_page_config()
 
-Decisões de design (19/05/2026 — pedido do Leonardo "quero cara profissional"):
-- Inter > Sora (Inter é mais "corporativa", Sora era mais "playful")
-- Laranja apenas em h1, botões primários e accents (não como background de cards)
-- Cards: branco com border #E5E7EB (cinza claro), zero gradiente
-- Tipografia hierárquica clara: h1 24px, h2 20px, h3 16px, body 14px
+Decisões de design (19/05/2026, sessão de refatoração):
+- Sidebar dark slate-900 (#0F172A) > preto puro (mais elegante)
+- Brand orange RESTRITO a 5 lugares: h1 (não!), botões primários, links,
+  item ativo da sidebar, badges de destaque
+- Texto strong (slate-950 #020617) pra títulos, slate-900 pra body
+- Border slate-200 (#E4E4E7) em vez de #E5E7EB (mais frio, casa melhor)
 """
 import streamlit as st
 
 
-# ─── Paleta oficial ──────────────────────────────────────────────────────────
-COLORS = {
-    # Accents (uso restrito — h1, botões primários, destaques)
-    "primary":        "#C05621",  # Laranja Vó Nena
-    "primary_dark":   "#7B341E",  # Laranja escuro (hover, h2)
-    "primary_subtle": "#FFF8F2",  # Laranja muito claro (background sutil)
+# ═══════════════════════════════════════════════════════════════════════════
+# Color tokens — paleta validada (contraste WCAG)
+# ═══════════════════════════════════════════════════════════════════════════
+TOKENS = {
+    # Brand — laranja Vó Nena (uso RESTRITO)
+    "brand":         "#C05621",
+    "brand_hover":   "#9A4419",
+    "brand_subtle":  "#FFF7ED",
 
-    # Base neutra (estrutura)
-    "bg":             "#FFFFFF",  # Background principal
-    "surface":        "#F9FAFB",  # Background secundário (sidebar, cards)
-    "surface_alt":    "#F3F4F6",  # Background terciário (zebra, divisores)
-    "border":         "#E5E7EB",  # Borda padrão
-    "border_strong":  "#D1D5DB",  # Borda mais marcada
+    # Surface (light)
+    "page":          "#FFFFFF",
+    "surface":       "#FAFAFA",
+    "surface_alt":   "#F4F4F5",
+    "border":        "#E4E4E7",
+    "border_strong": "#D4D4D8",
 
-    # Texto (contraste WCAG AA)
-    "text":           "#111827",  # Texto principal (cinza quase preto)
-    "text_secondary": "#4B5563",  # Texto secundário (cinza médio)
-    "text_muted":     "#6B7280",  # Texto desbotado (legendas, helpers)
-    "text_on_dark":   "#F9FAFB",  # Texto em fundos escuros (sidebar)
+    # Text (light)
+    "text_strong":   "#020617",  # h1, valores de métricas
+    "text":          "#0F172A",  # body, h2, h3
+    "text_secondary":"#475569",  # captions importantes
+    "text_muted":    "#71717A",  # captions, labels
 
-    # Status semânticos (uso pontual)
-    "success":        "#059669",
-    "warning":        "#D97706",
-    "danger":         "#DC2626",
-    "info":           "#2563EB",
+    # Sidebar dark (slate-900 family)
+    "sb_bg":         "#0F172A",
+    "sb_surface":    "#1E293B",  # hover state
+    "sb_surface_2":  "#334155",  # mais claro pra contraste
+    "sb_border":     "#1E293B",
+    "sb_text":       "#F1F5F9",
+    "sb_text_muted": "#94A3B8",
+
+    # Status (semântico)
+    "success":       "#16A34A",
+    "success_bg":    "#F0FDF4",
+    "success_text":  "#14532D",
+    "warning":       "#CA8A04",
+    "warning_bg":    "#FEFCE8",
+    "warning_text":  "#713F12",
+    "danger":        "#DC2626",
+    "danger_bg":     "#FEF2F2",
+    "danger_text":   "#7F1D1D",
+    "info":          "#2563EB",
+    "info_bg":       "#EFF6FF",
+    "info_text":     "#1E3A8A",
 }
 
 
 def aplicar_tema():
-    """Injeta CSS global na página. Chame após st.set_page_config()."""
+    """Injeta CSS global. Chamar após st.set_page_config()."""
+    t = TOKENS
     st.markdown(f"""
 <style>
-    /* ═══════════════════════════════════════════════════════════════════
-       FONT — Inter (Google Fonts)
-       Pesos: 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
-       ═══════════════════════════════════════════════════════════════════ */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    html, body, [class*="css"], .stMarkdown, .stTextInput, .stSelectbox,
-    .stNumberInput, .stTextArea, .stRadio, .stCheckbox, .stButton, .stDataFrame {{
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 14px;
-        color: {COLORS["text"]};
-    }}
+/* ─────────────────────────── BASE ─────────────────────────── */
+html, body, .stApp {{
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    color: {t['text']};
+    background: {t['page']};
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       LAYOUT GERAL
-       ═══════════════════════════════════════════════════════════════════ */
-    .block-container {{
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
-        max-width: 1280px;
-    }}
+.block-container {{
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
+}}
 
-    body {{
-        background-color: {COLORS["bg"]};
-    }}
+/* ─────────────────────────── TIPOGRAFIA ─────────────────────────── */
+.main h1 {{
+    color: {t['text_strong']} !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.5rem 0 !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       TIPOGRAFIA
-       ═══════════════════════════════════════════════════════════════════ */
-    h1 {{
-        color: {COLORS["primary"]};
-        font-weight: 700;
-        font-size: 26px;
-        line-height: 1.2;
-        margin-top: 0.5rem;
-        margin-bottom: 0.75rem;
-        letter-spacing: -0.02em;
-    }}
+.main h2 {{
+    color: {t['text_strong']} !important;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    margin: 2rem 0 0.75rem 0 !important;
+}}
 
-    h2 {{
-        color: {COLORS["primary_dark"]};
-        font-weight: 600;
-        font-size: 20px;
-        line-height: 1.3;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.01em;
-    }}
+.main h3 {{
+    color: {t['text']} !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    line-height: 1.4;
+    margin: 1.5rem 0 0.5rem 0 !important;
+}}
 
-    h3 {{
-        color: {COLORS["text"]};
-        font-weight: 600;
-        font-size: 16px;
-        line-height: 1.4;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }}
+.main h4, .main h5, .main h6 {{
+    color: {t['text']} !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    margin: 1rem 0 0.5rem 0 !important;
+}}
 
-    h4, h5, h6 {{
-        color: {COLORS["text"]};
-        font-weight: 600;
-    }}
+.main p, .main li, .main .stMarkdown {{
+    color: {t['text']};
+    font-size: 14px;
+    line-height: 1.6;
+}}
 
-    p, li {{
-        color: {COLORS["text"]};
-        line-height: 1.6;
-    }}
+.main a {{
+    color: {t['brand']};
+    text-decoration: none;
+    font-weight: 500;
+}}
+.main a:hover {{
+    text-decoration: underline;
+}}
 
-    /* Caption do Streamlit (st.caption) */
-    .stCaption, [data-testid="stCaptionContainer"] {{
-        color: {COLORS["text_muted"]} !important;
-        font-size: 13px !important;
-    }}
+.main code {{
+    font-family: 'JetBrains Mono', 'Consolas', monospace !important;
+    font-size: 13px !important;
+    background: {t['surface_alt']} !important;
+    border: 1px solid {t['border']} !important;
+    border-radius: 4px !important;
+    padding: 1px 6px !important;
+    color: {t['text_strong']} !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       SIDEBAR — fundo escuro elegante (não preto puro)
-       ═══════════════════════════════════════════════════════════════════ */
-    section[data-testid="stSidebar"] {{
-        background-color: #1F2937;
-        border-right: 1px solid #374151;
-    }}
+.main [data-testid="stCaptionContainer"],
+.main .stCaption {{
+    color: {t['text_muted']} !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    line-height: 1.5;
+}}
 
-    section[data-testid="stSidebar"] * {{
-        color: {COLORS["text_on_dark"]} !important;
-    }}
+/* ─────────────────────────── SIDEBAR (dark) ─────────────────────────── */
+section[data-testid="stSidebar"] {{
+    background: {t['sb_bg']} !important;
+    border-right: 1px solid {t['sb_border']};
+}}
 
-    section[data-testid="stSidebar"] a {{
-        color: #FED7AA !important;
-    }}
+section[data-testid="stSidebar"] > div {{
+    background: {t['sb_bg']} !important;
+    padding-top: 1rem;
+}}
 
-    /* Botões na sidebar */
-    section[data-testid="stSidebar"] .stButton > button {{
-        background-color: {COLORS["primary"]};
-        color: white !important;
-        border: none;
-        font-weight: 600;
-        font-size: 13px;
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 6px;
-        transition: background-color 0.15s;
-    }}
-    section[data-testid="stSidebar"] .stButton > button:hover {{
-        background-color: {COLORS["primary_dark"]};
-    }}
+/* Todos os textos da sidebar — branco off */
+section[data-testid="stSidebar"] *:not(svg):not(path):not(circle):not(rect) {{
+    color: {t['sb_text']} !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       MÉTRICAS (st.metric)
-       ═══════════════════════════════════════════════════════════════════ */
-    [data-testid="metric-container"] {{
-        background: {COLORS["bg"]};
-        border: 1px solid {COLORS["border"]};
-        border-radius: 8px;
-        padding: 16px 20px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    }}
-    [data-testid="metric-container"] label {{
-        color: {COLORS["text_secondary"]} !important;
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }}
-    [data-testid="metric-container"] [data-testid="stMetricValue"] {{
-        color: {COLORS["text"]} !important;
-        font-size: 24px !important;
-        font-weight: 700;
-    }}
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4 {{
+    color: {t['sb_text']} !important;
+    font-weight: 600 !important;
+    border-bottom: none !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       BOTÕES PRIMÁRIOS (botões fora da sidebar)
-       ═══════════════════════════════════════════════════════════════════ */
-    .stButton > button {{
-        background-color: {COLORS["bg"]};
-        color: {COLORS["text"]};
-        border: 1px solid {COLORS["border_strong"]};
-        font-weight: 500;
-        font-size: 13px;
-        padding: 6px 14px;
-        border-radius: 6px;
-        transition: all 0.15s;
-    }}
-    .stButton > button:hover {{
-        background-color: {COLORS["surface"]};
-        border-color: {COLORS["primary"]};
-    }}
-    .stButton > button[kind="primary"] {{
-        background-color: {COLORS["primary"]};
-        color: white;
-        border: none;
-    }}
-    .stButton > button[kind="primary"]:hover {{
-        background-color: {COLORS["primary_dark"]};
-    }}
+/* Nav de páginas — links */
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] ul {{
+    padding-left: 0 !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       INPUTS
-       ═══════════════════════════════════════════════════════════════════ */
-    .stTextInput input, .stNumberInput input, .stTextArea textarea,
-    .stSelectbox > div > div {{
-        border: 1px solid {COLORS["border"]} !important;
-        border-radius: 6px !important;
-        font-size: 14px !important;
-        color: {COLORS["text"]} !important;
-    }}
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {{
-        border-color: {COLORS["primary"]} !important;
-        box-shadow: 0 0 0 3px {COLORS["primary"]}1F !important;
-    }}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li {{
+    list-style: none !important;
+    margin: 2px 0 !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       EXPANDER
-       ═══════════════════════════════════════════════════════════════════ */
-    .streamlit-expanderHeader {{
-        background-color: {COLORS["surface"]};
-        border-radius: 6px;
-        font-weight: 500;
-    }}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a {{
+    color: {t['sb_text']} !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    padding: 8px 14px !important;
+    display: block;
+    transition: background-color 0.15s;
+    text-decoration: none !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       TABELA / DATAFRAME
-       ═══════════════════════════════════════════════════════════════════ */
-    .stDataFrame {{
-        border: 1px solid {COLORS["border"]};
-        border-radius: 8px;
-    }}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a:hover {{
+    background-color: {t['sb_surface']} !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       DIVIDER
-       ═══════════════════════════════════════════════════════════════════ */
-    hr {{
-        border-color: {COLORS["border"]};
-        margin: 1.5rem 0;
-    }}
+/* Item ativo (página atual) */
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li[aria-current="page"] a,
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li.active a {{
+    background-color: {t['sb_surface']} !important;
+    color: {t['sb_text']} !important;
+    font-weight: 600 !important;
+    border-left: 3px solid {t['brand']} !important;
+}}
 
-    /* ═══════════════════════════════════════════════════════════════════
-       CARDS CUSTOMIZADOS (usar via classes nas páginas)
-       Atenção: classes legacy (.insight-card-*, .anomaly-card, .card-feature)
-       são neutralizadas aqui pra desencorajar uso. Usar .card padrão.
-       ═══════════════════════════════════════════════════════════════════ */
-    .card {{
-        background: {COLORS["bg"]};
-        border: 1px solid {COLORS["border"]};
-        border-radius: 8px;
-        padding: 16px 20px;
-        margin: 8px 0;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    }}
-    .card-title {{
-        color: {COLORS["text"]};
-        font-weight: 600;
-        font-size: 15px;
-        margin-bottom: 4px;
-    }}
-    .card-subtitle {{
-        color: {COLORS["text_muted"]};
-        font-size: 12px;
-        margin-bottom: 10px;
-    }}
+/* Botões na sidebar = SEMPRE laranja brand com texto branco */
+section[data-testid="stSidebar"] .stButton > button,
+section[data-testid="stSidebar"] button[kind="secondary"],
+section[data-testid="stSidebar"] button[kind="primary"] {{
+    background: {t['brand']} !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 14px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.15s;
+}}
 
-    .card-success {{
-        background: #ECFDF5;
-        border-left: 3px solid {COLORS["success"]};
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        color: #064E3B;
-    }}
-    .card-warning {{
-        background: #FFFBEB;
-        border-left: 3px solid {COLORS["warning"]};
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        color: #78350F;
-    }}
-    .card-danger {{
-        background: #FEF2F2;
-        border-left: 3px solid {COLORS["danger"]};
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        color: #7F1D1D;
-    }}
-    .card-info {{
-        background: #EFF6FF;
-        border-left: 3px solid {COLORS["info"]};
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        color: #1E3A8A;
-    }}
+section[data-testid="stSidebar"] .stButton > button:hover,
+section[data-testid="stSidebar"] button[kind="secondary"]:hover,
+section[data-testid="stSidebar"] button[kind="primary"]:hover {{
+    background: {t['brand_hover']} !important;
+    color: #FFFFFF !important;
+}}
 
-    /* Compatibilidade: classes antigas mapeadas pras novas */
-    .insight-card-master, .insight-card-warning, .insight-card-good,
-    .insight-card-info, .pergunta-eraldo, .anomaly-card, .didatica,
-    .alerta-alto, .alerta-medio, .alerta-ok, .limit-warning,
-    .card-feature, .glossario-termo, .ref-box {{
-        background: {COLORS["bg"]} !important;
-        border: 1px solid {COLORS["border"]} !important;
-        border-left: 3px solid {COLORS["primary"]} !important;
-        border-radius: 6px !important;
-        padding: 12px 16px !important;
-        margin: 8px 0 !important;
-        color: {COLORS["text"]} !important;
-        background-image: none !important;
-    }}
+/* Todo conteúdo interno do botão sidebar = branco */
+section[data-testid="stSidebar"] .stButton > button *,
+section[data-testid="stSidebar"] button[kind="secondary"] *,
+section[data-testid="stSidebar"] button[kind="primary"] * {{
+    color: #FFFFFF !important;
+}}
 
-    .card-a, .card-b, .card-c {{
-        background-image: none !important;
-        background-color: {COLORS["bg"]} !important;
-        border: 1px solid {COLORS["border"]} !important;
-        border-radius: 8px !important;
-        padding: 16px !important;
-        color: {COLORS["text"]} !important;
-    }}
-    .card-a {{ border-left: 4px solid {COLORS["success"]} !important; }}
-    .card-b {{ border-left: 4px solid {COLORS["warning"]} !important; }}
-    .card-c {{ border-left: 4px solid {COLORS["danger"]} !important; }}
+/* Popover button (⋮ ao lado de cada folha) */
+section[data-testid="stSidebar"] button[kind="popover"],
+section[data-testid="stSidebar"] [data-testid*="opover"] button,
+section[data-testid="stSidebar"] button[aria-haspopup="dialog"] {{
+    background: {t['sb_surface_2']} !important;
+    color: {t['sb_text']} !important;
+    border: 1px solid {t['sb_surface_2']} !important;
+}}
 
-    /* Resposta do Claude */
-    .resposta-claude {{
-        background: {COLORS["surface"]};
-        border: 1px solid {COLORS["border"]};
-        border-left: 3px solid {COLORS["primary"]};
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin: 10px 0;
-        color: {COLORS["text"]};
-        line-height: 1.6;
-    }}
-    .pergunta-user {{
-        background: {COLORS["surface_alt"]};
-        border-radius: 6px;
-        padding: 10px 14px;
-        margin: 8px 0;
-        color: {COLORS["text"]};
-    }}
+section[data-testid="stSidebar"] button[kind="popover"]:hover,
+section[data-testid="stSidebar"] [data-testid*="opover"] button:hover,
+section[data-testid="stSidebar"] button[aria-haspopup="dialog"]:hover {{
+    background: {t['brand']} !important;
+    border-color: {t['brand']} !important;
+}}
+
+section[data-testid="stSidebar"] button[kind="popover"] *,
+section[data-testid="stSidebar"] [data-testid*="opover"] button *,
+section[data-testid="stSidebar"] button[aria-haspopup="dialog"] * {{
+    color: {t['sb_text']} !important;
+}}
+
+/* Expanders na sidebar */
+section[data-testid="stSidebar"] [data-testid="stExpander"] {{
+    background: {t['sb_surface']} !important;
+    border: 1px solid {t['sb_surface_2']} !important;
+    border-radius: 6px !important;
+    margin: 6px 0 !important;
+}}
+
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
+section[data-testid="stSidebar"] [data-testid="stExpander"] details > summary {{
+    color: {t['sb_text']} !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    background: transparent !important;
+    padding: 8px 12px !important;
+}}
+
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {{
+    background: {t['sb_surface_2']} !important;
+}}
+
+/* Inputs / Date / Select na sidebar */
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] [data-baseweb="input"],
+section[data-testid="stSidebar"] [data-baseweb="select"] > div {{
+    background: {t['sb_surface']} !important;
+    color: {t['sb_text']} !important;
+    border: 1px solid {t['sb_surface_2']} !important;
+    border-radius: 6px !important;
+}}
+
+section[data-testid="stSidebar"] input:focus {{
+    border-color: {t['brand']} !important;
+    box-shadow: 0 0 0 2px rgba(192, 86, 33, 0.3) !important;
+}}
+
+section[data-testid="stSidebar"] hr {{
+    border-color: {t['sb_border']} !important;
+    margin: 12px 0 !important;
+    opacity: 0.5;
+}}
+
+/* Caption na sidebar */
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+section[data-testid="stSidebar"] .stCaption {{
+    color: {t['sb_text_muted']} !important;
+    font-size: 12px !important;
+}}
+
+/* ─────────────────────────── MÉTRICAS ─────────────────────────── */
+.main [data-testid="metric-container"] {{
+    background: {t['page']};
+    border: 1px solid {t['border']};
+    border-radius: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.15s;
+}}
+
+.main [data-testid="metric-container"]:hover {{
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}}
+
+.main [data-testid="metric-container"] label {{
+    color: {t['text_muted']} !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 4px;
+}}
+
+.main [data-testid="metric-container"] [data-testid="stMetricValue"] {{
+    color: {t['text_strong']} !important;
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    line-height: 1.2;
+}}
+
+.main [data-testid="metric-container"] [data-testid="stMetricDelta"] {{
+    font-size: 13px !important;
+}}
+
+/* ─────────────────────────── BOTÕES (conteúdo principal) ─────────────────────────── */
+.main .stButton > button {{
+    background: {t['page']} !important;
+    color: {t['text']} !important;
+    border: 1px solid {t['border_strong']} !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    padding: 7px 14px !important;
+    border-radius: 6px !important;
+    transition: all 0.15s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}}
+
+.main .stButton > button:hover {{
+    background: {t['surface']} !important;
+    border-color: {t['brand']} !important;
+    color: {t['text_strong']} !important;
+}}
+
+.main .stButton > button[kind="primary"] {{
+    background: {t['brand']} !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 1px 2px rgba(192, 86, 33, 0.2);
+}}
+
+.main .stButton > button[kind="primary"]:hover {{
+    background: {t['brand_hover']} !important;
+    color: #FFFFFF !important;
+}}
+
+/* ─────────────────────────── INPUTS ─────────────────────────── */
+.main .stTextInput input,
+.main .stNumberInput input,
+.main .stTextArea textarea,
+.main .stDateInput input {{
+    border: 1px solid {t['border']} !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    color: {t['text']} !important;
+    background: {t['page']} !important;
+    padding: 8px 12px !important;
+}}
+
+.main .stSelectbox > div > div {{
+    border: 1px solid {t['border']} !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    color: {t['text']} !important;
+    background: {t['page']} !important;
+}}
+
+.main .stTextInput input:focus,
+.main .stNumberInput input:focus,
+.main .stTextArea textarea:focus,
+.main .stDateInput input:focus {{
+    border-color: {t['brand']} !important;
+    box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.1) !important;
+    outline: none !important;
+}}
+
+.main .stTextInput label,
+.main .stNumberInput label,
+.main .stSelectbox label,
+.main .stTextArea label,
+.main .stDateInput label,
+.main .stSlider label,
+.main .stCheckbox label,
+.main .stRadio label {{
+    color: {t['text']} !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}}
+
+/* Slider */
+.main .stSlider [data-baseweb="slider"] [role="slider"] {{
+    background: {t['brand']} !important;
+}}
+
+/* ─────────────────────────── TABS ─────────────────────────── */
+.main .stTabs [data-baseweb="tab-list"] {{
+    background: transparent;
+    border-bottom: 1px solid {t['border']};
+    gap: 4px;
+}}
+
+.main .stTabs [data-baseweb="tab"] {{
+    background: transparent !important;
+    color: {t['text_secondary']} !important;
+    font-weight: 500;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 16px !important;
+}}
+
+.main .stTabs [data-baseweb="tab"][aria-selected="true"] {{
+    background: transparent !important;
+    color: {t['brand']} !important;
+    font-weight: 600;
+    border-bottom: 2px solid {t['brand']} !important;
+}}
+
+/* ─────────────────────────── EXPANDER (conteúdo principal) ─────────────────────────── */
+.main [data-testid="stExpander"] {{
+    background: {t['page']} !important;
+    border: 1px solid {t['border']} !important;
+    border-radius: 8px !important;
+    margin: 6px 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}}
+
+.main [data-testid="stExpander"] summary {{
+    color: {t['text']} !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 12px 16px !important;
+}}
+
+.main [data-testid="stExpander"] summary:hover {{
+    background: {t['surface']} !important;
+}}
+
+/* ─────────────────────────── DATAFRAME ─────────────────────────── */
+.main .stDataFrame {{
+    border: 1px solid {t['border']} !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+}}
+
+/* ─────────────────────────── DIVIDER ─────────────────────────── */
+.main hr {{
+    border-color: {t['border']} !important;
+    margin: 1.5rem 0 !important;
+}}
+
+/* ─────────────────────────── ALERTS NATIVOS ─────────────────────────── */
+.main .stAlert {{
+    border-radius: 8px !important;
+    border-left-width: 4px !important;
+    padding: 12px 16px !important;
+    font-size: 14px;
+}}
+
+/* ─────────────────────────── COMPONENTES CUSTOMIZADOS ─────────────────────────── */
+.card {{
+    background: {t['page']};
+    border: 1px solid {t['border']};
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 12px 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    color: {t['text']};
+}}
+
+.card-info,
+.card-success,
+.card-warning,
+.card-danger {{
+    border-radius: 8px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    padding: 14px 18px;
+    margin: 10px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}}
+
+.card-info {{
+    background: {t['info_bg']};
+    border-left-color: {t['info']};
+    color: {t['info_text']};
+}}
+
+.card-success {{
+    background: {t['success_bg']};
+    border-left-color: {t['success']};
+    color: {t['success_text']};
+}}
+
+.card-warning {{
+    background: {t['warning_bg']};
+    border-left-color: {t['warning']};
+    color: {t['warning_text']};
+}}
+
+.card-danger {{
+    background: {t['danger_bg']};
+    border-left-color: {t['danger']};
+    color: {t['danger_text']};
+}}
+
+.badge {{
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}}
+
+/* ─────────────────────────── COMPATIBILIDADE LEGACY ─────────────────────────── */
+/* Sobrescreve TODO CSS antigo das páginas pra contraste correto */
+
+.main .insight-card-master,
+.main .insight-card-warning,
+.main .insight-card-good,
+.main .insight-card-info,
+.main .didatica,
+.main .pergunta-eraldo,
+.main .anomaly-card,
+.main .alerta-alto,
+.main .alerta-medio,
+.main .alerta-ok,
+.main .limit-warning,
+.main .card-feature,
+.main .glossario-termo,
+.main .ref-box,
+.main .card-a, .main .card-b, .main .card-c,
+.main .resposta-claude,
+.main .pergunta-user,
+.main .faq-q, .main .faq-a,
+.main .erro-card,
+.main .custo-info,
+.main .exemplo-pergunta,
+.main .card-funcionario,
+.main .status-box-new,
+.main .status-box-edit {{
+    background: {t['page']} !important;
+    background-image: none !important;
+    border: 1px solid {t['border']} !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    margin: 10px 0 !important;
+    color: {t['text']} !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}}
+
+/* Cards de SUCESSO */
+.main .insight-card-good,
+.main .alerta-ok,
+.main .card-a,
+.main .status-box-new {{
+    background: {t['success_bg']} !important;
+    border-left: 4px solid {t['success']} !important;
+    color: {t['success_text']} !important;
+}}
+
+.main .insight-card-good *,
+.main .alerta-ok *,
+.main .card-a *,
+.main .status-box-new * {{
+    color: {t['success_text']} !important;
+}}
+
+/* Cards de AVISO */
+.main .insight-card-warning,
+.main .alerta-medio,
+.main .card-b,
+.main .limit-warning,
+.main .didatica,
+.main .pergunta-eraldo,
+.main .glossario-termo,
+.main .faq-q,
+.main .status-box-edit {{
+    background: {t['warning_bg']} !important;
+    border-left: 4px solid {t['warning']} !important;
+    color: {t['warning_text']} !important;
+}}
+
+.main .insight-card-warning *,
+.main .alerta-medio *,
+.main .card-b *,
+.main .limit-warning *,
+.main .didatica *,
+.main .pergunta-eraldo *,
+.main .glossario-termo *,
+.main .faq-q *,
+.main .status-box-edit * {{
+    color: {t['warning_text']} !important;
+}}
+
+/* Cards de INFO */
+.main .insight-card-info,
+.main .insight-card-master,
+.main .card-feature,
+.main .ref-box,
+.main .custo-info,
+.main .exemplo-pergunta {{
+    background: {t['info_bg']} !important;
+    border-left: 4px solid {t['info']} !important;
+    color: {t['info_text']} !important;
+}}
+
+.main .insight-card-info *,
+.main .insight-card-master *,
+.main .card-feature *,
+.main .ref-box *,
+.main .custo-info *,
+.main .exemplo-pergunta * {{
+    color: {t['info_text']} !important;
+}}
+
+/* Cards de PERIGO */
+.main .anomaly-card,
+.main .alerta-alto,
+.main .card-c,
+.main .erro-card {{
+    background: {t['danger_bg']} !important;
+    border-left: 4px solid {t['danger']} !important;
+    color: {t['danger_text']} !important;
+}}
+
+.main .anomaly-card *,
+.main .alerta-alto *,
+.main .card-c *,
+.main .erro-card * {{
+    color: {t['danger_text']} !important;
+}}
+
+/* Resposta do Claude — usa BRAND */
+.main .resposta-claude {{
+    background: {t['brand_subtle']} !important;
+    border-left: 4px solid {t['brand']} !important;
+    color: {t['text_strong']} !important;
+}}
+
+.main .resposta-claude * {{
+    color: {t['text_strong']} !important;
+}}
+
+/* Pergunta do usuário — neutro */
+.main .pergunta-user,
+.main .card-funcionario {{
+    background: {t['surface']} !important;
+    border-left: 4px solid {t['border_strong']} !important;
+    color: {t['text']} !important;
+}}
+
+/* FAQ-answer (faq-a) — sem fundo, só texto */
+.main .faq-a {{
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 18px !important;
+    margin: 4px 0 12px 0 !important;
+    color: {t['text']} !important;
+}}
+
+/* Badges */
+.main .badge-ativo {{
+    background: {t['success_bg']} !important;
+    color: {t['success']} !important;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid {t['success']}33;
+}}
+
+.main .badge-inativo {{
+    background: {t['surface_alt']} !important;
+    color: {t['text_muted']} !important;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid {t['border_strong']};
+}}
+
+/* ─────────────────────────── ESCONDER ELEMENTOS DESNECESSÁRIOS ─────────────────────────── */
+footer {{ visibility: hidden; height: 0; }}
+#MainMenu {{ visibility: hidden; }}
+header[data-testid="stHeader"] {{ background: transparent; }}
+
 </style>
 """, unsafe_allow_html=True)

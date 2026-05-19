@@ -4,10 +4,10 @@ pages/8_Equipe.py — Gestão de equipe (funcionários, capacidades, presença)
 Etapa A da Ideia 4 (Sugestão de Ordem do Dia) do ROADMAP_IA.
 
 3 abas:
-    👥 Funcionários — CRUD básico (nome, departamento, ativo)
-    💪 Capacidades — quanto cada funcionário produz por atividade (band/dia,
+     Funcionários — CRUD básico (nome, departamento, ativo)
+     Capacidades — quanto cada funcionário produz por atividade (band/dia,
                      tachos/dia, und/dia, etc.)
-    📅 Presença    — quem está presente em uma data específica
+     Presença    — quem está presente em uma data específica
 
 Os dados aqui alimentam o algoritmo de Sugestão de Ordem (Etapa C):
     capacidade_efetiva_do_dia = soma(valor_normal) de quem está PRESENTE
@@ -44,7 +44,7 @@ from cached_db import (
 
 st.set_page_config(
     page_title="Equipe • Doces Vó Nena",
-    page_icon="👥",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -99,9 +99,9 @@ artesanal onde cada pessoa tem ritmo próprio.
 # ABAS
 # ════════════════════════════════════════════════════════════════════════════
 tab_func, tab_cap, tab_pres = st.tabs([
-    "👥 Funcionários",
-    "💪 Capacidades",
-    "📅 Presença do dia",
+    " Funcionários",
+    " Capacidades",
+    " Presença do dia",
 ])
 
 
@@ -124,7 +124,7 @@ with tab_func:
         st.metric("Total cadastrados", f"{len(ativos)} ativos / {len(todos)} total")
 
     # ── Form de criação ──────────────────────────────────────────────────
-    with st.expander("➕ Cadastrar novo funcionário", expanded=False):
+    with st.expander(" Cadastrar novo funcionário", expanded=False):
         with st.form("form_criar_funcionario", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
@@ -137,15 +137,15 @@ with tab_func:
 
             if criar_btn:
                 if not novo_nome or not novo_nome.strip():
-                    st.error("⚠️ Nome não pode ser vazio.")
+                    st.error("️ Nome não pode ser vazio.")
                 else:
                     try:
                         new_id = criar_funcionario(novo_nome.strip(), novo_dept, nova_obs)
                         invalidar_equipe()
-                        st.success(f"✅ {novo_nome} criado (ID #{new_id})")
+                        st.success(f" {novo_nome} criado (ID #{new_id})")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Erro: {e}")
+                        st.error(f" Erro: {e}")
 
     # ── Lista de funcionários ────────────────────────────────────────────
     funcionarios = get_funcionarios(somente_ativos=not mostrar_inativos)
@@ -153,7 +153,7 @@ with tab_func:
     if not funcionarios:
         st.markdown(
             "<div class='didatica'>"
-            "ℹ️ Nenhum funcionário cadastrado ainda. Use o expander '➕ Cadastrar' "
+            "ℹ️ Nenhum funcionário cadastrado ainda. Use o expander ' Cadastrar' "
             "acima pra começar. <br><b>Sugestão de cadastros iniciais:</b><br>"
             "• Eraldo (Gestão) · Sr. Joel (Produção) · Gil (Corte) · Paulo (Auxiliar geral)<br>"
             "• Leonília (Embalagem) · Popô (Embalagem) · Maria (Produção)<br>"
@@ -171,7 +171,7 @@ with tab_func:
         for dept in DEPARTAMENTOS_FUNCIONARIO:
             if dept not in por_dept:
                 continue
-            st.markdown(f"### 🏭 {dept}")
+            st.markdown(f"###  {dept}")
             for f in por_dept[dept]:
                 ativo = bool(f.get("ativo"))
                 badge = "<span class='badge-ativo'>ATIVO</span>" if ativo else "<span class='badge-inativo'>INATIVO</span>"
@@ -188,16 +188,16 @@ with tab_func:
                     )
                 with col_acoes:
                     if ativo:
-                        if st.button("🗑️ Inativar", key=f"del_{f['id']}", use_container_width=True):
+                        if st.button("️ Inativar", key=f"del_{f['id']}", use_container_width=True):
                             excluir_funcionario(f["id"])
                             invalidar_equipe()
-                            st.success(f"✅ {f['nome']} inativado.")
+                            st.success(f" {f['nome']} inativado.")
                             st.rerun()
                     else:
-                        if st.button("♻️ Reativar", key=f"act_{f['id']}", use_container_width=True):
+                        if st.button("️ Reativar", key=f"act_{f['id']}", use_container_width=True):
                             atualizar_funcionario(f["id"], ativo=1)
                             invalidar_equipe()
-                            st.success(f"✅ {f['nome']} reativado.")
+                            st.success(f" {f['nome']} reativado.")
                             st.rerun()
 
 
@@ -213,7 +213,7 @@ with tab_cap:
 
     funcs_ativos = get_funcionarios(somente_ativos=True)
     if not funcs_ativos:
-        st.warning("⚠️ Cadastra funcionários na aba anterior antes de definir capacidades.")
+        st.warning("️ Cadastra funcionários na aba anterior antes de definir capacidades.")
         st.stop()
 
     # Seleciona funcionário
@@ -226,10 +226,10 @@ with tab_cap:
     func_sel = get_funcionario(func_id_sel)
 
     if func_sel:
-        st.markdown(f"#### 💪 Capacidades de **{func_sel['nome']}**")
+        st.markdown(f"####  Capacidades de **{func_sel['nome']}**")
 
         # ── Form de criação/atualização ──────────────────────────────────
-        with st.expander("➕ Adicionar / atualizar capacidade", expanded=False):
+        with st.expander(" Adicionar / atualizar capacidade", expanded=False):
             with st.form("form_capacidade", clear_on_submit=True):
                 col1, col2 = st.columns([2, 1])
                 with col1:
@@ -266,17 +266,17 @@ with tab_cap:
                             unidade=unidade_sel, observacao=obs_cap,
                         )
                         invalidar_equipe()
-                        st.success(f"✅ Capacidade '{atividade_sel}' salva pra {func_sel['nome']}.")
+                        st.success(f" Capacidade '{atividade_sel}' salva pra {func_sel['nome']}.")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Erro: {e}")
+                        st.error(f" Erro: {e}")
 
         # ── Lista de capacidades ──────────────────────────────────────────
         caps = get_capacidades_funcionario(func_id_sel)
         if not caps:
             st.markdown(
                 "<div class='didatica'>"
-                "ℹ️ Sem capacidades cadastradas. Use '➕ Adicionar capacidade' acima."
+                "ℹ️ Sem capacidades cadastradas. Use ' Adicionar capacidade' acima."
                 "</div>",
                 unsafe_allow_html=True,
             )
@@ -293,12 +293,12 @@ with tab_cap:
             cols_del = st.columns(min(len(caps), 4))
             for i, cap in enumerate(caps):
                 with cols_del[i % 4]:
-                    if st.button(f"🗑️ {cap['atividade']}",
+                    if st.button(f"️ {cap['atividade']}",
                                   key=f"delcap_{cap['id']}",
                                   use_container_width=True):
                         excluir_capacidade(cap["id"])
                         invalidar_equipe()
-                        st.success(f"✅ Removida: {cap['atividade']}")
+                        st.success(f" Removida: {cap['atividade']}")
                         st.rerun()
 
 
@@ -306,7 +306,7 @@ with tab_cap:
 # ABA 3 — PRESENÇA DO DIA
 # ────────────────────────────────────────────────────────────────────────────
 with tab_pres:
-    st.subheader("📅 Presença diária")
+    st.subheader(" Presença diária")
     st.caption(
         "Quem trabalhou em cada data. Sistema usa pra calcular capacidade "
         "efetiva (só conta funcionários presentes)."
@@ -322,7 +322,7 @@ with tab_pres:
 
     presencas = get_presenca_dia(data_str)
     if not presencas:
-        st.warning("⚠️ Cadastra funcionários na aba 'Funcionários' antes.")
+        st.warning("️ Cadastra funcionários na aba 'Funcionários' antes.")
         st.stop()
 
     # Resumo no topo
@@ -332,28 +332,28 @@ with tab_pres:
     n_total = len(presencas)
 
     col_a, col_b, col_c, col_d = st.columns(4)
-    col_a.metric("👥 Total ativos", n_total)
-    col_b.metric("✅ Presentes", n_presentes)
-    col_c.metric("🚫 Ausentes", n_ausentes)
-    col_d.metric("❓ Não marcado", n_naomarcados)
+    col_a.metric(" Total ativos", n_total)
+    col_b.metric(" Presentes", n_presentes)
+    col_c.metric(" Ausentes", n_ausentes)
+    col_d.metric(" Não marcado", n_naomarcados)
 
     st.divider()
 
     # Botões em massa
     col_mass_a, col_mass_b, col_mass_c = st.columns(3)
     with col_mass_a:
-        if st.button("✅ Marcar TODOS como presentes", use_container_width=True):
+        if st.button(" Marcar TODOS como presentes", use_container_width=True):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=True)
             invalidar_equipe()
-            st.success("✅ Todos marcados como presentes.")
+            st.success(" Todos marcados como presentes.")
             st.rerun()
     with col_mass_b:
-        if st.button("🚫 Marcar TODOS como ausentes", use_container_width=True):
+        if st.button(" Marcar TODOS como ausentes", use_container_width=True):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=False)
             invalidar_equipe()
-            st.success("✅ Todos marcados como ausentes.")
+            st.success(" Todos marcados como ausentes.")
             st.rerun()
     with col_mass_c:
         st.caption("Atalhos: use os botões em massa pra começar e depois ajuste individualmente.")
@@ -369,7 +369,7 @@ with tab_pres:
     for dept in DEPARTAMENTOS_FUNCIONARIO:
         if dept not in por_dept:
             continue
-        st.markdown(f"### 🏭 {dept}")
+        st.markdown(f"###  {dept}")
         for p in por_dept[dept]:
             estado_atual = p.get("presente")
             # NULL → checkbox vazio mas indeterminado
@@ -377,9 +377,9 @@ with tab_pres:
             if estado_atual is None:
                 label += " 🆕"
             elif estado_atual == 0:
-                label += " 🚫"
+                label += " "
             elif estado_atual == 1:
-                label += " ✅"
+                label += " "
 
             col_cb, col_obs = st.columns([1, 2])
             with col_cb:
@@ -407,12 +407,12 @@ with tab_pres:
                     )
                     invalidar_equipe()
                 except Exception as e:
-                    st.error(f"❌ Erro ao salvar presença de {p['nome']}: {e}")
+                    st.error(f" Erro ao salvar presença de {p['nome']}: {e}")
 
 
 st.divider()
 st.caption(
-    "👥 Equipe é a Etapa A da Ideia 4 (Sugestão de Ordem do Dia). "
+    " Equipe é a Etapa A da Ideia 4 (Sugestão de Ordem do Dia). "
     "Próxima etapa: o algoritmo vai consumir esses dados pra pré-calcular "
     "ord_corte / ord_emb / ord_prod, considerando capacidade efetiva do dia."
 )
