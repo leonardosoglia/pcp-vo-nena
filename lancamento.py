@@ -1178,17 +1178,23 @@ if salvar_clicked:
             pm_balas_doces=pm_balas_doces_dict,
         )
         db.invalidar_folha(data_str)  # força releitura no próximo rerun
-        # Marca a folha como recém-salva (mostra badge  Salvo ao lado do botão)
+        # Marca a folha como recém-salva (mostra badge ao lado do botão)
         st.session_state["folha_salva_em"] = data_str
-        st.success(
-            f" Folha de **{data_sel.strftime('%d/%m/%Y')} ({nome_dia})** "
-            f"salva! Os dados aparecem na sidebar e no Painel."
+
+        # Animação de confirmação — toast discreto no canto + mensagem inline.
+        # NÃO usar st.balloons (festivo demais pra ambiente profissional).
+        st.toast(
+            f"Folha de {data_sel.strftime('%d/%m/%Y')} salva com sucesso",
+            icon="✅",
         )
-        st.balloons()
+        st.success(
+            f"**Folha de {data_sel.strftime('%d/%m/%Y')} ({nome_dia}) salva.** "
+            f"Os dados já aparecem na sidebar e no Painel."
+        )
         st.rerun()
 
     except Exception as e:
-        st.error(f" Erro ao salvar: {type(e).__name__}: {e}")
+        st.error(f"Erro ao salvar: {type(e).__name__}: {e}")
         st.exception(e)
 
 # ── Rodapé ─────────────────────────────────────────────────────────────────────

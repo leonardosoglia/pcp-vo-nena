@@ -85,50 +85,50 @@ html, body, .stApp {{
 }}
 
 .block-container {{
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+    padding-top: 1.25rem;
+    padding-bottom: 2rem;
     max-width: 1200px;
 }}
 
-/* ─────────────────────────── TIPOGRAFIA ─────────────────────────── */
+/* ─────────────────────────── TIPOGRAFIA (compacta) ─────────────────────────── */
 .main h1 {{
     color: {t['text_strong']} !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 22px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     line-height: 1.2;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.4rem 0 !important;
 }}
 
 .main h2 {{
     color: {t['text_strong']} !important;
-    font-size: 17px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     line-height: 1.3;
-    letter-spacing: -0.01em;
-    margin: 1.5rem 0 0.5rem 0 !important;
+    letter-spacing: -0.005em;
+    margin: 1rem 0 0.4rem 0 !important;
 }}
 
 .main h3 {{
     color: {t['text']} !important;
-    font-size: 14px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     line-height: 1.4;
-    margin: 1rem 0 0.4rem 0 !important;
+    margin: 0.75rem 0 0.3rem 0 !important;
 }}
 
 .main h4, .main h5, .main h6 {{
     color: {t['text']} !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
-    margin: 0.75rem 0 0.4rem 0 !important;
+    margin: 0.5rem 0 0.3rem 0 !important;
 }}
 
 .main p, .main li, .main .stMarkdown {{
     color: {t['text']};
-    font-size: 13px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.5;
 }}
 
 .main a {{
@@ -153,9 +153,9 @@ html, body, .stApp {{
 .main [data-testid="stCaptionContainer"],
 .main .stCaption {{
     color: {t['text_muted']} !important;
-    font-size: 13px !important;
+    font-size: 11px !important;
     font-weight: 400 !important;
-    line-height: 1.5;
+    line-height: 1.45;
 }}
 
 /* ─────────────────────────── SIDEBAR (dark) ─────────────────────────── */
@@ -195,10 +195,10 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li {{
 
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a {{
     color: {t['sb_text']} !important;
-    font-size: 14px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
-    border-radius: 6px !important;
-    padding: 8px 14px !important;
+    border-radius: 4px !important;
+    padding: 5px 10px !important;
     display: block;
     transition: background-color 0.15s;
     text-decoration: none !important;
@@ -225,9 +225,9 @@ section[data-testid="stSidebar"] button[kind="primary"] {{
     color: #FFFFFF !important;
     border: none !important;
     font-weight: 600 !important;
-    font-size: 13px !important;
-    padding: 8px 14px !important;
-    border-radius: 6px !important;
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    border-radius: 4px !important;
     width: 100% !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     transition: background-color 0.15s;
@@ -281,9 +281,9 @@ section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
 section[data-testid="stSidebar"] [data-testid="stExpander"] details > summary {{
     color: {t['sb_text']} !important;
     font-weight: 600 !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     background: transparent !important;
-    padding: 8px 12px !important;
+    padding: 6px 10px !important;
 }}
 
 section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {{
@@ -323,34 +323,29 @@ section[data-testid="stSidebar"] .stCaption {{
 .main [data-testid="metric-container"] {{
     background: {t['page']};
     border: 1px solid {t['border']};
-    border-radius: 8px;
-    padding: 16px 20px;
+    border-radius: 6px;
+    padding: 10px 14px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    transition: box-shadow 0.15s;
-}}
-
-.main [data-testid="metric-container"]:hover {{
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }}
 
 .main [data-testid="metric-container"] label {{
     color: {t['text_muted']} !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }}
 
 .main [data-testid="metric-container"] [data-testid="stMetricValue"] {{
     color: {t['text_strong']} !important;
-    font-size: 20px !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
     line-height: 1.2;
 }}
 
 .main [data-testid="metric-container"] [data-testid="stMetricDelta"] {{
-    font-size: 13px !important;
+    font-size: 11px !important;
 }}
 
 /* ─────────────────────────── BOTÕES (conteúdo principal) ─────────────────────────── */
@@ -359,9 +354,9 @@ section[data-testid="stSidebar"] .stCaption {{
     color: {t['text']} !important;
     border: 1px solid {t['border_strong']} !important;
     font-weight: 500 !important;
-    font-size: 13px !important;
-    padding: 7px 14px !important;
-    border-radius: 6px !important;
+    font-size: 12px !important;
+    padding: 5px 11px !important;
+    border-radius: 5px !important;
     transition: all 0.15s;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }}
@@ -377,7 +372,7 @@ section[data-testid="stSidebar"] .stCaption {{
     color: #FFFFFF !important;
     border: none !important;
     font-weight: 600 !important;
-    padding: 8px 16px !important;
+    padding: 6px 14px !important;
     box-shadow: 0 1px 2px rgba(192, 86, 33, 0.2);
 }}
 
@@ -392,20 +387,22 @@ section[data-testid="stSidebar"] .stCaption {{
 .main .stTextArea textarea,
 .main .stDateInput input {{
     border: 1px solid {t['border']} !important;
-    border-radius: 6px !important;
-    font-size: 14px !important;
+    border-radius: 5px !important;
+    font-size: 12px !important;
     font-family: 'Inter', sans-serif !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
-    padding: 8px 12px !important;
+    padding: 5px 9px !important;
+    min-height: 32px !important;
 }}
 
 .main .stSelectbox > div > div {{
     border: 1px solid {t['border']} !important;
-    border-radius: 6px !important;
-    font-size: 14px !important;
+    border-radius: 5px !important;
+    font-size: 12px !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
+    min-height: 32px !important;
 }}
 
 .main .stTextInput input:focus,
@@ -426,7 +423,7 @@ section[data-testid="stSidebar"] .stCaption {{
 .main .stCheckbox label,
 .main .stRadio label {{
     color: {t['text']} !important;
-    font-size: 13px !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
 }}
 
@@ -446,8 +443,9 @@ section[data-testid="stSidebar"] .stCaption {{
     background: transparent !important;
     color: {t['text_secondary']} !important;
     font-weight: 500;
-    border-radius: 6px 6px 0 0;
-    padding: 8px 16px !important;
+    font-size: 12px !important;
+    border-radius: 5px 5px 0 0;
+    padding: 6px 12px !important;
 }}
 
 .main .stTabs [data-baseweb="tab"][aria-selected="true"] {{
@@ -468,9 +466,9 @@ section[data-testid="stSidebar"] .stCaption {{
 
 .main [data-testid="stExpander"] summary {{
     color: {t['text']} !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
-    padding: 10px 14px !important;
+    padding: 7px 12px !important;
 }}
 
 .main [data-testid="stExpander"] summary:hover {{
