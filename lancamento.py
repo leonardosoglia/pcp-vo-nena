@@ -464,14 +464,14 @@ with col_papel:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✂️ P/ cortar</div>", unsafe_allow_html=True)
             bala_p_cortar = st.number_input(
                 label="bala_p_cortar", min_value=0,
-                value=(int(pbd_atual.get("bala_p_cortar") or 0) or None),
+                value=int(pbd_atual.get("bala_p_cortar") or 0),
                 key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>✅ Cortadas</div>", unsafe_allow_html=True)
             bala_cortadas = st.number_input(
                 label="bala_cortadas", min_value=0,
-                value=(int(pbd_atual.get("bala_cortadas") or 0) or None),
+                value=int(pbd_atual.get("bala_cortadas") or 0),
                 key=f"bala_cortadas_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[2]:
@@ -493,14 +493,14 @@ with col_papel:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 PM inacabado (und)</div>", unsafe_allow_html=True)
             pm_inacabado = st.number_input(
                 label="pm_inacabado_und", min_value=0,
-                value=(int(pbd_atual.get("pm_inacabado_und") or 0) or None),
+                value=int(pbd_atual.get("pm_inacabado_und") or 0),
                 key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🎂 Bolos (×70)</div>", unsafe_allow_html=True)
             pm_bolos = st.number_input(
                 label="pm_bolos", min_value=0,
-                value=(int(pbd_atual.get("pm_bolos") or 0) or None),
+                value=int(pbd_atual.get("pm_bolos") or 0),
                 key=f"pm_bolos_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[2]:
@@ -516,7 +516,7 @@ with col_papel:
         st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
         cocada_assada = st.number_input(
             label="cocada_assada_und", min_value=0,
-            value=(int(pbd_atual.get("cocada_assada_und") or 0) or None),
+            value=int(pbd_atual.get("cocada_assada_und") or 0),
             key=f"cocada_assada_{data_str}", label_visibility="collapsed",
         )
 
@@ -932,7 +932,7 @@ with col_folha:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📦 Displays (qtd)</div>", unsafe_allow_html=True)
             cnt_displays = st.number_input(
                 label="cnt_displays_palha", min_value=0,
-                value=(int(pbd_atual.get("cnt_displays_palha") or 0) or None),
+                value=int(pbd_atual.get("cnt_displays_palha") or 0),
                 key=f"cnt_displays_palha_{data_str}",
                 label_visibility="collapsed",
             )
@@ -1037,13 +1037,13 @@ with col_folha:
         with cnt_cols[0]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍞 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_pm = st.number_input(
-                label="cnt_pm", min_value=0, value=(int(pbd_atual.get("cnt_pm") or 0) or None),
+                label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
                 key=f"cnt_pm_{data_str}", label_visibility="collapsed",
             )
         with cnt_cols[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
             ord_pm = st.number_input(
-                label="ord_pm", min_value=0, value=(int(pbd_atual.get("ord_pm") or 0) or None),
+                label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
                 key=f"ord_pm_{data_str}", label_visibility="collapsed",
             )
 
@@ -1071,13 +1071,13 @@ with col_folha:
         with bal_cols[0]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍭 Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_balas = st.number_input(
-                label="cnt_balas", min_value=0, value=(int(pbd_atual.get("cnt_balas") or 0) or None),
+                label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
                 key=f"cnt_balas_{data_str}", label_visibility="collapsed",
             )
         with bal_cols[1]:
             st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>📋 Ordem do dia (tachos)</div>", unsafe_allow_html=True)
             ord_balas = st.number_input(
-                label="ord_balas", min_value=0, value=(int(pbd_atual.get("ord_balas") or 0) or None),
+                label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
                 key=f"ord_balas_{data_str}", label_visibility="collapsed",
             )
             if ord_balas > 0:
@@ -1095,7 +1095,7 @@ with col_folha:
 
         st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>🍫 Quantidade atual (unidades)</div>", unsafe_allow_html=True)
         cnt_doces = st.number_input(
-            label="cnt_doces", min_value=0, value=(int(pbd_atual.get("cnt_doces_displays") or 0) or None),
+            label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
             key=f"cnt_doces_{data_str}", label_visibility="collapsed",
         )
 
