@@ -193,70 +193,11 @@ def calcular_tudo(janela=4):
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("📈 Calibração de Metas — Média Móvel")
+st.title("📈 Calibração de Metas")
 st.caption(
-    "Compara as METAS fixas que a Gestão definiu (\"toda segunda produz 5.200 "
-    "de Tradicional\") com o que de fato está acontecendo nas últimas semanas. "
-    "Se a realidade subiu ou desceu muito, o sistema sugere atualizar a meta."
+    "Compara as metas fixas da tabela `metas_45g` com a média das últimas semanas. "
+    "📖 [Saiba mais](/Ajuda) na página de Ajuda."
 )
-
-# Resumo curto em destaque (antes do expander técnico)
-st.markdown(
-    "<div class='didatica' style='margin-bottom:14px;'>"
-    "<b>📖 Como ler esta página em 30 segundos:</b><br>"
-    "1. A fábrica tem metas pré-definidas pra cada sabor em cada dia útil "
-    "(ex: <i>Tradicional 45g segunda = 5.200 und</i>). Essas metas estão na "
-    "tabela <code>metas_45g</code> e foram fixadas uma vez.<br>"
-    "2. O <b>volume real</b> pedido na Embalagem oscila ao longo do tempo "
-    "(sazonalidade, novos clientes, encomendas).<br>"
-    "3. Esta página calcula a <b>média das últimas N segundas/terças/etc.</b> "
-    "(janela ajustável abaixo) e compara com a meta fixa.<br>"
-    "4. Quando o <b>desvio passa de 20%</b>, o sistema sugere recalibrar a "
-    "meta. A Gestão decide se aceita."
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-with st.expander("📚 Explicação detalhada do método (opcional — pro TCC)", expanded=False):
-    st.markdown("""
-**O problema:** a tabela `metas_45g` foi preenchida uma vez (ex: *"Tradicional 45g
-segunda = 5.200 und"*) e ficou fixa. Mas a demanda real muda com o ano (Páscoa,
-Festa Junina, Natal, novos clientes, etc.). Se ninguém atualizar manualmente,
-o sistema fica trabalhando com **parâmetro defasado**.
-
-**A solução — Média Móvel:** olha as últimas N segundas-feiras, tira a média.
-Compara com a meta. Se a média observada subiu/desceu muito, sinaliza:
-*"Considera atualizar a meta. A realidade tá X% acima/abaixo."*
-
-**Exemplo numérico passo a passo:**
-
-| Data (segunda) | Ordem Embalagem Tradicional 45g |
-|---|---|
-| 04/05/2026 | 5.100 und |
-| 11/05/2026 | 5.300 und |
-| 18/05/2026 | 5.200 und |
-| 25/05/2026 | 5.400 und |
-| **Média das 4 últimas** | **5.250 und** |
-| Meta fixa atual (tabela `metas_45g`) | 5.200 und |
-| Diferença | +50 und = **+1%** → **OK** |
-
-Mas se nas últimas 4 segundas a média virou **6.200 und** (+19% sobre 5.200):
-*"Demanda real tá 19% acima da meta. Recalibrar?"*
-
-**Sobre a "janela móvel":** é quantas ocorrências do mesmo dia da semana
-o cálculo usa.
-- **Janela pequena (2-3)** = reage rápido a mudanças, mas pode pegar ruído
-- **Janela maior (5-8)** = mais estável, suaviza picos pontuais
-- Padrão 4: equilíbrio razoável pra demanda mensal/semanal
-
-**Por que usar `ord_emb_45g` (fluxo de embalagem) e não `emb_45g` (estoque)?**
-Estoque (`emb_*`) é foto do que tá na prateleira NO DIA — não pode somar
-entre dias. Fluxo (`ord_emb_*`) é demanda pedida NAQUELE dia — pode somar.
-Princípio estoque vs fluxo (Forrester, 1961).
-
-**Referência clássica:** Wheelwright, S. C., & Hyndman, R. J. (1998).
-*Forecasting: Methods and Applications*. Wiley. Cap. 2 — Moving Averages.
-""")
 
 
 # Slider de janela
@@ -269,14 +210,8 @@ with col_slider:
              "Ex: 4 = média das últimas 4 segundas, 4 terças, etc.",
     )
 with col_info:
-    st.markdown(
-        f"<div class='didatica'>"
-        f"💡 Com janela = <b>{janela}</b>, pra cada dia útil o sistema calcula "
-        f"a média das <b>últimas {janela} ocorrências desse dia</b> da semana. "
-        f"Ex: pra segundas, pega as últimas {janela} segundas-feiras que tiveram "
-        f"ordem de embalagem 45g registrada."
-        f"</div>",
-        unsafe_allow_html=True,
+    st.caption(
+        f"⚙️ Considerando as últimas **{janela}** ocorrências de cada dia da semana."
     )
 
 
@@ -319,12 +254,8 @@ col_d.metric(
     help="Combinações com desvio entre 10% e 20% — ainda OK mas vale observar",
 )
 
-# Mini legenda dos status (logo abaixo das métricas, pra contexto imediato)
 st.caption(
-    "**Status dos desvios:** "
-    "✅ **OK** = diferença < 10% (meta calibrada) · "
-    "🟡 **Atenção** = 10-20% (acompanhar) · "
-    "🔴 **Recalibrar** = > 20% (meta provavelmente desatualizada)"
+    "**Status:** ✅ OK (<10%) · 🟡 Atenção (10-20%) · 🔴 Recalibrar (>20%)"
 )
 
 
@@ -332,12 +263,7 @@ st.caption(
 # TABELA COMPARATIVA — base × média móvel × desvio
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("📊 Comparativo: Meta × Realidade")
-st.caption(
-    "Pra cada combinação **sabor × dia útil**, mostra a meta fixa da tabela vs "
-    "a média das últimas N ocorrências (realidade). A coluna 'Desvio' mostra "
-    "quanto a realidade está acima (+) ou abaixo (–) da meta."
-)
+st.header("📊 Meta × Realidade")
 
 df_tab = df_mm.copy()
 df_tab["sabor"] = df_tab["sabor"].apply(lambda s: s.capitalize() if s.isupper() else s)
@@ -374,7 +300,7 @@ df_display.columns = [
 # Ordena: primeiro 'Recalibrar', depois 'Atenção', depois 'OK'; dentro de cada, sabor
 ord_sev = {"Recalibrar": 0, "Atenção": 1, "OK": 2}
 df_display = df_display.assign(_ord=df_tab["severidade"].map(ord_sev)).sort_values(
-    ["_ord", "Sabor", "Dia"]
+    ["_ord", "Sabor", "Dia da semana"]
 ).drop(columns="_ord")
 
 st.dataframe(df_display, use_container_width=True, hide_index=True)
@@ -384,14 +310,9 @@ st.dataframe(df_display, use_container_width=True, hide_index=True)
 # HEATMAP — visualização Sabor × Dia
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🔥 Mapa de calor: quem precisa de atenção?")
+st.header("🔥 Mapa de calor")
 st.caption(
-    "Visualização rápida de TODAS as combinações sabor × dia. "
-    "Cada quadrado mostra o desvio em %. "
-    "**Verde** = realidade próxima da meta (OK). "
-    "**Amarelo** = desvio moderado (10-20%). "
-    "**Vermelho** = desvio grande (> 20%, sugerir recalibrar). "
-    "Quadrados em branco = sem dados pra esse sabor/dia."
+    "Verde = OK · Amarelo = atenção · Vermelho = recalibrar · Branco = sem dados."
 )
 
 # Monta matriz wide: sabor × weekday
@@ -449,12 +370,9 @@ st.plotly_chart(fig_heat, use_container_width=True, config={"displayModeBar": Fa
 # DETALHE TEMPORAL — gráfico de linha por sabor
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("📉 Evolução de um sabor ao longo do tempo")
+st.header("📉 Evolução temporal")
 st.caption(
-    "Selecione um sabor abaixo pra ver como as ordens de embalagem de 45g "
-    "evoluíram dia a dia. Cada cor é um dia da semana — útil pra ver se segundas "
-    "subiram mais que sextas, por exemplo. A linha tracejada preta mostra a meta "
-    "média semanal do sabor (referência)."
+    "Cores = dias da semana · linha tracejada = meta média semanal."
 )
 
 sabores_dispo = sorted(df_obs["sabor"].unique().tolist())
@@ -532,62 +450,36 @@ st.plotly_chart(fig_lin, use_container_width=True, config={"displayModeBar": Fal
 # RECOMENDAÇÕES PRÁTICAS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🎯 Sugestões pra atualizar metas defasadas")
+st.header("🎯 Sugestões de recalibração")
 
 recalibrar = df_mm[df_mm["severidade"] == "Recalibrar"].sort_values(
     "desvio_pct", key=lambda s: s.abs(), ascending=False
 )
 
 if recalibrar.empty:
-    st.markdown(
-        "<div class='alerta-ok'>"
-        "✅ <b>Nenhuma meta precisa ser atualizada agora.</b> "
-        "Todas as combinações sabor × dia da semana têm desvio dentro de ±20% — "
-        "as metas fixas estão acompanhando bem a realidade observada."
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    st.success("✅ Nenhuma meta precisa de atualização. Todas dentro de ±20%.")
 else:
-    st.markdown(
-        "<div class='didatica'>"
-        "💡 As combinações listadas abaixo têm <b>desvio maior que 20%</b> entre "
-        "a meta fixa e a média das últimas semanas. Isso pode indicar que:<br>"
-        "&nbsp;&nbsp;• A demanda real mudou (sazonalidade, novos clientes)<br>"
-        "&nbsp;&nbsp;• Existe um pedido específico antecipado (não é desvio permanente)<br>"
-        "&nbsp;&nbsp;• A meta foi calibrada há muito tempo e ficou defasada<br><br>"
-        "<b>A Gestão decide</b> se atualiza a meta ou se aguarda mais semanas. "
-        "Sistema só sugere — não muda nada automaticamente."
-        "</div>",
-        unsafe_allow_html=True,
+    # Tabela compacta em vez de cards longos
+    df_sug = pd.DataFrame([
+        {
+            "Sabor": labels_sabor.get(row["sabor"], row["sabor"]),
+            "Dia": f"{row['weekday_pt']}s",
+            "Meta atual": f"{int(row['base']):,}",
+            "Realidade": f"{int(row['media_movel']):,}",
+            "Desvio": f"{row['desvio_pct']:+.1f}%",
+            "Sugestão nova meta": f"~{int(row['media_movel']):,}",
+        }
+        for _, row in recalibrar.iterrows()
+    ])
+    st.dataframe(df_sug, use_container_width=True, hide_index=True)
+    st.caption(
+        "_A Gestão decide se atualiza as metas. Sistema apenas sugere baseado "
+        "na média recente — pode ser sazonalidade ou pedido pontual._"
     )
-
-    for _, row in recalibrar.iterrows():
-        sabor_nice = labels_sabor.get(row["sabor"], row["sabor"])
-        direcao = "acima" if row["desvio_pct"] > 0 else "abaixo"
-        emoji_dir = "📈" if row["desvio_pct"] > 0 else "📉"
-        sugestao = int(row["media_movel"])
-        st.markdown(
-            f"<div class='alerta-alto'>"
-            f"<b>{emoji_dir} {sabor_nice} em {row['weekday_pt']}s</b> "
-            f"— desvio {direcao} da meta<br>"
-            f"&nbsp;&nbsp;• <b>Meta atual:</b> {int(row['base']):,} unidades<br>"
-            f"&nbsp;&nbsp;• <b>Realidade</b> (média das últimas {janela} {row['weekday_pt'].lower()}s): {int(row['media_movel']):,} unidades<br>"
-            f"&nbsp;&nbsp;• <b>Diferença:</b> {row['desvio_pct']:+.1f}% "
-            f"({int(row['desvio_abs']):+,} und)<br>"
-            f"&nbsp;&nbsp;• <i>💡 Se atualizar, considere ~{sugestao:,} und como nova meta.</i>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
 
 
 st.divider()
 st.caption(
-    f"📈 Calculado em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"{n_obs} observações de 45g em {df_obs['sabor'].nunique()} sabores · "
-    f"janela móvel de {janela} ocorrências · "
-    f"atualiza a cada 30 min ou quando nova folha é salva."
-)
-st.caption(
-    "💡 Esta é a 3ª e última feature da **Fase 1 ROADMAP_IA**. Com Curva ABC + "
-    "Detecção de Anomalia + Média Móvel, a Camada 1.5 do sistema está completa."
+    f"📈 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f"{n_obs} observações · janela {janela} · cache 30 min."
 )

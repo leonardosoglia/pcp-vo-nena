@@ -295,67 +295,11 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("🤖 Folhas Atípicas — Detecção Automática")
+st.title("🤖 Folhas Atípicas")
 st.caption(
-    "O sistema aprende sozinho o que é uma folha 'normal' analisando todo o "
-    "histórico, e sinaliza as folhas que fogem desse padrão — sem precisar de "
-    "ninguém programar regra nenhuma."
+    "Detecção automática via Machine Learning (Isolation Forest). "
+    "📖 [Saiba mais](/Ajuda) na página de Ajuda."
 )
-
-# Resumo em destaque antes do expander técnico
-st.markdown(
-    "<div class='didatica' style='margin-bottom:14px;'>"
-    "<b>📖 Como ler esta página em 30 segundos:</b><br>"
-    "1. O algoritmo <b>Isolation Forest</b> (uma técnica de ML) olha todas as "
-    "folhas registradas e descobre, sozinho, qual é o 'comportamento normal' "
-    "da fábrica.<br>"
-    "2. Quando uma folha tem combinação de valores muito diferente do padrão, "
-    "ele <b>sinaliza como atípica</b>.<br>"
-    "3. A página mostra <b>quais folhas se destacaram</b> e <b>quais campos</b> "
-    "(produção de Tradicional, embalagem de Pet, razão T/L, etc.) foram os "
-    "responsáveis pelo desvio.<br>"
-    "4. <b>Atípico ≠ erro.</b> Pode ser encomenda especial, dia atípico, "
-    "feriado, etc. Use como <b>pista pra investigar</b>, não conclusão."
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-with st.expander("📚 Explicação detalhada do método (opcional — pro TCC)", expanded=False):
-    st.markdown("""
-**O problema das regras programadas à mão:** o sistema antigo só detecta o que
-o programador **pensou em programar** (ex: "se palha LP > tradicional × 1.3,
-alerta"). Combinações estranhas que ninguém previu passam batido.
-
-**A solução com Machine Learning:** o algoritmo **Isolation Forest** olha
-todas as folhas e aprende sozinho o "perfil normal" da fábrica — sem ninguém
-dizer o que é normal. Quando uma folha **destoa muito** desse perfil, ele
-sinaliza.
-
-**Analogia:** porteiro experiente — depois de 5 anos, reconhece na hora quem
-chega com chapéu rosa às 3 da manhã. Sem precisar de regra escrita, só com
-"vivência".
-
-**Vantagens vs regras programadas à mão:**
-
-| Aspecto | Regras programadas | Isolation Forest (ML) |
-|---|---|---|
-| Quem cria a lógica | Você programa uma a uma | Algoritmo aprende sozinho |
-| Detecta combinações inesperadas? | Só as previstas | **Sim — qualquer desvio** |
-| Evolui com mais dados? | Não, é fixo | Sim, melhora com volume |
-| Explica o "porquê"? | Sim, a regra é explícita | Sim, mas aproximado (top 3 features) |
-
-**Como interpreta o resultado da página:**
-
-- **Score de anomalia alto** → folha mais "estranha" em relação ao histórico
-- **Top 3 features** → quais campos da folha mais contribuíram pro desvio
-- **σ (sigma)** = quantos desvios-padrão acima/abaixo do normal aquele campo
-  estava (acima de ±2σ é estatisticamente raro, ~5% das observações)
-- **NÃO é diagnóstico** — é **PISTA** pra investigar com a Gestão
-
-**Referência clássica:** Liu, F. T., Ting, K. M., & Zhou, Z. H. (2008).
-*Isolation Forest*. Proceedings of the 8th IEEE International Conference on
-Data Mining. Citações: 5.000+.
-""")
 
 
 # Slider de sensibilidade (contamination)
@@ -370,17 +314,9 @@ with col_slider:
     )
 with col_info:
     n_estimado = int(round(contamination * 100))
-    st.markdown(
-        f"<div class='didatica'>"
-        f"💡 Com <b>{n_estimado}%</b> selecionado, o algoritmo vai sinalizar "
-        f"aproximadamente as <b>{n_estimado}% folhas mais diferentes</b> do "
-        f"histórico. <br>"
-        f"• <b>Critério rígido (5-10%)</b> = só as anomalias mais óbvias<br>"
-        f"• <b>Padrão (15-20%)</b> = boa relação sensibilidade/ruído<br>"
-        f"• <b>Frouxo (25-30%)</b> = força destacar mais coisas (útil quando "
-        f"histórico é muito parecido)"
-        f"</div>",
-        unsafe_allow_html=True,
+    st.caption(
+        f"⚙️ Critério atual: **{n_estimado}%** das folhas mais diferentes serão "
+        f"marcadas como atípicas. _Mais baixo = mais restrito._"
     )
 
 
@@ -396,16 +332,11 @@ if status == "amostra_insuficiente":
 n_folhas = len(df_result)
 n_anomalias = int((df_result["is_anomaly"] == -1).sum())
 
-# Aviso sobre tamanho da amostra
+# Aviso conciso sobre tamanho da amostra (detalhes na página Ajuda)
 if n_folhas < 30:
-    st.markdown(
-        f"<div class='limit-warning'>"
-        f"<b>📊 Amostra atual: {n_folhas} folhas.</b> "
-        f"Com <30 folhas, a precisão é limitada — o algoritmo ainda está aprendendo o 'normal'. "
-        f"Use estes resultados como <b>pistas pra investigar</b>, não conclusões fechadas. "
-        f"A partir de ~60 folhas (3 meses), a detecção fica robusta."
-        f"</div>",
-        unsafe_allow_html=True,
+    st.caption(
+        f"ℹ️ Amostra atual: **{n_folhas} folhas**. Precisão limitada com menos de 30 — "
+        f"trate como pista pra investigar, não diagnóstico fechado."
     )
 
 
@@ -439,13 +370,9 @@ col_d.metric(
 # RANKING DE ANOMALIAS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🏆 Quais folhas chamaram a atenção?")
-
+st.header("🏆 Score por data")
 st.caption(
-    "Gráfico abaixo mostra **TODAS** as folhas com seu score de 'estranheza'. "
-    "**Quanto maior o score**, mais a folha difere do padrão do histórico. "
-    "**Barras vermelhas** = folhas que o algoritmo marcou como atípicas (passaram do critério). "
-    "**Barras cinzas** = folhas normais."
+    "Barras vermelhas = atípicas · cinzas = normais · maior = mais diferente do padrão."
 )
 
 # Gráfico de score por folha (com cor diferenciada pra anomalias)
@@ -485,12 +412,9 @@ st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, 
 # DETALHES DE CADA ANOMALIA
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🔍 Por que cada folha atípica foi marcada?")
+st.header("🔍 Detalhes")
 st.caption(
-    "Pra cada folha que o algoritmo considerou atípica, mostramos os **3 campos "
-    "que mais contribuíram pro desvio**. O valor **σ (sigma)** significa "
-    "*'quantos desvios-padrão acima/abaixo do normal'*: ±1σ é comum, ±2σ "
-    "já é raro (~5% das observações), ±3σ é muito raro."
+    "Top 3 campos que mais contribuíram pro desvio. _σ = desvios-padrão acima/abaixo do normal._"
 )
 
 anomalias = df_result[df_result["is_anomaly"] == -1]
@@ -609,38 +533,24 @@ else:
             except Exception as e:
                 st.error(f"❌ Erro inesperado: {e}")
 
-    st.markdown(
-        "<div class='didatica'>"
-        "<b>Como ler:</b> '<b>desvio: +2.5σ</b>' significa que esse campo estava "
-        "<b>2.5 desvios-padrão</b> acima do normal. Valores acima de ±2σ são "
-        "estatisticamente raros (~5% das observações)."
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    # (Explicação detalhada do σ está na página Ajuda — caption acima já resume)
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # TABELA COMPLETA (TODAS AS FOLHAS COM SCORE)
 # ════════════════════════════════════════════════════════════════════════════
 with st.expander("📋 Ver todas as folhas com score (não só anomalias)", expanded=False):
-    df_tab = df_result[["data", "status", "anomaly_score"]].copy() \
-        if "status" not in df_result.columns else df_result[["data", "anomaly_score"]].copy()
-    df_tab["status"] = df_result["is_anomaly"].map({-1: "🚨 Anomalia", 1: "✅ Normal"})
+    df_tab = df_result[["data", "anomaly_score"]].copy()
+    df_tab["status"] = df_result["is_anomaly"].map({-1: "🚨 Atípica", 1: "✅ Normal"})
     df_tab["data"] = pd.to_datetime(df_tab["data"]).dt.strftime("%d/%m/%Y")
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
-    df_tab.columns = ["Data", "Status", "Anomaly Score"]
+    df_tab.columns = ["Data", "Status", "Score de estranheza"]
     st.dataframe(df_tab, use_container_width=True, hide_index=True)
 
 
 st.divider()
 st.caption(
-    f"🤖 Detecção rodada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"Isolation Forest (scikit-learn) sobre {n_folhas} folhas · "
-    f"recalcula a cada 30 min ou quando nova folha entra."
-)
-st.caption(
-    "💡 Esta página COMPLEMENTA, não substitui, a página Insights. As regras "
-    "hardcoded continuam ativas lá (H5, H1, H4 etc) — porque são *explicáveis*. "
-    "Aqui o modelo detecta o *inesperado*. Os dois se reforçam."
+    f"🤖 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f"{n_folhas} folhas · cache 30 min."
 )

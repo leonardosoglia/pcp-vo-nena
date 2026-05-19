@@ -216,73 +216,11 @@ def calcular_curva_abc():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO DIDÁTICA
 # ════════════════════════════════════════════════════════════════════════════
-st.title("📊 Curva ABC — Classificação dos Produtos por Volume")
+st.title("📊 Curva ABC")
 st.caption(
-    "Separa automaticamente os produtos da Vó Nena em 3 grupos de prioridade "
-    "(A, B, C), baseado em quanto cada um já foi produzido no histórico. "
-    "Foca atenção nos que mais movimentam — clássico de Engenharia de Produção."
+    "Classificação dos produtos por volume acumulado de bandejas cortadas. "
+    "📖 [Saiba mais sobre Curva ABC](/Ajuda) na página de Ajuda."
 )
-
-# Resumo curto em destaque
-st.markdown(
-    "<div class='didatica' style='margin-bottom:14px;'>"
-    "<b>📖 Como ler esta página em 30 segundos:</b><br>"
-    "1. A regra geral 'da indústria' é que <b>20% dos produtos respondem por "
-    "80% do volume produzido</b> (princípio de Pareto). A Curva ABC torna "
-    "isso operacional.<br>"
-    "2. O sistema soma todas as <b>bandejas cortadas</b> (ord_corte) de cada "
-    "produto ao longo de TODAS as folhas registradas.<br>"
-    "3. Ordena do maior pro menor e separa em <b>3 grupos</b>:<br>"
-    "&nbsp;&nbsp;• <b>Classe A 🟢</b> — os 'carros-chefe' que somam 80% do volume<br>"
-    "&nbsp;&nbsp;• <b>Classe B 🟡</b> — produtos intermediários (próximos 15%)<br>"
-    "&nbsp;&nbsp;• <b>Classe C 🔴</b> — cauda longa (últimos 5%)<br>"
-    "4. <b>Use pra priorizar:</b> Classe A merece atenção diária; Classe C "
-    "tolera ficar fora 2-3 dias."
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-with st.expander("📚 Explicação detalhada do método (opcional — pro TCC)", expanded=False):
-    st.markdown("""
-**O princípio de Pareto** observou que **80% dos efeitos vêm de 20% das
-causas** em muitos contextos. Aplicado à indústria, **20% dos produtos
-geralmente respondem por 80% do volume produzido**.
-
-A **Curva ABC** operacionaliza essa observação, separando o catálogo em
-3 classes de prioridade:
-
-| Classe | Acumula | Como tratar |
-|---|---|---|
-| **A** | Os primeiros que somam até **80%** do volume | Atenção máxima. Estoque sempre cheio. Cabeça de ordem todo dia. Risco de perda de venda alto se faltar. |
-| **B** | Próximos produtos até **95%** | Cadência regular. Tolera ficar sem 1 dia. Atenção média. |
-| **C** | Últimos produtos (5% finais) | Lotes maiores e mais espaçados. Tolera 2-3 dias fora. Atenção mínima. |
-
-**Métrica usada nesta página: bandejas cortadas (`ord_corte_*`)** —
-acumuladas ao longo de TODAS as folhas registradas.
-
-**Por que NÃO somar "Embalados" (estoque na prateleira)?**
-
-> *Insight do Leonardo (17/05/2026):* o campo "Embalado" é o ESTOQUE NA
-> PRATELEIRA em cada dia, não o que passou pela embalagem. Se segunda tem
-> 1.000 embalados e terça tem 950 (porque vendeu 50 e não embalou nada
-> novo), somar daria 1.950 — como se 1.950 tivessem sido produzidos. Mas
-> só 1.000 passaram pela embalagem.
-
-**Ordens de corte (`ord_corte_*`) são FLUXO:** cada folha registra quantas
-bandejas a Gestão pediu pra cortar naquele dia. Somar dias faz sentido
-estatístico — é igual somar entrada/saída de um caixa, não saldo final.
-Princípio **estoque vs fluxo** (Forrester, 1961, *Industrial Dynamics*).
-
-**Bandejas (não unidades) como unidade:** cocada e palha têm rendimentos
-diferentes por bandeja. Bandeja é a unidade comum de fluxo entre os dois.
-Evita conversões com números inventados.
-
-**Referência clássica:** Juran, J. M. (1951). *Quality Control Handbook*.
-Princípio originalmente proposto por **Vilfredo Pareto (1896)** ao estudar
-distribuição de renda na Itália — observou que 80% da terra pertencia a
-20% da população. Generalizou-se como **"Lei de Pareto"** em economia,
-qualidade e gestão.
-""")
 
 
 df_abc = calcular_curva_abc()
@@ -331,9 +269,8 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 st.header("📈 Diagrama de Pareto")
 st.caption(
-    "Barras = bandejas cortadas (volume acumulado nas folhas registradas, eixo esquerdo). "
-    "Linha = % acumulado do volume total (eixo direito). "
-    "A linha cruza 80% no fim da Classe A — a partir dali são produtos secundários."
+    "Barras = bandejas cortadas · Linha = % acumulado · "
+    "Linha tracejada a 80% marca o fim da Classe A."
 )
 
 fig = go.Figure()
@@ -418,73 +355,40 @@ st.dataframe(df_tab, use_container_width=True, hide_index=True)
 # RECOMENDAÇÕES OPERACIONAIS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("🎯 Recomendações práticas pela classe")
-
-st.markdown("""
-<div class='didatica'>
-<b>⚠️ Importante:</b> a Curva ABC é uma <i>ferramenta de apoio à decisão</i>, não
-um comando. A Gestão pode (e deve) ajustar quando há restrição operacional
-(mão de obra, insumo, encomenda específica). O sistema mostra o padrão; o
-humano decide.
-</div>
-""", unsafe_allow_html=True)
+st.header("🎯 Produtos por classe")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("### 🟢 Classe A")
     produtos_a = df_abc[df_abc["classe"] == "A"]["produto_completo"].tolist()
-    st.markdown("**O que fazer:**")
-    st.markdown("""
-- Estoque sempre cheio
-- Ordem de produção todo dia útil
-- Falta = perda de venda imediata
-- Conferir estoque antes de qualquer outro
-""")
     if produtos_a:
-        st.markdown("**Produtos nesta classe:**")
         for p in produtos_a:
-            st.markdown(f"- {p}")
+            st.markdown(f"• {p}")
+    else:
+        st.caption("_(vazia)_")
 
 with col2:
     st.markdown("### 🟡 Classe B")
     produtos_b = df_abc[df_abc["classe"] == "B"]["produto_completo"].tolist()
-    st.markdown("**O que fazer:**")
-    st.markdown("""
-- Cadência regular (ex: 3-4× por semana)
-- Tolera 1 dia sem produzir
-- Estoque de segurança menor
-- Pode ajustar conforme demanda do mês
-""")
     if produtos_b:
-        st.markdown("**Produtos nesta classe:**")
         for p in produtos_b:
-            st.markdown(f"- {p}")
+            st.markdown(f"• {p}")
+    else:
+        st.caption("_(vazia)_")
 
 with col3:
     st.markdown("### 🔴 Classe C")
     produtos_c = df_abc[df_abc["classe"] == "C"]["produto_completo"].tolist()
-    st.markdown("**O que fazer:**")
-    st.markdown("""
-- Lotes maiores e espaçados (1-2× semana)
-- Tolera 2-3 dias sem estoque
-- Considerar tirar de catálogo se cair muito
-- Evitar produzir sob pressão de tempo
-""")
     if produtos_c:
-        st.markdown("**Produtos nesta classe:**")
         for p in produtos_c:
-            st.markdown(f"- {p}")
+            st.markdown(f"• {p}")
+    else:
+        st.caption("_(vazia)_")
 
 
 st.divider()
 st.caption(
-    f"📊 Curva ABC gerada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"baseada em {len(df_abc)} produtos com volume registrado · "
-    f"recalculada a cada 30 minutos ou ao salvar nova folha."
-)
-st.caption(
-    "💡 Esta classificação vai se refinar conforme novas folhas entram. "
-    "Em ~3 meses (~60 folhas), a Curva ABC vira referência confiável pra decisões "
-    "estruturais como mix de catálogo e estoque de segurança por sabor."
+    f"📊 Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f"{len(df_abc)} produtos · cache de 30 min."
 )
