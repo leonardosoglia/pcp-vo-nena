@@ -94,40 +94,40 @@ html, body, .stApp {{
 .main h1 {{
     color: {t['text_strong']} !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 18px !important;
+    font-size: 15px !important;
     font-weight: 700 !important;
     line-height: 1.2;
     letter-spacing: -0.015em;
-    margin: 0 0 0.4rem 0 !important;
+    margin: 0 0 0.35rem 0 !important;
 }}
 
 .main h2 {{
     color: {t['text_strong']} !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     line-height: 1.3;
     letter-spacing: -0.005em;
-    margin: 1rem 0 0.4rem 0 !important;
+    margin: 0.85rem 0 0.35rem 0 !important;
 }}
 
 .main h3 {{
     color: {t['text']} !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
     line-height: 1.4;
-    margin: 0.75rem 0 0.3rem 0 !important;
+    margin: 0.65rem 0 0.25rem 0 !important;
 }}
 
 .main h4, .main h5, .main h6 {{
     color: {t['text']} !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
-    margin: 0.5rem 0 0.3rem 0 !important;
+    margin: 0.45rem 0 0.25rem 0 !important;
 }}
 
 .main p, .main li, .main .stMarkdown {{
     color: {t['text']};
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.5;
 }}
 
@@ -142,18 +142,18 @@ html, body, .stApp {{
 
 .main code {{
     font-family: 'JetBrains Mono', 'Consolas', monospace !important;
-    font-size: 13px !important;
+    font-size: 11px !important;
     background: {t['surface_alt']} !important;
     border: 1px solid {t['border']} !important;
     border-radius: 4px !important;
-    padding: 1px 6px !important;
+    padding: 1px 5px !important;
     color: {t['text_strong']} !important;
 }}
 
 .main [data-testid="stCaptionContainer"],
 .main .stCaption {{
     color: {t['text_muted']} !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 400 !important;
     line-height: 1.45;
 }}
@@ -324,28 +324,28 @@ section[data-testid="stSidebar"] .stCaption {{
     background: {t['page']};
     border: 1px solid {t['border']};
     border-radius: 6px;
-    padding: 10px 14px;
+    padding: 7px 11px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }}
 
 .main [data-testid="metric-container"] label {{
     color: {t['text_muted']} !important;
-    font-size: 10px !important;
+    font-size: 9px !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }}
 
 .main [data-testid="metric-container"] [data-testid="stMetricValue"] {{
     color: {t['text_strong']} !important;
-    font-size: 16px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     line-height: 1.2;
 }}
 
 .main [data-testid="metric-container"] [data-testid="stMetricDelta"] {{
-    font-size: 11px !important;
+    font-size: 10px !important;
 }}
 
 /* ─────────────────────────── BOTÕES (conteúdo principal) ─────────────────────────── */
@@ -354,8 +354,8 @@ section[data-testid="stSidebar"] .stCaption {{
     color: {t['text']} !important;
     border: 1px solid {t['border_strong']} !important;
     font-weight: 500 !important;
-    font-size: 12px !important;
-    padding: 5px 11px !important;
+    font-size: 11px !important;
+    padding: 4px 9px !important;
     border-radius: 5px !important;
     transition: all 0.15s;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -372,7 +372,7 @@ section[data-testid="stSidebar"] .stCaption {{
     color: #FFFFFF !important;
     border: none !important;
     font-weight: 600 !important;
-    padding: 6px 14px !important;
+    padding: 5px 12px !important;
     box-shadow: 0 1px 2px rgba(192, 86, 33, 0.2);
 }}
 
@@ -388,21 +388,21 @@ section[data-testid="stSidebar"] .stCaption {{
 .main .stDateInput input {{
     border: 1px solid {t['border']} !important;
     border-radius: 5px !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-family: 'Inter', sans-serif !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
-    padding: 5px 9px !important;
-    min-height: 32px !important;
+    padding: 4px 8px !important;
+    min-height: 28px !important;
 }}
 
 .main .stSelectbox > div > div {{
     border: 1px solid {t['border']} !important;
     border-radius: 5px !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
-    min-height: 32px !important;
+    min-height: 28px !important;
 }}
 
 .main .stTextInput input:focus,
@@ -423,7 +423,7 @@ section[data-testid="stSidebar"] .stCaption {{
 .main .stCheckbox label,
 .main .stRadio label {{
     color: {t['text']} !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 500 !important;
 }}
 
@@ -443,9 +443,9 @@ section[data-testid="stSidebar"] .stCaption {{
     background: transparent !important;
     color: {t['text_secondary']} !important;
     font-weight: 500;
-    font-size: 12px !important;
+    font-size: 11px !important;
     border-radius: 5px 5px 0 0;
-    padding: 6px 12px !important;
+    padding: 5px 10px !important;
 }}
 
 .main .stTabs [data-baseweb="tab"][aria-selected="true"] {{
@@ -466,9 +466,9 @@ section[data-testid="stSidebar"] .stCaption {{
 
 .main [data-testid="stExpander"] summary {{
     color: {t['text']} !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
-    padding: 7px 12px !important;
+    padding: 6px 10px !important;
 }}
 
 .main [data-testid="stExpander"] summary:hover {{

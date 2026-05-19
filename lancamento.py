@@ -118,22 +118,23 @@ def folha_existe(data_str: str) -> bool:
 
 def hdr_cell(col, txt):
     col.markdown(
-        f"<div style='font-size:12px;font-weight:700;color:#7B341E;"
-        f"padding:0 0 4px 0;'>{txt}</div>",
+        f"<div style='font-size:10px;font-weight:700;color:#7B341E;"
+        f"padding:0 0 3px 0;white-space:nowrap;letter-spacing:-0.01em;'>{txt}</div>",
         unsafe_allow_html=True,
     )
 
 
 def label_sabor(col, sabor):
     col.markdown(
-        f"<div style='padding-top:10px;font-weight:600;color:#1a1a1a;'>{sabor}</div>",
+        f"<div style='padding-top:7px;font-size:11px;font-weight:600;color:#1a1a1a;"
+        f"white-space:nowrap;letter-spacing:-0.015em;line-height:1.2;'>{sabor}</div>",
         unsafe_allow_html=True,
     )
 
 
 def celula_vazia(col, motivo="—"):
     col.markdown(
-        f"<div style='padding-top:10px;color:#bbb;text-align:center;'>{motivo}</div>",
+        f"<div style='padding-top:7px;font-size:11px;color:#bbb;text-align:center;'>{motivo}</div>",
         unsafe_allow_html=True,
     )
 
@@ -359,7 +360,7 @@ if prioridade_corte:
         f"<div style='background:#FEF3C7; border-left:5px solid #D97706; "
         f"padding:8px 14px; border-radius:6px; color:#92400E; font-weight:600; margin:6px 0;'>"
         f" <b>{nome_dia}</b> — dia de prioridade de corte: <b>{prioridade_corte}</b> "
-        f"<span style='font-weight:400; font-size:12px;'>(referência da Gestão; não exclusivo)</span>"
+        f"<span style='font-weight:400; font-size:10px;'>(referência da Gestão; não exclusivo)</span>"
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -401,7 +402,7 @@ with col_papel:
             cols = st.columns([0.6, 1, 1, 0.9, 0.9, 0.9])
             sigla = SIGLA_COCADA.get(sabor, sabor[:1])
             cols[0].markdown(
-                f"<div style='padding-top:10px;font-weight:700;color:#7B341E;font-size:14px;'>{sigla}</div>",
+                f"<div style='padding-top:7px;font-weight:700;color:#7B341E;font-size:14px;'>{sigla}</div>",
                 unsafe_allow_html=True,
             )
             if sabor == "ZERO":
@@ -461,14 +462,14 @@ with col_papel:
         )
         cols_bdl = st.columns([1, 1, 1])
         with cols_bdl[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
             bala_p_cortar = st.number_input(
                 label="bala_p_cortar", min_value=0,
                 value=int(pbd_atual.get("bala_p_cortar") or 0),
                 key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
             )
         with cols_bdl[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Cortadas</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Cortadas</div>", unsafe_allow_html=True)
             bala_cortadas = st.number_input(
                 label="bala_cortadas", min_value=0,
                 value=int(pbd_atual.get("bala_cortadas") or 0),
@@ -477,7 +478,7 @@ with col_papel:
         with cols_bdl[2]:
             total_bala = bala_p_cortar + bala_cortadas
             st.markdown(
-                f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total</div>"
+                f"<div style='font-size:10px;font-weight:700;color:#7B341E;'>Σ Total</div>"
                 f"<div style='font-size:18px;font-weight:800;color:#C05621;padding:6px 0;'>{total_bala}</div>",
                 unsafe_allow_html=True,
             )
@@ -490,14 +491,14 @@ with col_papel:
         )
         cols_pm = st.columns([1, 1, 1])
         with cols_pm[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> PM inacabado (und)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> PM inacabado (und)</div>", unsafe_allow_html=True)
             pm_inacabado = st.number_input(
                 label="pm_inacabado_und", min_value=0,
                 value=int(pbd_atual.get("pm_inacabado_und") or 0),
                 key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
             )
         with cols_pm[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Bolos (×70)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Bolos (×70)</div>", unsafe_allow_html=True)
             pm_bolos = st.number_input(
                 label="pm_bolos", min_value=0,
                 value=int(pbd_atual.get("pm_bolos") or 0),
@@ -506,13 +507,13 @@ with col_papel:
         with cols_pm[2]:
             total_pm_disp = pm_inacabado + (pm_bolos * 70)
             st.markdown(
-                f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total disponível</div>"
+                f"<div style='font-size:10px;font-weight:700;color:#7B341E;'>Σ Total disponível</div>"
                 f"<div style='font-size:14px;font-weight:800;color:#C05621;padding:6px 0;'>{total_pm_disp} und</div>"
                 f"<div style='font-size:11px;color:#888;'>= {pm_inacabado} + ({pm_bolos}×70)</div>",
                 unsafe_allow_html=True,
             )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:12px;'> Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;margin-top:12px;'> Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
         st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
         cocada_assada = st.number_input(
             label="cocada_assada_und", min_value=0,
@@ -529,13 +530,13 @@ with col_folha:
     # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
     with st.expander(" Embalados — Cocada", expanded=False):
         st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
-        cols_h = st.columns([1.2, 1, 1, 1, 1, 1])
+        cols_h = st.columns([1.6, 1, 1, 1, 1, 1])
         for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
             hdr_cell(col, lbl)
         emb_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.2, 1, 1, 1, 1, 1])
+            cols = st.columns([1.6, 1, 1, 1, 1, 1])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); v45 = 0
@@ -556,13 +557,13 @@ with col_folha:
             "**①** = cortados hoje (lado embalagem) em **unidades** · "
             "**②** = ① + Embalados + Joel · **③** = ② − Parâmetro Real."
         )
-        cols_h2 = st.columns([1.2, 1, 1, 1])
+        cols_h2 = st.columns([1.6, 1, 1, 1])
         for col, lbl in zip(cols_h2, ["Sabor", "① 45g (und)", "① Mini (und)", "① Pet (und)"]):
             hdr_cell(col, lbl)
         cort_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.2, 1, 1, 1])
+            cols = st.columns([1.6, 1, 1, 1])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); c1_45 = 0
@@ -578,31 +579,31 @@ with col_folha:
             "Em **bandejas** · conversão para unidades em cinza ao lado. "
             "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
         )
-        cols_h3 = st.columns([1.2, 1, 0.7, 1, 0.7, 1, 0.7])
+        cols_h3 = st.columns([1.6, 1, 0.7, 1, 0.7, 1, 0.7])
         for col, lbl in zip(cols_h3, ["Sabor", "45g (band)", "= und", "Mini (band)", "= und", "Pet (band)", "= und"]):
             hdr_cell(col, lbl)
         ord_corte_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.2, 1, 0.7, 1, 0.7, 1, 0.7])
+            cols = st.columns([1.6, 1, 0.7, 1, 0.7, 1, 0.7])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); celula_vazia(cols[2]); oc45 = 0
             else:
                 oc45 = num_input_compact(cols[1], f"ord_corte_45g_{sabor}_{data_str}", d.get("ord_corte_45g"))
                 cols[2].markdown(
-                    f"<div style='padding-top:10px;color:#888;font-size:12px;'>{oc45 * 100:,}</div>",
+                    f"<div style='padding-top:7px;color:#888;font-size:10px;'>{oc45 * 100:,}</div>",
                     unsafe_allow_html=True,
                 )
             ocm = num_input_compact(cols[3], f"ord_corte_mini_{sabor}_{data_str}", d.get("ord_corte_mini"))
             cols[4].markdown(
-                f"<div style='padding-top:10px;color:#888;font-size:12px;'>{ocm * 150:,}</div>",
+                f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocm * 150:,}</div>",
                 unsafe_allow_html=True,
             )
             ocp = num_input_compact(cols[5], f"ord_corte_pet_{sabor}_{data_str}", d.get("ord_corte_pet"))
             rend_pet = 60 if sabor == "ZERO" else 30
             cols[6].markdown(
-                f"<div style='padding-top:10px;color:#888;font-size:12px;'>{ocp * rend_pet:,}</div>",
+                f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocp * rend_pet:,}</div>",
                 unsafe_allow_html=True,
             )
             ord_corte_v[sabor] = {
@@ -633,7 +634,7 @@ with col_folha:
         # --- Aba 45g ---
         with tab_45:
             st.caption(f"Base do dia da semana ({nome_dia}) · Z não tem 45g.")
-            ch = st.columns([1.2, 1, 1, 1])
+            ch = st.columns([1.6, 1, 1, 1])
             for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
                 hdr_cell(c, l)
             param_real_v["45g"] = {}
@@ -641,10 +642,10 @@ with col_folha:
                 if sabor == "ZERO":
                     continue
                 d = dados_cocada.get(sabor, {})
-                cols = st.columns([1.2, 1, 1, 1])
+                cols = st.columns([1.6, 1, 1, 1])
                 label_sabor(cols[0], sabor)
                 base = int(metas_dia.get(sabor, {}).get(col_metas) or 0) if col_metas else 0
-                cols[1].markdown(f"<div style='padding-top:10px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+                cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
                 with cols[2]:
                     salvo = int(d.get("param_real_45g") or 0)
                     aj_def = (salvo - base) if salvo else 0
@@ -655,7 +656,7 @@ with col_folha:
                 real = base + aj
                 cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
                 cols[3].markdown(
-                    f"<div style='padding-top:10px;font-weight:700;color:{cor};'>{real:,}</div>",
+                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
                     unsafe_allow_html=True,
                 )
                 param_real_v["45g"][sabor] = real
@@ -667,20 +668,20 @@ with col_folha:
                 "Base **fixa por sabor** (todos os dias) · "
                 "Z Mini = igual ao **45g do Leite Condensado do dia** (dinâmico)."
             )
-            ch = st.columns([1.2, 1, 1, 1])
+            ch = st.columns([1.6, 1, 1, 1])
             for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
                 hdr_cell(c, l)
             param_real_v["mini"] = {}
             for sabor in SABORES_COCADA:
                 d = dados_cocada.get(sabor, {})
-                cols = st.columns([1.2, 1, 1, 1])
+                cols = st.columns([1.6, 1, 1, 1])
                 label_sabor(cols[0], sabor)
                 # Base Mini
                 if sabor == "ZERO":
                     # Z mini = 45g do L do dia
                     base = param_real_v["45g"].get("LEITE CONDENSADO", 0)
                     cols[1].markdown(
-                        f"<div style='padding-top:10px;color:#C05621;font-size:12px;'>= L 45g/dia · {base:,}</div>",
+                        f"<div style='padding-top:7px;color:#C05621;font-size:10px;'>= L 45g/dia · {base:,}</div>",
                         unsafe_allow_html=True,
                     )
                 else:
@@ -689,7 +690,7 @@ with col_folha:
                         base = int(str(raw).strip())
                     except (ValueError, TypeError):
                         base = 0
-                    cols[1].markdown(f"<div style='padding-top:10px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+                    cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
 
                 with cols[2]:
                     salvo = int(d.get("param_real_mini") or 0)
@@ -701,7 +702,7 @@ with col_folha:
                 real = base + aj
                 cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
                 cols[3].markdown(
-                    f"<div style='padding-top:10px;font-weight:700;color:{cor};'>{real:,}</div>",
+                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
                     unsafe_allow_html=True,
                 )
                 param_real_v["mini"][sabor] = real
@@ -709,16 +710,16 @@ with col_folha:
         # --- Aba Pet ---
         with tab_pt:
             st.caption("Base **fixa por sabor** (todos os dias). Z Pet = 300.")
-            ch = st.columns([1.2, 1, 1, 1])
+            ch = st.columns([1.6, 1, 1, 1])
             for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
                 hdr_cell(c, l)
             param_real_v["pet"] = {}
             for sabor in SABORES_COCADA:
                 d = dados_cocada.get(sabor, {})
-                cols = st.columns([1.2, 1, 1, 1])
+                cols = st.columns([1.6, 1, 1, 1])
                 label_sabor(cols[0], sabor)
                 base = int(metas_mp.get(sabor, {}).get("pet") or 0)
-                cols[1].markdown(f"<div style='padding-top:10px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+                cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
                 with cols[2]:
                     salvo = int(d.get("param_real_pet") or 0)
                     aj_def = (salvo - base) if salvo else 0
@@ -729,7 +730,7 @@ with col_folha:
                 real = base + aj
                 cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
                 cols[3].markdown(
-                    f"<div style='padding-top:10px;font-weight:700;color:{cor};'>{real:,}</div>",
+                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
                     unsafe_allow_html=True,
                 )
                 param_real_v["pet"][sabor] = real
@@ -741,7 +742,7 @@ with col_folha:
         )
         st.markdown(
             "<div style='background:#F3F4F6;border-left:5px solid #6B7280;"
-            "padding:8px 14px;border-radius:6px;color:#374151;font-size:12px;margin:6px 0;'>"
+            "padding:8px 14px;border-radius:6px;color:#374151;font-size:10px;margin:6px 0;'>"
             "ℹ️ <b>Nota — caso eventual de duplicação:</b> em alguns dias, uma célula de "
             "<b>Mini (30g)</b> ou <b>P (Pet)</b> do Papelzinho do Joel pode já ter sido enviada "
             "pra sala de embalagem antes da folha ser fechada — nesse caso, o valor aparece "
@@ -843,24 +844,24 @@ with col_folha:
         st.caption(
             "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
         )
-        cols_h5 = st.columns([1.2, 1, 0.7, 1, 1, 1])
+        cols_h5 = st.columns([1.6, 1, 0.7, 1, 1, 1])
         for col, lbl in zip(cols_h5, ["Sabor", "Bandejas", "= tachos", "Virada", "Potes 260g", "Potes 605g"]):
             hdr_cell(col, lbl)
         ord_prod_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.2, 1, 0.7, 1, 1, 1])
+            cols = st.columns([1.6, 1, 0.7, 1, 1, 1])
             label_sabor(cols[0], sabor)
             step_band = 3 if sabor == "ZERO" else 8
             div_t = 3 if sabor == "ZERO" else 8
             pb = num_input_compact(cols[1], f"ord_prod_band_{sabor}_{data_str}", d.get("ord_prod_band"), step=step_band)
             if pb > 0:
                 cols[2].markdown(
-                    f"<div style='padding-top:10px;color:#C05621;font-weight:600;font-size:12px;'>{pb / div_t:.1f}T</div>",
+                    f"<div style='padding-top:7px;color:#C05621;font-weight:600;font-size:10px;'>{pb / div_t:.1f}T</div>",
                     unsafe_allow_html=True,
                 )
             else:
-                cols[2].markdown("<div style='padding-top:10px;color:#bbb;font-size:12px;'>—</div>", unsafe_allow_html=True)
+                cols[2].markdown("<div style='padding-top:7px;color:#bbb;font-size:10px;'>—</div>", unsafe_allow_html=True)
             pv  = num_input_compact(cols[3], f"ord_prod_virada_{sabor}_{data_str}", d.get("ord_prod_virada"))
             p26 = num_input_compact(cols[4], f"ord_prod_p260_{sabor}_{data_str}",   d.get("ord_prod_potes_260g"))
             p60 = num_input_compact(cols[5], f"ord_prod_p605_{sabor}_{data_str}",   d.get("ord_prod_potes_605g"))
@@ -879,13 +880,13 @@ with col_folha:
     # ── 9. EMBALAGEM — Cocada (Ordens) ───────────────────────────────────────
     with st.expander(" Embalagem — Cocada (Ordens, em unidades)", expanded=False):
         st.caption("Unidades a embalar hoje. Z não tem 45g.")
-        cols_h6 = st.columns([1.2, 1, 1])
+        cols_h6 = st.columns([1.6, 1, 1])
         for col, lbl in zip(cols_h6, ["Sabor", "45g (und)", "Mini (und)"]):
             hdr_cell(col, lbl)
         ord_emb_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.2, 1, 1])
+            cols = st.columns([1.6, 1, 1])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); e45 = 0
@@ -910,7 +911,7 @@ with col_folha:
             cols = st.columns([1.4, 1, 1])
             sigla = SIGLA_PALHA.get(sabor, sabor)
             cols[0].markdown(
-                f"<div style='padding-top:10px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
                 unsafe_allow_html=True,
             )
             if sabor in SABORES_PALHA_50G:
@@ -929,7 +930,7 @@ with col_folha:
         meta_dia = META_DISPLAYS_PALHA.get(nome_dia, 0)
         cols_disp = st.columns([1, 1])
         with cols_disp[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Displays (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Displays (qtd)</div>", unsafe_allow_html=True)
             cnt_displays = st.number_input(
                 label="cnt_displays_palha", min_value=0,
                 value=int(pbd_atual.get("cnt_displays_palha") or 0),
@@ -939,13 +940,13 @@ with col_folha:
         with cols_disp[1]:
             if meta_dia > 0:
                 st.markdown(
-                    f"<div style='font-size:12px;color:#7B341E;padding-top:6px;'>"
+                    f"<div style='font-size:10px;color:#7B341E;padding-top:6px;'>"
                     f" Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
                     unsafe_allow_html=True,
                 )
             else:
                 st.markdown(
-                    f"<div style='font-size:12px;color:#999;padding-top:6px;'>"
+                    f"<div style='font-size:10px;color:#999;padding-top:6px;'>"
                     f"Sem meta para {nome_dia}.</div>",
                     unsafe_allow_html=True,
                 )
@@ -962,7 +963,7 @@ with col_folha:
             cols = st.columns([1.4, 1])
             sigla = SIGLA_PALHA.get(sabor, sabor)
             cols[0].markdown(
-                f"<div style='padding-top:10px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
                 unsafe_allow_html=True,
             )
             pb = num_input_compact(cols[1], f"ord_prod_palha_{sabor}_{data_str}", d.get("ord_prod_band"))
@@ -984,7 +985,7 @@ with col_folha:
             cols = st.columns([1.4, 1, 1])
             sigla = SIGLA_PALHA.get(sabor, sabor)
             cols[0].markdown(
-                f"<div style='padding-top:10px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
                 unsafe_allow_html=True,
             )
             if sabor in SABORES_PALHA_50G:
@@ -1011,7 +1012,7 @@ with col_folha:
             cols = st.columns([1.4, 1, 1])
             sigla = SIGLA_PALHA.get(sabor, sabor)
             cols[0].markdown(
-                f"<div style='padding-top:10px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
                 unsafe_allow_html=True,
             )
             cb = num_input_compact(cols[1], f"cont_band_palha_{sabor}_{data_str}", d.get("cont_band_palha"))
@@ -1020,7 +1021,7 @@ with col_folha:
             pos_corte = cb - corte_total
             cor = "#065F46" if pos_corte >= 0 else "#7F1D1D"
             cols[2].markdown(
-                f"<div style='padding-top:10px;font-weight:700;color:{cor};text-align:center;'>"
+                f"<div style='padding-top:7px;font-weight:700;color:{cor};text-align:center;'>"
                 f"{pos_corte}</div>",
                 unsafe_allow_html=True,
             )
@@ -1035,19 +1036,19 @@ with col_folha:
 
         cnt_cols = st.columns([1, 1])
         with cnt_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_pm = st.number_input(
                 label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
                 key=f"cnt_pm_{data_str}", label_visibility="collapsed",
             )
         with cnt_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
             ord_pm = st.number_input(
                 label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
                 key=f"ord_pm_{data_str}", label_visibility="collapsed",
             )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'> PM pro próximo dia útil</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;margin-top:10px;'> PM pro próximo dia útil</div>", unsafe_allow_html=True)
         st.caption(
             "Lembrete pra Produção: quantos PM produzir no próximo dia útil. "
             "Ex: na sexta, escrever '4' lembra Joel de produzir 4 PM na segunda."
@@ -1069,20 +1070,20 @@ with col_folha:
 
         bal_cols = st.columns([1, 1])
         with bal_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
             cnt_balas = st.number_input(
                 label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
                 key=f"cnt_balas_{data_str}", label_visibility="collapsed",
             )
         with bal_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (tachos)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Ordem do dia (tachos)</div>", unsafe_allow_html=True)
             ord_balas = st.number_input(
                 label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
                 key=f"ord_balas_{data_str}", label_visibility="collapsed",
             )
             if ord_balas > 0:
                 st.markdown(
-                    f"<div style='font-size:12px;color:#C05621;font-weight:600;'>= {ord_balas * 30} balas</div>",
+                    f"<div style='font-size:10px;color:#C05621;font-weight:600;'>= {ord_balas * 30} balas</div>",
                     unsafe_allow_html=True,
                 )
 
@@ -1093,7 +1094,7 @@ with col_folha:
             "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
         )
 
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (unidades)</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:10px;font-weight:700;color:#7B341E;'> Quantidade atual (unidades)</div>", unsafe_allow_html=True)
         cnt_doces = st.number_input(
             label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
             key=f"cnt_doces_{data_str}", label_visibility="collapsed",
