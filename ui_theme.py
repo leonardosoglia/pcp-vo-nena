@@ -449,6 +449,18 @@ section[data-testid="stSidebar"] .stCaption {{
     min-height: 26px !important;
 }}
 
+/* Esconde os steppers (− +) do st.number_input. Esses botoezinhos ocupavam
+   ~64px DENTRO da caixa, cobriam/cortavam o numero digitado e confundiam
+   (pareciam um "x"). O usuario digita o numero direto — caixa de input
+   limpa, sem botoes. O conteudo do número usa a largura toda. */
+[data-testid="stMain"] [data-testid="stNumberInputStepUp"],
+[data-testid="stMain"] [data-testid="stNumberInputStepDown"] {{
+    display: none !important;
+}}
+[data-testid="stMain"] [data-testid="stNumberInputContainer"] > div:has([data-testid="stNumberInputStepUp"]) {{
+    display: none !important;
+}}
+
 [data-testid="stMain"] .stTextInput input:focus,
 [data-testid="stMain"] .stNumberInput input:focus,
 [data-testid="stMain"] .stTextArea textarea:focus,
