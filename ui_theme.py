@@ -94,6 +94,13 @@ html, body, .stApp {{
     max-width: 1200px;
 }}
 
+/* Colunas — gap compacto. O default do Streamlit (1rem=16px) desperdica
+   ~80px numa linha de 6 colunas, espremendo os inputs numericos da folha
+   a ponto de cortar o numero. 0.3rem devolve esse espaco. */
+[data-testid="stMain"] [data-testid="stHorizontalBlock"] {{
+    gap: 0.3rem !important;
+}}
+
 /* ─────────────────────── TIPOGRAFIA — escala modular 1.2, base 13px ───────────────────────
    Escala harmônica (Major Second) usada em UI densa profissional (Linear/Notion/Atlassian):
        h1 18 · h2 16 · h3 14 · body 13 · caption 11 · micro 10

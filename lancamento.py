@@ -537,13 +537,13 @@ with col_folha:
     # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
     with st.expander(" Embalados — Cocada", expanded=False):
         st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
-        cols_h = st.columns([2.6, 1, 1, 1, 1, 1])
+        cols_h = st.columns([2.0, 1, 1, 1, 1, 1])
         for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
             hdr_cell(col, lbl)
         emb_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.6, 1, 1, 1, 1, 1])
+            cols = st.columns([2.0, 1, 1, 1, 1, 1])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); v45 = 0
@@ -586,13 +586,13 @@ with col_folha:
             "Em **bandejas** · conversão para unidades em cinza ao lado. "
             "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
         )
-        cols_h3 = st.columns([2.6, 1, 0.7, 1, 0.7, 1, 0.7])
+        cols_h3 = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
         for col, lbl in zip(cols_h3, ["Sabor", "45g (band)", "= und", "Mini (band)", "= und", "Pet (band)", "= und"]):
             hdr_cell(col, lbl)
         ord_corte_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.6, 1, 0.7, 1, 0.7, 1, 0.7])
+            cols = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
             label_sabor(cols[0], sabor)
             if sabor == "ZERO":
                 celula_vazia(cols[1]); celula_vazia(cols[2]); oc45 = 0
@@ -873,13 +873,13 @@ with col_folha:
         st.caption(
             "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
         )
-        cols_h5 = st.columns([2.6, 1, 0.7, 1, 1, 1])
+        cols_h5 = st.columns([2.0, 1, 0.7, 1, 1, 1])
         for col, lbl in zip(cols_h5, ["Sabor", "Bandejas", "= tachos", "Virada", "Potes 260g", "Potes 605g"]):
             hdr_cell(col, lbl)
         ord_prod_v = {}
         for sabor in SABORES_COCADA:
             d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.6, 1, 0.7, 1, 1, 1])
+            cols = st.columns([2.0, 1, 0.7, 1, 1, 1])
             label_sabor(cols[0], sabor)
             step_band = 3 if sabor == "ZERO" else 8
             div_t = 3 if sabor == "ZERO" else 8
