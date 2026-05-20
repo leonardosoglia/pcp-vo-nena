@@ -384,775 +384,776 @@ pbd_atual = _folha["pmbd"] or {}
 # ══════════════════════════════════════════════════════════════════════════════
 # CONTEÚDO PRINCIPAL — duas colunas espelhando a folha física
 # ══════════════════════════════════════════════════════════════════════════════
-col_folha, col_papel = st.columns([3, 2])
+with st.form("folha_completa", border=False):
+    col_folha, col_papel = st.columns([3, 2])
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ LADO DIREITO: PAPELZINHO DO JOEL + ORIENTAÇÕES                           ║
-# ║ Renderizado primeiro pra alimentar derivados em tempo real               ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-with col_papel:
-    st.markdown("###  Papelzinho do Joel & Orientações")
+    # ╔══════════════════════════════════════════════════════════════════════════╗
+    # ║ LADO DIREITO: PAPELZINHO DO JOEL + ORIENTAÇÕES                           ║
+    # ║ Renderizado primeiro pra alimentar derivados em tempo real               ║
+    # ╚══════════════════════════════════════════════════════════════════════════╝
+    with col_papel:
+        st.markdown("###  Papelzinho do Joel & Orientações")
 
-    with st.expander(" Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
-        st.caption(
-            "Contagem matinal da Produção · **45g, 30g (=Mini)** em unidades · "
-            "**P (Pet), PV, V** em **bandejas** · Z não tem 45g. "
-            "Rendimento Pet: 30 und/band (T,L,B,C,P) · 60 und/band (Z)."
-        )
-        cols_h_pj = st.columns([0.6, 1, 1, 0.9, 0.9, 0.9])
-        for col, lbl in zip(cols_h_pj, ["", "45g (und)", "30g (und)", "P (band)", "PV (band)", "V (band)"]):
-            hdr_cell(col, lbl)
-
-        papel_joel_v = {}
-        for sabor in SABORES_COCADA:
-            d = papelzinho_existente.get(sabor, {})
-            cols = st.columns([0.6, 1, 1, 0.9, 0.9, 0.9])
-            sigla = SIGLA_COCADA.get(sabor, sabor[:1])
-            cols[0].markdown(
-                f"<div style='padding-top:7px;font-weight:700;color:#7B341E;font-size:14px;'>{sigla}</div>",
-                unsafe_allow_html=True,
-            )
-            if sabor == "ZERO":
-                celula_vazia(cols[1])
-                j45 = 0
-            else:
-                j45 = num_input_compact(cols[1], f"joel_45g_{sabor}_{data_str}",  d.get("joel_45g"))
-            jmi = num_input_compact(cols[2], f"joel_mini_{sabor}_{data_str}", d.get("joel_mini"))
-            jpt = num_input_compact(cols[3], f"joel_pet_{sabor}_{data_str}",  d.get("joel_pet"))
-            jpv = num_input_compact(cols[4], f"joel_pv_{sabor}_{data_str}",   d.get("joel_pv"))
-            jv  = num_input_compact(cols[5], f"joel_v_{sabor}_{data_str}",    d.get("joel_v"))
-            papel_joel_v[sabor] = {
-                "joel_45g": j45, "joel_mini": jmi, "joel_pet": jpt,
-                "joel_pv": jpv, "joel_v": jv,
-            }
-        st.caption(
-            " Os valores acima alimentam **Cortados ②**, **Viradas** e **P/Virar** "
-            "no lado esquerdo em tempo real."
-        )
-
-    with st.expander(" Orientações do dia", expanded=False):
-        st.caption(
-            "Avisos da Gestão para a equipe. Pode mencionar quem é o destinatário no próprio texto "
-            "(ex: \"Corte: cortar cumbucas após 14h · Embalagem: até 16h e depois sobe pra cortar bala\")."
-        )
-        # Caixa única — dados antigos de obs_joel/gil/leonilia ficam concatenados se existirem
-        valor_inicial = pbd_atual.get("obs", "") or ""
-        # Migra orientações antigas das 4 caixas pra 1 só (read-only de retrocompat)
-        # Campos legados do banco mantêm nomes antigos; labels exibidos usam departamentos.
-        for legado_campo, legado_label in [("obs_joel", "Produção"), ("obs_gil", "Corte"), ("obs_leonilia", "Embalagem")]:
-            extra = pbd_atual.get(legado_campo, "")
-            if extra:
-                valor_inicial = (valor_inicial + ("\n" if valor_inicial else "")
-                                 + f"[{legado_label}]: {extra}")
-
-        obs_geral = st.text_area(
-            " Orientações",
-            value=valor_inicial,
-            height=180, key=f"obs_geral_{data_str}",
-            placeholder=(
-                "Ex:\n"
-                "Gil: corta cumbucas após 14h\n"
-                "Joel: avisa o Paulo pra virar bandejas\n"
-                "Popô: embala até 16h e depois sobe pra cortar bala\n"
-                "Geral: amanhã feriado, adiantar produção"
-            ),
-        )
-        # Mantemos os campos antigos apenas pra compatibilidade — vão zerados ao salvar
-        obs_joel_v = ""
-        obs_gil_v = ""
-        obs_leonilia_v = ""
-
-    # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
-    with st.expander(" Bala de Doce de Leite — papelzinho do Joel", expanded=False):
-        st.caption(
-            "Contagem do papelzinho separado da Produção. Total = P/cortar + Cortadas (automático)."
-        )
-        cols_bdl = st.columns([1, 1, 1])
-        with cols_bdl[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
-            bala_p_cortar = st.number_input(
-                label="bala_p_cortar", min_value=0,
-                value=int(pbd_atual.get("bala_p_cortar") or 0),
-                key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
-            )
-        with cols_bdl[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Cortadas</div>", unsafe_allow_html=True)
-            bala_cortadas = st.number_input(
-                label="bala_cortadas", min_value=0,
-                value=int(pbd_atual.get("bala_cortadas") or 0),
-                key=f"bala_cortadas_{data_str}", label_visibility="collapsed",
-            )
-        with cols_bdl[2]:
-            total_bala = bala_p_cortar + bala_cortadas
-            st.markdown(
-                f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total</div>"
-                f"<div style='font-size:18px;font-weight:800;color:#C05621;padding:6px 0;'>{total_bala}</div>",
-                unsafe_allow_html=True,
-            )
-
-    # ── Pão de Mel inacabado + Bolos + Cocada Assada ─────────────────────────
-    with st.expander(" Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
-        st.caption(
-            " **PM inacabado** em unidades · **Bolos** (1 bolo = 70 und de PM). "
-            "**ASS / Cocada Assada** é outro produto independente, em unidades."
-        )
-        cols_pm = st.columns([1, 1, 1])
-        with cols_pm[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> PM inacabado (und)</div>", unsafe_allow_html=True)
-            pm_inacabado = st.number_input(
-                label="pm_inacabado_und", min_value=0,
-                value=int(pbd_atual.get("pm_inacabado_und") or 0),
-                key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
-            )
-        with cols_pm[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Bolos (×70)</div>", unsafe_allow_html=True)
-            pm_bolos = st.number_input(
-                label="pm_bolos", min_value=0,
-                value=int(pbd_atual.get("pm_bolos") or 0),
-                key=f"pm_bolos_{data_str}", label_visibility="collapsed",
-            )
-        with cols_pm[2]:
-            total_pm_disp = pm_inacabado + (pm_bolos * 70)
-            st.markdown(
-                f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total disponível</div>"
-                f"<div style='font-size:14px;font-weight:800;color:#C05621;padding:6px 0;'>{total_pm_disp} und</div>"
-                f"<div style='font-size:11px;color:#888;'>= {pm_inacabado} + ({pm_bolos}×70)</div>",
-                unsafe_allow_html=True,
-            )
-
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:12px;'> Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
-        st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
-        cocada_assada = st.number_input(
-            label="cocada_assada_und", min_value=0,
-            value=int(pbd_atual.get("cocada_assada_und") or 0),
-            key=f"cocada_assada_{data_str}", label_visibility="collapsed",
-        )
-
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ LADO ESQUERDO: folha de produção oficial                                 ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-with col_folha:
-    st.markdown("###  Folha de Produção Oficial")
-
-    # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
-    with st.expander(" Embalados — Cocada", expanded=False):
-        st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
-        cols_h = st.columns([2.0, 1, 1, 1, 1, 1])
-        for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
-            hdr_cell(col, lbl)
-        emb_v = {}
-        for sabor in SABORES_COCADA:
-            d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.0, 1, 1, 1, 1, 1])
-            label_sabor(cols[0], sabor)
-            if sabor == "ZERO":
-                celula_vazia(cols[1]); v45 = 0
-            else:
-                v45 = num_input_compact(cols[1], f"emb_45g_{sabor}_{data_str}", d.get("emb_45g"))
-            vmi  = num_input_compact(cols[2], f"emb_mini_{sabor}_{data_str}",  d.get("emb_mini"))
-            vpt  = num_input_compact(cols[3], f"emb_pet_{sabor}_{data_str}",   d.get("emb_pet"))
-            vp26 = num_input_compact(cols[4], f"emb_p260_{sabor}_{data_str}", d.get("emb_potes_260g"))
-            vp60 = num_input_compact(cols[5], f"emb_p605_{sabor}_{data_str}", d.get("emb_potes_605g"))
-            emb_v[sabor] = {
-                "emb_45g": v45, "emb_mini": vmi, "emb_pet": vpt,
-                "emb_potes_260g": vp26, "emb_potes_605g": vp60,
-            }
-
-    # ── 2. CORTADOS ① — Cocada ───────────────────────────────────────────────
-    with st.expander("️ Cortados ① — Cocada (em unidades)", expanded=False):
-        st.caption(
-            "**①** = cortados hoje (lado embalagem) em **unidades** · "
-            "**②** = ① + Embalados + Joel · **③** = ② − Parâmetro Real."
-        )
-        cols_h2 = st.columns([1.6, 1, 1, 1])
-        for col, lbl in zip(cols_h2, ["Sabor", "① 45g (und)", "① Mini (und)", "① Pet (und)"]):
-            hdr_cell(col, lbl)
-        cort_v = {}
-        for sabor in SABORES_COCADA:
-            d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.6, 1, 1, 1])
-            label_sabor(cols[0], sabor)
-            if sabor == "ZERO":
-                celula_vazia(cols[1]); c1_45 = 0
-            else:
-                c1_45 = num_input_compact(cols[1], f"cort1_45g_{sabor}_{data_str}", d.get("cort1_45g"))
-            c1_mi = num_input_compact(cols[2], f"cort1_mini_{sabor}_{data_str}", d.get("cort1_mini"))
-            c1_pt = num_input_compact(cols[3], f"cort1_pet_{sabor}_{data_str}",  d.get("cort1_pet"))
-            cort_v[sabor] = {"cort1_45g": c1_45, "cort1_mini": c1_mi, "cort1_pet": c1_pt}
-
-    # ── 3. CORTE DE COCADA — Ordens ──────────────────────────────────────────
-    with st.expander(" Corte de Cocada — Ordens (bandejas)", expanded=False):
-        st.caption(
-            "Em **bandejas** · conversão para unidades em cinza ao lado. "
-            "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
-        )
-        cols_h3 = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
-        for col, lbl in zip(cols_h3, ["Sabor", "45g (band)", "= und", "Mini (band)", "= und", "Pet (band)", "= und"]):
-            hdr_cell(col, lbl)
-        ord_corte_v = {}
-        for sabor in SABORES_COCADA:
-            d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
-            label_sabor(cols[0], sabor)
-            if sabor == "ZERO":
-                celula_vazia(cols[1]); celula_vazia(cols[2]); oc45 = 0
-            else:
-                oc45 = num_input_compact(cols[1], f"ord_corte_45g_{sabor}_{data_str}", d.get("ord_corte_45g"))
-                cols[2].markdown(
-                    f"<div style='padding-top:7px;color:#888;font-size:10px;'>{oc45 * 100:,}</div>",
-                    unsafe_allow_html=True,
-                )
-            ocm = num_input_compact(cols[3], f"ord_corte_mini_{sabor}_{data_str}", d.get("ord_corte_mini"))
-            cols[4].markdown(
-                f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocm * 150:,}</div>",
-                unsafe_allow_html=True,
-            )
-            ocp = num_input_compact(cols[5], f"ord_corte_pet_{sabor}_{data_str}", d.get("ord_corte_pet"))
-            rend_pet = 60 if sabor == "ZERO" else 30
-            cols[6].markdown(
-                f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocp * rend_pet:,}</div>",
-                unsafe_allow_html=True,
-            )
-            ord_corte_v[sabor] = {
-                "ord_corte_45g": oc45,
-                "ord_corte_mini": ocm,
-                "ord_corte_pet": ocp,
-            }
-
-    # ── 4. PARÂMETRO REAL DO DIA (45g + Mini + Pet) ──────────────────────────
-    with st.expander("️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
-        st.caption(
-            "**Base** vem da tabela de referência · **Ajuste** = +/- da Gestão (passos de 100) · "
-            "**Real** alimenta a coluna ③ do Cortados acima."
-        )
-        metas_dia = {r["sabor"]: r for r in get_metas_45g()}
-        col_metas = DIAS_COL_METAS.get(data_sel.weekday())
-        metas_mp = {r["sabor"]: r for r in get_metas_mini_pet()}
-
-        if col_metas is None:
-            st.warning(
-                f" {nome_dia} — sem produção de 45g programada (tabela cobre Seg-Sex)."
-            )
-
-        tab_45, tab_mi, tab_pt = st.tabs(["45g", "Mini (30g)", "Pet"])
-
-        param_real_v = {}
-
-        # --- Aba 45g ---
-        with tab_45:
-            st.caption(f"Base do dia da semana ({nome_dia}) · Z não tem 45g.")
-            ch = st.columns([1.6, 1, 1, 1])
-            for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
-                hdr_cell(c, l)
-            param_real_v["45g"] = {}
-            for sabor in SABORES_COCADA:
-                if sabor == "ZERO":
-                    continue
-                d = dados_cocada.get(sabor, {})
-                cols = st.columns([1.6, 1, 1, 1])
-                label_sabor(cols[0], sabor)
-                base = int(metas_dia.get(sabor, {}).get(col_metas) or 0) if col_metas else 0
-                cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
-                with cols[2]:
-                    salvo = int(d.get("param_real_45g") or 0)
-                    aj_def = (salvo - base) if salvo else 0
-                    aj = st.number_input(
-                        label=f"aj45_{sabor}", value=aj_def, step=100,
-                        key=f"aj45_{sabor}_{data_str}", label_visibility="collapsed",
-                    )
-                real = base + aj
-                cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
-                cols[3].markdown(
-                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
-                    unsafe_allow_html=True,
-                )
-                param_real_v["45g"][sabor] = real
-            param_real_v["45g"]["ZERO"] = 0
-
-        # --- Aba Mini (30g) ---
-        with tab_mi:
+        with st.expander(" Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
             st.caption(
-                "Base **fixa por sabor** (todos os dias) · "
-                "Z Mini = igual ao **45g do Leite Condensado do dia** (dinâmico)."
+                "Contagem matinal da Produção · **45g, 30g (=Mini)** em unidades · "
+                "**P (Pet), PV, V** em **bandejas** · Z não tem 45g. "
+                "Rendimento Pet: 30 und/band (T,L,B,C,P) · 60 und/band (Z)."
             )
-            ch = st.columns([1.6, 1, 1, 1])
-            for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
-                hdr_cell(c, l)
-            param_real_v["mini"] = {}
+            cols_h_pj = st.columns([0.6, 1, 1, 0.9, 0.9, 0.9])
+            for col, lbl in zip(cols_h_pj, ["", "45g (und)", "30g (und)", "P (band)", "PV (band)", "V (band)"]):
+                hdr_cell(col, lbl)
+
+            papel_joel_v = {}
+            for sabor in SABORES_COCADA:
+                d = papelzinho_existente.get(sabor, {})
+                cols = st.columns([0.6, 1, 1, 0.9, 0.9, 0.9])
+                sigla = SIGLA_COCADA.get(sabor, sabor[:1])
+                cols[0].markdown(
+                    f"<div style='padding-top:7px;font-weight:700;color:#7B341E;font-size:14px;'>{sigla}</div>",
+                    unsafe_allow_html=True,
+                )
+                if sabor == "ZERO":
+                    celula_vazia(cols[1])
+                    j45 = 0
+                else:
+                    j45 = num_input_compact(cols[1], f"joel_45g_{sabor}_{data_str}",  d.get("joel_45g"))
+                jmi = num_input_compact(cols[2], f"joel_mini_{sabor}_{data_str}", d.get("joel_mini"))
+                jpt = num_input_compact(cols[3], f"joel_pet_{sabor}_{data_str}",  d.get("joel_pet"))
+                jpv = num_input_compact(cols[4], f"joel_pv_{sabor}_{data_str}",   d.get("joel_pv"))
+                jv  = num_input_compact(cols[5], f"joel_v_{sabor}_{data_str}",    d.get("joel_v"))
+                papel_joel_v[sabor] = {
+                    "joel_45g": j45, "joel_mini": jmi, "joel_pet": jpt,
+                    "joel_pv": jpv, "joel_v": jv,
+                }
+            st.caption(
+                " Os valores acima alimentam **Cortados ②**, **Viradas** e **P/Virar** "
+                "no lado esquerdo em tempo real."
+            )
+
+        with st.expander(" Orientações do dia", expanded=False):
+            st.caption(
+                "Avisos da Gestão para a equipe. Pode mencionar quem é o destinatário no próprio texto "
+                "(ex: \"Corte: cortar cumbucas após 14h · Embalagem: até 16h e depois sobe pra cortar bala\")."
+            )
+            # Caixa única — dados antigos de obs_joel/gil/leonilia ficam concatenados se existirem
+            valor_inicial = pbd_atual.get("obs", "") or ""
+            # Migra orientações antigas das 4 caixas pra 1 só (read-only de retrocompat)
+            # Campos legados do banco mantêm nomes antigos; labels exibidos usam departamentos.
+            for legado_campo, legado_label in [("obs_joel", "Produção"), ("obs_gil", "Corte"), ("obs_leonilia", "Embalagem")]:
+                extra = pbd_atual.get(legado_campo, "")
+                if extra:
+                    valor_inicial = (valor_inicial + ("\n" if valor_inicial else "")
+                                     + f"[{legado_label}]: {extra}")
+
+            obs_geral = st.text_area(
+                " Orientações",
+                value=valor_inicial,
+                height=180, key=f"obs_geral_{data_str}",
+                placeholder=(
+                    "Ex:\n"
+                    "Gil: corta cumbucas após 14h\n"
+                    "Joel: avisa o Paulo pra virar bandejas\n"
+                    "Popô: embala até 16h e depois sobe pra cortar bala\n"
+                    "Geral: amanhã feriado, adiantar produção"
+                ),
+            )
+            # Mantemos os campos antigos apenas pra compatibilidade — vão zerados ao salvar
+            obs_joel_v = ""
+            obs_gil_v = ""
+            obs_leonilia_v = ""
+
+        # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
+        with st.expander(" Bala de Doce de Leite — papelzinho do Joel", expanded=False):
+            st.caption(
+                "Contagem do papelzinho separado da Produção. Total = P/cortar + Cortadas (automático)."
+            )
+            cols_bdl = st.columns([1, 1, 1])
+            with cols_bdl[0]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
+                bala_p_cortar = st.number_input(
+                    label="bala_p_cortar", min_value=0,
+                    value=int(pbd_atual.get("bala_p_cortar") or 0),
+                    key=f"bala_p_cortar_{data_str}", label_visibility="collapsed",
+                )
+            with cols_bdl[1]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Cortadas</div>", unsafe_allow_html=True)
+                bala_cortadas = st.number_input(
+                    label="bala_cortadas", min_value=0,
+                    value=int(pbd_atual.get("bala_cortadas") or 0),
+                    key=f"bala_cortadas_{data_str}", label_visibility="collapsed",
+                )
+            with cols_bdl[2]:
+                total_bala = bala_p_cortar + bala_cortadas
+                st.markdown(
+                    f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total</div>"
+                    f"<div style='font-size:18px;font-weight:800;color:#C05621;padding:6px 0;'>{total_bala}</div>",
+                    unsafe_allow_html=True,
+                )
+
+        # ── Pão de Mel inacabado + Bolos + Cocada Assada ─────────────────────────
+        with st.expander(" Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
+            st.caption(
+                " **PM inacabado** em unidades · **Bolos** (1 bolo = 70 und de PM). "
+                "**ASS / Cocada Assada** é outro produto independente, em unidades."
+            )
+            cols_pm = st.columns([1, 1, 1])
+            with cols_pm[0]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> PM inacabado (und)</div>", unsafe_allow_html=True)
+                pm_inacabado = st.number_input(
+                    label="pm_inacabado_und", min_value=0,
+                    value=int(pbd_atual.get("pm_inacabado_und") or 0),
+                    key=f"pm_inacabado_{data_str}", label_visibility="collapsed",
+                )
+            with cols_pm[1]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Bolos (×70)</div>", unsafe_allow_html=True)
+                pm_bolos = st.number_input(
+                    label="pm_bolos", min_value=0,
+                    value=int(pbd_atual.get("pm_bolos") or 0),
+                    key=f"pm_bolos_{data_str}", label_visibility="collapsed",
+                )
+            with cols_pm[2]:
+                total_pm_disp = pm_inacabado + (pm_bolos * 70)
+                st.markdown(
+                    f"<div style='font-size:12px;font-weight:700;color:#7B341E;'>Σ Total disponível</div>"
+                    f"<div style='font-size:14px;font-weight:800;color:#C05621;padding:6px 0;'>{total_pm_disp} und</div>"
+                    f"<div style='font-size:11px;color:#888;'>= {pm_inacabado} + ({pm_bolos}×70)</div>",
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:12px;'> Cocada Assada — ASS (und)</div>", unsafe_allow_html=True)
+            st.caption("Produto independente do PM, apesar de aparecer junto no papelzinho.")
+            cocada_assada = st.number_input(
+                label="cocada_assada_und", min_value=0,
+                value=int(pbd_atual.get("cocada_assada_und") or 0),
+                key=f"cocada_assada_{data_str}", label_visibility="collapsed",
+            )
+
+    # ╔══════════════════════════════════════════════════════════════════════════╗
+    # ║ LADO ESQUERDO: folha de produção oficial                                 ║
+    # ╚══════════════════════════════════════════════════════════════════════════╝
+    with col_folha:
+        st.markdown("###  Folha de Produção Oficial")
+
+        # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
+        with st.expander(" Embalados — Cocada", expanded=False):
+            st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
+            cols_h = st.columns([2.0, 1, 1, 1, 1, 1])
+            for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
+                hdr_cell(col, lbl)
+            emb_v = {}
+            for sabor in SABORES_COCADA:
+                d = dados_cocada.get(sabor, {})
+                cols = st.columns([2.0, 1, 1, 1, 1, 1])
+                label_sabor(cols[0], sabor)
+                if sabor == "ZERO":
+                    celula_vazia(cols[1]); v45 = 0
+                else:
+                    v45 = num_input_compact(cols[1], f"emb_45g_{sabor}_{data_str}", d.get("emb_45g"))
+                vmi  = num_input_compact(cols[2], f"emb_mini_{sabor}_{data_str}",  d.get("emb_mini"))
+                vpt  = num_input_compact(cols[3], f"emb_pet_{sabor}_{data_str}",   d.get("emb_pet"))
+                vp26 = num_input_compact(cols[4], f"emb_p260_{sabor}_{data_str}", d.get("emb_potes_260g"))
+                vp60 = num_input_compact(cols[5], f"emb_p605_{sabor}_{data_str}", d.get("emb_potes_605g"))
+                emb_v[sabor] = {
+                    "emb_45g": v45, "emb_mini": vmi, "emb_pet": vpt,
+                    "emb_potes_260g": vp26, "emb_potes_605g": vp60,
+                }
+
+        # ── 2. CORTADOS ① — Cocada ───────────────────────────────────────────────
+        with st.expander("️ Cortados ① — Cocada (em unidades)", expanded=False):
+            st.caption(
+                "**①** = cortados hoje (lado embalagem) em **unidades** · "
+                "**②** = ① + Embalados + Joel · **③** = ② − Parâmetro Real."
+            )
+            cols_h2 = st.columns([1.6, 1, 1, 1])
+            for col, lbl in zip(cols_h2, ["Sabor", "① 45g (und)", "① Mini (und)", "① Pet (und)"]):
+                hdr_cell(col, lbl)
+            cort_v = {}
             for sabor in SABORES_COCADA:
                 d = dados_cocada.get(sabor, {})
                 cols = st.columns([1.6, 1, 1, 1])
                 label_sabor(cols[0], sabor)
-                # Base Mini
                 if sabor == "ZERO":
-                    # Z mini = 45g do L do dia
-                    base = param_real_v["45g"].get("LEITE CONDENSADO", 0)
-                    cols[1].markdown(
-                        f"<div style='padding-top:7px;color:#C05621;font-size:10px;'>= L 45g/dia · {base:,}</div>",
+                    celula_vazia(cols[1]); c1_45 = 0
+                else:
+                    c1_45 = num_input_compact(cols[1], f"cort1_45g_{sabor}_{data_str}", d.get("cort1_45g"))
+                c1_mi = num_input_compact(cols[2], f"cort1_mini_{sabor}_{data_str}", d.get("cort1_mini"))
+                c1_pt = num_input_compact(cols[3], f"cort1_pet_{sabor}_{data_str}",  d.get("cort1_pet"))
+                cort_v[sabor] = {"cort1_45g": c1_45, "cort1_mini": c1_mi, "cort1_pet": c1_pt}
+
+        # ── 3. CORTE DE COCADA — Ordens ──────────────────────────────────────────
+        with st.expander(" Corte de Cocada — Ordens (bandejas)", expanded=False):
+            st.caption(
+                "Em **bandejas** · conversão para unidades em cinza ao lado. "
+                "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
+            )
+            cols_h3 = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
+            for col, lbl in zip(cols_h3, ["Sabor", "45g (band)", "= und", "Mini (band)", "= und", "Pet (band)", "= und"]):
+                hdr_cell(col, lbl)
+            ord_corte_v = {}
+            for sabor in SABORES_COCADA:
+                d = dados_cocada.get(sabor, {})
+                cols = st.columns([2.0, 1, 0.7, 1, 0.7, 1, 0.7])
+                label_sabor(cols[0], sabor)
+                if sabor == "ZERO":
+                    celula_vazia(cols[1]); celula_vazia(cols[2]); oc45 = 0
+                else:
+                    oc45 = num_input_compact(cols[1], f"ord_corte_45g_{sabor}_{data_str}", d.get("ord_corte_45g"))
+                    cols[2].markdown(
+                        f"<div style='padding-top:7px;color:#888;font-size:10px;'>{oc45 * 100:,}</div>",
+                        unsafe_allow_html=True,
+                    )
+                ocm = num_input_compact(cols[3], f"ord_corte_mini_{sabor}_{data_str}", d.get("ord_corte_mini"))
+                cols[4].markdown(
+                    f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocm * 150:,}</div>",
+                    unsafe_allow_html=True,
+                )
+                ocp = num_input_compact(cols[5], f"ord_corte_pet_{sabor}_{data_str}", d.get("ord_corte_pet"))
+                rend_pet = 60 if sabor == "ZERO" else 30
+                cols[6].markdown(
+                    f"<div style='padding-top:7px;color:#888;font-size:10px;'>{ocp * rend_pet:,}</div>",
+                    unsafe_allow_html=True,
+                )
+                ord_corte_v[sabor] = {
+                    "ord_corte_45g": oc45,
+                    "ord_corte_mini": ocm,
+                    "ord_corte_pet": ocp,
+                }
+
+        # ── 4. PARÂMETRO REAL DO DIA (45g + Mini + Pet) ──────────────────────────
+        with st.expander("️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
+            st.caption(
+                "**Base** vem da tabela de referência · **Ajuste** = +/- da Gestão (passos de 100) · "
+                "**Real** alimenta a coluna ③ do Cortados acima."
+            )
+            metas_dia = {r["sabor"]: r for r in get_metas_45g()}
+            col_metas = DIAS_COL_METAS.get(data_sel.weekday())
+            metas_mp = {r["sabor"]: r for r in get_metas_mini_pet()}
+
+            if col_metas is None:
+                st.warning(
+                    f" {nome_dia} — sem produção de 45g programada (tabela cobre Seg-Sex)."
+                )
+
+            tab_45, tab_mi, tab_pt = st.tabs(["45g", "Mini (30g)", "Pet"])
+
+            param_real_v = {}
+
+            # --- Aba 45g ---
+            with tab_45:
+                st.caption(f"Base do dia da semana ({nome_dia}) · Z não tem 45g.")
+                ch = st.columns([1.6, 1, 1, 1])
+                for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
+                    hdr_cell(c, l)
+                param_real_v["45g"] = {}
+                for sabor in SABORES_COCADA:
+                    if sabor == "ZERO":
+                        continue
+                    d = dados_cocada.get(sabor, {})
+                    cols = st.columns([1.6, 1, 1, 1])
+                    label_sabor(cols[0], sabor)
+                    base = int(metas_dia.get(sabor, {}).get(col_metas) or 0) if col_metas else 0
+                    cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+                    with cols[2]:
+                        salvo = int(d.get("param_real_45g") or 0)
+                        aj_def = (salvo - base) if salvo else 0
+                        aj = st.number_input(
+                            label=f"aj45_{sabor}", value=aj_def, step=100,
+                            key=f"aj45_{sabor}_{data_str}", label_visibility="collapsed",
+                        )
+                    real = base + aj
+                    cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
+                    cols[3].markdown(
+                        f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
+                        unsafe_allow_html=True,
+                    )
+                    param_real_v["45g"][sabor] = real
+                param_real_v["45g"]["ZERO"] = 0
+
+            # --- Aba Mini (30g) ---
+            with tab_mi:
+                st.caption(
+                    "Base **fixa por sabor** (todos os dias) · "
+                    "Z Mini = igual ao **45g do Leite Condensado do dia** (dinâmico)."
+                )
+                ch = st.columns([1.6, 1, 1, 1])
+                for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
+                    hdr_cell(c, l)
+                param_real_v["mini"] = {}
+                for sabor in SABORES_COCADA:
+                    d = dados_cocada.get(sabor, {})
+                    cols = st.columns([1.6, 1, 1, 1])
+                    label_sabor(cols[0], sabor)
+                    # Base Mini
+                    if sabor == "ZERO":
+                        # Z mini = 45g do L do dia
+                        base = param_real_v["45g"].get("LEITE CONDENSADO", 0)
+                        cols[1].markdown(
+                            f"<div style='padding-top:7px;color:#C05621;font-size:10px;'>= L 45g/dia · {base:,}</div>",
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        raw = metas_mp.get(sabor, {}).get("mini", "0")
+                        try:
+                            base = int(str(raw).strip())
+                        except (ValueError, TypeError):
+                            base = 0
+                        cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+
+                    with cols[2]:
+                        salvo = int(d.get("param_real_mini") or 0)
+                        aj_def = (salvo - base) if salvo else 0
+                        aj = st.number_input(
+                            label=f"ajmi_{sabor}", value=aj_def, step=100,
+                            key=f"ajmi_{sabor}_{data_str}", label_visibility="collapsed",
+                        )
+                    real = base + aj
+                    cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
+                    cols[3].markdown(
+                        f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
+                        unsafe_allow_html=True,
+                    )
+                    param_real_v["mini"][sabor] = real
+
+            # --- Aba Pet ---
+            with tab_pt:
+                st.caption("Base **fixa por sabor** (todos os dias). Z Pet = 300.")
+                ch = st.columns([1.6, 1, 1, 1])
+                for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
+                    hdr_cell(c, l)
+                param_real_v["pet"] = {}
+                for sabor in SABORES_COCADA:
+                    d = dados_cocada.get(sabor, {})
+                    cols = st.columns([1.6, 1, 1, 1])
+                    label_sabor(cols[0], sabor)
+                    base = int(metas_mp.get(sabor, {}).get("pet") or 0)
+                    cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
+                    with cols[2]:
+                        salvo = int(d.get("param_real_pet") or 0)
+                        aj_def = (salvo - base) if salvo else 0
+                        aj = st.number_input(
+                            label=f"ajpt_{sabor}", value=aj_def, step=10,
+                            key=f"ajpt_{sabor}_{data_str}", label_visibility="collapsed",
+                        )
+                    real = base + aj
+                    cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
+                    cols[3].markdown(
+                        f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
+                        unsafe_allow_html=True,
+                    )
+                    param_real_v["pet"][sabor] = real
+
+        # ── 5. CORTADOS ②③ — derivado (read-only) ────────────────────────────────
+        with st.expander(" Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
+            st.caption(
+                "Atualiza em tempo real conforme você edita Embalados, Cortados① e Papelzinho do Joel."
+            )
+            st.markdown(
+                "<div style='background:#F3F4F6;border-left:5px solid #6B7280;"
+                "padding:8px 14px;border-radius:6px;color:#374151;font-size:10px;margin:6px 0;'>"
+                "ℹ️ <b>Nota — caso eventual de duplicação:</b> em alguns dias, uma célula de "
+                "<b>Mini (30g)</b> ou <b>P (Pet)</b> do Papelzinho do Joel pode já ter sido enviada "
+                "pra sala de embalagem antes da folha ser fechada — nesse caso, o valor aparece "
+                "duplicado no Cortados ②. No papel, essas células levam um asterisco <code>*</code>. "
+                "Quando isso acontecer, anote pra revisar manualmente. "
+                "<b>Feature futura:</b> sinalização por célula + baixa automática."
+                "</div>",
+                unsafe_allow_html=True,
+            )
+            rows_calc = []
+            for sabor in SABORES_COCADA:
+                pj = papel_joel_v.get(sabor, {})
+                e = emb_v[sabor]
+                c = cort_v[sabor]
+                joel_45 = int(pj.get("joel_45g") or 0)
+                joel_mi = int(pj.get("joel_mini") or 0)
+                # joel_pet está em BANDEJAS — converter pra unidades:
+                joel_pt_band = int(pj.get("joel_pet") or 0)
+                rend_pet = 60 if sabor == "ZERO" else 30
+                joel_pt_und = joel_pt_band * rend_pet
+                c2_45 = c["cort1_45g"] + e["emb_45g"] + joel_45
+                c2_mi = c["cort1_mini"] + e["emb_mini"] + joel_mi
+                c2_pt = c["cort1_pet"] + e["emb_pet"] + joel_pt_und
+                param_45 = param_real_v["45g"].get(sabor, 0)
+                param_mi = param_real_v["mini"].get(sabor, 0)
+                param_pt = param_real_v["pet"].get(sabor, 0)
+                c3_45 = (c2_45 - param_45) if param_45 else None
+                c3_mi = (c2_mi - param_mi) if param_mi else None
+                c3_pt = (c2_pt - param_pt) if param_pt else None
+                rows_calc.append({
+                    "Sabor":   sabor,
+                    "② 45g":   None if sabor == "ZERO" else c2_45,
+                    "③ 45g":   None if sabor == "ZERO" else c3_45,
+                    "② Mini":  c2_mi,
+                    "③ Mini":  c3_mi,
+                    "② Pet":   c2_pt,
+                    "③ Pet":   c3_pt,
+                })
+            df_calc = pd.DataFrame(rows_calc).convert_dtypes()
+            st.dataframe(
+                df_calc.style.map(estilo_dif, subset=["③ 45g", "③ Mini", "③ Pet"]),
+                use_container_width=True, hide_index=True,
+                column_config={
+                    "Sabor":  st.column_config.TextColumn(width=92),
+                    "② 45g":  st.column_config.NumberColumn(width=44),
+                    "③ 45g":  st.column_config.NumberColumn(width=44),
+                    "② Mini": st.column_config.NumberColumn(width=44),
+                    "③ Mini": st.column_config.NumberColumn(width=44),
+                    "② Pet":  st.column_config.NumberColumn(width=44),
+                    "③ Pet":  st.column_config.NumberColumn(width=44),
+                },
+            )
+
+        # ── 6. VIRADAS — derivado ────────────────────────────────────────────────
+        with st.expander(" Viradas — Cocada (derivado, read-only)", expanded=False):
+            st.caption(
+                "① puxa do papelzinho · ② = ① − (corte 45g + Mini + Pet)."
+            )
+            rows_vir = []
+            for sabor in SABORES_COCADA:
+                pj = papel_joel_v.get(sabor, {})
+                o = ord_corte_v[sabor]
+                v1 = int(pj.get("joel_v") or 0)
+                ord_total = o["ord_corte_45g"] + o["ord_corte_mini"] + o["ord_corte_pet"]
+                v2 = v1 - ord_total
+                rows_vir.append({
+                    "Sabor": sabor,
+                    "① do Joel (V)": v1,
+                    "Σ Cortes": ord_total,
+                    "② Pós-corte": v2,
+                })
+            df_vir = pd.DataFrame(rows_vir)
+            st.dataframe(
+                df_vir.style.map(estilo_dif, subset=["② Pós-corte"]),
+                use_container_width=True, hide_index=True,
+                column_config={
+                    "Sabor":         st.column_config.TextColumn(width=112),
+                    "① do Joel (V)": st.column_config.NumberColumn(width=92),
+                    "Σ Cortes":      st.column_config.NumberColumn(width=78),
+                    "② Pós-corte":   st.column_config.NumberColumn(width=96),
+                },
+            )
+
+        # ── 7. P/VIRAR — derivado ────────────────────────────────────────────────
+        with st.expander(" P/Virar — Cocada (derivado, read-only)", expanded=False):
+            st.caption(
+                "① puxa do papelzinho · ② = ① + Viradas② · Meta = referência fixa por sabor."
+            )
+            pv_metas = {r["sabor"]: r["band"] for r in get_pvirar_ideal()}
+            rows_pv = []
+            for sabor in SABORES_COCADA:
+                pj = papel_joel_v.get(sabor, {})
+                o = ord_corte_v[sabor]
+                v1 = int(pj.get("joel_v") or 0)
+                v2 = v1 - (o["ord_corte_45g"] + o["ord_corte_mini"] + o["ord_corte_pet"])
+                pv1 = int(pj.get("joel_pv") or 0)
+                pv2 = pv1 + v2
+                meta = pv_metas.get(sabor, 0)
+                rows_pv.append({
+                    "Sabor": sabor,
+                    "① do Joel (PV)": pv1,
+                    "② = ① + Vir②": pv2,
+                    "Meta": meta,
+                    "Dif vs Meta": pv2 - meta,
+                })
+            df_pv = pd.DataFrame(rows_pv)
+            st.dataframe(
+                df_pv.style.map(estilo_dif, subset=["② = ① + Vir②", "Dif vs Meta"]),
+                use_container_width=True, hide_index=True,
+                column_config={
+                    "Sabor":          st.column_config.TextColumn(width=100),
+                    "① do Joel (PV)": st.column_config.NumberColumn(width=92),
+                    "② = ① + Vir②":   st.column_config.NumberColumn(width=96),
+                    "Meta":           st.column_config.NumberColumn(width=56),
+                    "Dif vs Meta":    st.column_config.NumberColumn(width=78),
+                },
+            )
+
+        # ── 8. PRODUÇÃO — Cocada (Ordens) ────────────────────────────────────────
+        with st.expander(" Produção — Cocada (Ordens)", expanded=False):
+            st.caption(
+                "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
+            )
+            cols_h5 = st.columns([2.0, 1, 0.7, 1, 1, 1])
+            for col, lbl in zip(cols_h5, ["Sabor", "Bandejas", "= tachos", "Virada", "Potes 260g", "Potes 605g"]):
+                hdr_cell(col, lbl)
+            ord_prod_v = {}
+            for sabor in SABORES_COCADA:
+                d = dados_cocada.get(sabor, {})
+                cols = st.columns([2.0, 1, 0.7, 1, 1, 1])
+                label_sabor(cols[0], sabor)
+                step_band = 3 if sabor == "ZERO" else 8
+                div_t = 3 if sabor == "ZERO" else 8
+                pb = num_input_compact(cols[1], f"ord_prod_band_{sabor}_{data_str}", d.get("ord_prod_band"), step=step_band)
+                if pb > 0:
+                    cols[2].markdown(
+                        f"<div style='padding-top:7px;color:#C05621;font-weight:600;font-size:10px;'>{pb / div_t:.1f}T</div>",
                         unsafe_allow_html=True,
                     )
                 else:
-                    raw = metas_mp.get(sabor, {}).get("mini", "0")
-                    try:
-                        base = int(str(raw).strip())
-                    except (ValueError, TypeError):
-                        base = 0
-                    cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
-
-                with cols[2]:
-                    salvo = int(d.get("param_real_mini") or 0)
-                    aj_def = (salvo - base) if salvo else 0
-                    aj = st.number_input(
-                        label=f"ajmi_{sabor}", value=aj_def, step=100,
-                        key=f"ajmi_{sabor}_{data_str}", label_visibility="collapsed",
-                    )
-                real = base + aj
-                cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
-                cols[3].markdown(
-                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
-                    unsafe_allow_html=True,
+                    cols[2].markdown("<div style='padding-top:7px;color:#bbb;font-size:10px;'>—</div>", unsafe_allow_html=True)
+                pv  = num_input_compact(cols[3], f"ord_prod_virada_{sabor}_{data_str}", d.get("ord_prod_virada"))
+                p26 = num_input_compact(cols[4], f"ord_prod_p260_{sabor}_{data_str}",   d.get("ord_prod_potes_260g"))
+                p60 = num_input_compact(cols[5], f"ord_prod_p605_{sabor}_{data_str}",   d.get("ord_prod_potes_605g"))
+                ord_prod_v[sabor] = {
+                    "ord_prod_band": pb, "ord_prod_virada": pv,
+                    "ord_prod_potes_260g": p26, "ord_prod_potes_605g": p60,
+                }
+            soma_n = sum(ord_prod_v[s]["ord_prod_band"] for s in SABORES_COCADA if s != "ZERO")
+            soma_z = ord_prod_v["ZERO"]["ord_prod_band"]
+            if soma_n + soma_z > 0:
+                st.caption(
+                    f" **Total a produzir:** {soma_n + soma_z} bandejas "
+                    f"≈ **{soma_n / 8 + soma_z / 3:.1f} tachos** (Zero conta 1/3)"
                 )
-                param_real_v["mini"][sabor] = real
 
-        # --- Aba Pet ---
-        with tab_pt:
-            st.caption("Base **fixa por sabor** (todos os dias). Z Pet = 300.")
-            ch = st.columns([1.6, 1, 1, 1])
-            for c, l in zip(ch, ["Sabor", "Base", "Ajuste (+/-)", "= Real"]):
-                hdr_cell(c, l)
-            param_real_v["pet"] = {}
+        # ── 9. EMBALAGEM — Cocada (Ordens) ───────────────────────────────────────
+        with st.expander(" Embalagem — Cocada (Ordens, em unidades)", expanded=False):
+            st.caption("Unidades a embalar hoje. Z não tem 45g.")
+            cols_h6 = st.columns([1.6, 1, 1])
+            for col, lbl in zip(cols_h6, ["Sabor", "45g (und)", "Mini (und)"]):
+                hdr_cell(col, lbl)
+            ord_emb_v = {}
             for sabor in SABORES_COCADA:
                 d = dados_cocada.get(sabor, {})
-                cols = st.columns([1.6, 1, 1, 1])
+                cols = st.columns([1.6, 1, 1])
                 label_sabor(cols[0], sabor)
-                base = int(metas_mp.get(sabor, {}).get("pet") or 0)
-                cols[1].markdown(f"<div style='padding-top:7px;color:#666;'>{base:,}</div>", unsafe_allow_html=True)
-                with cols[2]:
-                    salvo = int(d.get("param_real_pet") or 0)
-                    aj_def = (salvo - base) if salvo else 0
-                    aj = st.number_input(
-                        label=f"ajpt_{sabor}", value=aj_def, step=10,
-                        key=f"ajpt_{sabor}_{data_str}", label_visibility="collapsed",
-                    )
-                real = base + aj
-                cor = "#065F46" if real >= base and real > 0 else ("#7F1D1D" if real < base else "#1a1a1a")
-                cols[3].markdown(
-                    f"<div style='padding-top:7px;font-weight:700;color:{cor};'>{real:,}</div>",
+                if sabor == "ZERO":
+                    celula_vazia(cols[1]); e45 = 0
+                else:
+                    e45 = num_input_compact(cols[1], f"ord_emb_45g_{sabor}_{data_str}", d.get("ord_emb_45g"))
+                emi = num_input_compact(cols[2], f"ord_emb_mini_{sabor}_{data_str}", d.get("ord_emb_mini"))
+                ord_emb_v[sabor] = {"ord_emb_45g": e45, "ord_emb_mini": emi}
+            t45 = sum(ord_emb_v[s]["ord_emb_45g"] for s in SABORES_COCADA)
+            tmi = sum(ord_emb_v[s]["ord_emb_mini"] for s in SABORES_COCADA)
+            if t45 + tmi > 0:
+                st.caption(f" **Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
+
+        # ── 10. EMBALADOS — Palha ────────────────────────────────────────────────
+        with st.expander(" Embalados — Palha", expanded=False):
+            st.caption("**50g** apenas em T, L, CH · **Pet 160g** em todos · em **unidades**.")
+            cols_hpe = st.columns([1.4, 1, 1])
+            for col, lbl in zip(cols_hpe, ["Sabor", "50g (und)", "Pet 160g (und)"]):
+                hdr_cell(col, lbl)
+            emb_palha_v = {}
+            for sabor in SABORES_PALHA:
+                d = dados_palha.get(sabor, {})
+                cols = st.columns([1.4, 1, 1])
+                sigla = SIGLA_PALHA.get(sabor, sabor)
+                cols[0].markdown(
+                    f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
                     unsafe_allow_html=True,
                 )
-                param_real_v["pet"][sabor] = real
+                if sabor in SABORES_PALHA_50G:
+                    v50 = num_input_compact(cols[1], f"emb_palha_50g_{sabor}_{data_str}", d.get("emb_50g"))
+                else:
+                    celula_vazia(cols[1]); v50 = 0
+                vpt = num_input_compact(cols[2], f"emb_palha_pet_{sabor}_{data_str}", d.get("emb_pet"))
+                emb_palha_v[sabor] = {"emb_50g": v50, "emb_pet": vpt}
 
-    # ── 5. CORTADOS ②③ — derivado (read-only) ────────────────────────────────
-    with st.expander(" Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
-        st.caption(
-            "Atualiza em tempo real conforme você edita Embalados, Cortados① e Papelzinho do Joel."
-        )
-        st.markdown(
-            "<div style='background:#F3F4F6;border-left:5px solid #6B7280;"
-            "padding:8px 14px;border-radius:6px;color:#374151;font-size:10px;margin:6px 0;'>"
-            "ℹ️ <b>Nota — caso eventual de duplicação:</b> em alguns dias, uma célula de "
-            "<b>Mini (30g)</b> ou <b>P (Pet)</b> do Papelzinho do Joel pode já ter sido enviada "
-            "pra sala de embalagem antes da folha ser fechada — nesse caso, o valor aparece "
-            "duplicado no Cortados ②. No papel, essas células levam um asterisco <code>*</code>. "
-            "Quando isso acontecer, anote pra revisar manualmente. "
-            "<b>Feature futura:</b> sinalização por célula + baixa automática."
-            "</div>",
-            unsafe_allow_html=True,
-        )
-        rows_calc = []
-        for sabor in SABORES_COCADA:
-            pj = papel_joel_v.get(sabor, {})
-            e = emb_v[sabor]
-            c = cort_v[sabor]
-            joel_45 = int(pj.get("joel_45g") or 0)
-            joel_mi = int(pj.get("joel_mini") or 0)
-            # joel_pet está em BANDEJAS — converter pra unidades:
-            joel_pt_band = int(pj.get("joel_pet") or 0)
-            rend_pet = 60 if sabor == "ZERO" else 30
-            joel_pt_und = joel_pt_band * rend_pet
-            c2_45 = c["cort1_45g"] + e["emb_45g"] + joel_45
-            c2_mi = c["cort1_mini"] + e["emb_mini"] + joel_mi
-            c2_pt = c["cort1_pet"] + e["emb_pet"] + joel_pt_und
-            param_45 = param_real_v["45g"].get(sabor, 0)
-            param_mi = param_real_v["mini"].get(sabor, 0)
-            param_pt = param_real_v["pet"].get(sabor, 0)
-            c3_45 = (c2_45 - param_45) if param_45 else None
-            c3_mi = (c2_mi - param_mi) if param_mi else None
-            c3_pt = (c2_pt - param_pt) if param_pt else None
-            rows_calc.append({
-                "Sabor":   sabor,
-                "② 45g":   None if sabor == "ZERO" else c2_45,
-                "③ 45g":   None if sabor == "ZERO" else c3_45,
-                "② Mini":  c2_mi,
-                "③ Mini":  c3_mi,
-                "② Pet":   c2_pt,
-                "③ Pet":   c3_pt,
-            })
-        df_calc = pd.DataFrame(rows_calc).convert_dtypes()
-        st.dataframe(
-            df_calc.style.map(estilo_dif, subset=["③ 45g", "③ Mini", "③ Pet"]),
-            use_container_width=True, hide_index=True,
-            column_config={
-                "Sabor":  st.column_config.TextColumn(width=92),
-                "② 45g":  st.column_config.NumberColumn(width=44),
-                "③ 45g":  st.column_config.NumberColumn(width=44),
-                "② Mini": st.column_config.NumberColumn(width=44),
-                "③ Mini": st.column_config.NumberColumn(width=44),
-                "② Pet":  st.column_config.NumberColumn(width=44),
-                "③ Pet":  st.column_config.NumberColumn(width=44),
-            },
-        )
-
-    # ── 6. VIRADAS — derivado ────────────────────────────────────────────────
-    with st.expander(" Viradas — Cocada (derivado, read-only)", expanded=False):
-        st.caption(
-            "① puxa do papelzinho · ② = ① − (corte 45g + Mini + Pet)."
-        )
-        rows_vir = []
-        for sabor in SABORES_COCADA:
-            pj = papel_joel_v.get(sabor, {})
-            o = ord_corte_v[sabor]
-            v1 = int(pj.get("joel_v") or 0)
-            ord_total = o["ord_corte_45g"] + o["ord_corte_mini"] + o["ord_corte_pet"]
-            v2 = v1 - ord_total
-            rows_vir.append({
-                "Sabor": sabor,
-                "① do Joel (V)": v1,
-                "Σ Cortes": ord_total,
-                "② Pós-corte": v2,
-            })
-        df_vir = pd.DataFrame(rows_vir)
-        st.dataframe(
-            df_vir.style.map(estilo_dif, subset=["② Pós-corte"]),
-            use_container_width=True, hide_index=True,
-            column_config={
-                "Sabor":         st.column_config.TextColumn(width=112),
-                "① do Joel (V)": st.column_config.NumberColumn(width=92),
-                "Σ Cortes":      st.column_config.NumberColumn(width=78),
-                "② Pós-corte":   st.column_config.NumberColumn(width=96),
-            },
-        )
-
-    # ── 7. P/VIRAR — derivado ────────────────────────────────────────────────
-    with st.expander(" P/Virar — Cocada (derivado, read-only)", expanded=False):
-        st.caption(
-            "① puxa do papelzinho · ② = ① + Viradas② · Meta = referência fixa por sabor."
-        )
-        pv_metas = {r["sabor"]: r["band"] for r in get_pvirar_ideal()}
-        rows_pv = []
-        for sabor in SABORES_COCADA:
-            pj = papel_joel_v.get(sabor, {})
-            o = ord_corte_v[sabor]
-            v1 = int(pj.get("joel_v") or 0)
-            v2 = v1 - (o["ord_corte_45g"] + o["ord_corte_mini"] + o["ord_corte_pet"])
-            pv1 = int(pj.get("joel_pv") or 0)
-            pv2 = pv1 + v2
-            meta = pv_metas.get(sabor, 0)
-            rows_pv.append({
-                "Sabor": sabor,
-                "① do Joel (PV)": pv1,
-                "② = ① + Vir②": pv2,
-                "Meta": meta,
-                "Dif vs Meta": pv2 - meta,
-            })
-        df_pv = pd.DataFrame(rows_pv)
-        st.dataframe(
-            df_pv.style.map(estilo_dif, subset=["② = ① + Vir②", "Dif vs Meta"]),
-            use_container_width=True, hide_index=True,
-            column_config={
-                "Sabor":          st.column_config.TextColumn(width=100),
-                "① do Joel (PV)": st.column_config.NumberColumn(width=92),
-                "② = ① + Vir②":   st.column_config.NumberColumn(width=96),
-                "Meta":           st.column_config.NumberColumn(width=56),
-                "Dif vs Meta":    st.column_config.NumberColumn(width=78),
-            },
-        )
-
-    # ── 8. PRODUÇÃO — Cocada (Ordens) ────────────────────────────────────────
-    with st.expander(" Produção — Cocada (Ordens)", expanded=False):
-        st.caption(
-            "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
-        )
-        cols_h5 = st.columns([2.0, 1, 0.7, 1, 1, 1])
-        for col, lbl in zip(cols_h5, ["Sabor", "Bandejas", "= tachos", "Virada", "Potes 260g", "Potes 605g"]):
-            hdr_cell(col, lbl)
-        ord_prod_v = {}
-        for sabor in SABORES_COCADA:
-            d = dados_cocada.get(sabor, {})
-            cols = st.columns([2.0, 1, 0.7, 1, 1, 1])
-            label_sabor(cols[0], sabor)
-            step_band = 3 if sabor == "ZERO" else 8
-            div_t = 3 if sabor == "ZERO" else 8
-            pb = num_input_compact(cols[1], f"ord_prod_band_{sabor}_{data_str}", d.get("ord_prod_band"), step=step_band)
-            if pb > 0:
-                cols[2].markdown(
-                    f"<div style='padding-top:7px;color:#C05621;font-weight:600;font-size:10px;'>{pb / div_t:.1f}T</div>",
-                    unsafe_allow_html=True,
-                )
-            else:
-                cols[2].markdown("<div style='padding-top:7px;color:#bbb;font-size:10px;'>—</div>", unsafe_allow_html=True)
-            pv  = num_input_compact(cols[3], f"ord_prod_virada_{sabor}_{data_str}", d.get("ord_prod_virada"))
-            p26 = num_input_compact(cols[4], f"ord_prod_p260_{sabor}_{data_str}",   d.get("ord_prod_potes_260g"))
-            p60 = num_input_compact(cols[5], f"ord_prod_p605_{sabor}_{data_str}",   d.get("ord_prod_potes_605g"))
-            ord_prod_v[sabor] = {
-                "ord_prod_band": pb, "ord_prod_virada": pv,
-                "ord_prod_potes_260g": p26, "ord_prod_potes_605g": p60,
-            }
-        soma_n = sum(ord_prod_v[s]["ord_prod_band"] for s in SABORES_COCADA if s != "ZERO")
-        soma_z = ord_prod_v["ZERO"]["ord_prod_band"]
-        if soma_n + soma_z > 0:
+        # ── 10b. DISPLAYS DE PALHA 50g — contagem manual ─────────────────────────
+        with st.expander(" Displays de Palha 50g", expanded=False):
             st.caption(
-                f" **Total a produzir:** {soma_n + soma_z} bandejas "
-                f"≈ **{soma_n / 8 + soma_z / 3:.1f} tachos** (Zero conta 1/3)"
+                "Quantos displays você tem hoje em estoque. "
+                "Cada display contém **10 palhas** (4 Tradicional + 4 Leite em pó + 2 Churros)."
+            )
+            meta_dia = META_DISPLAYS_PALHA.get(nome_dia, 0)
+            cols_disp = st.columns([1, 1])
+            with cols_disp[0]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Displays (qtd)</div>", unsafe_allow_html=True)
+                cnt_displays = st.number_input(
+                    label="cnt_displays_palha", min_value=0,
+                    value=int(pbd_atual.get("cnt_displays_palha") or 0),
+                    key=f"cnt_displays_palha_{data_str}",
+                    label_visibility="collapsed",
+                )
+            with cols_disp[1]:
+                if meta_dia > 0:
+                    st.markdown(
+                        f"<div style='font-size:10px;color:#7B341E;padding-top:6px;'>"
+                        f" Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f"<div style='font-size:10px;color:#999;padding-top:6px;'>"
+                        f"Sem meta para {nome_dia}.</div>",
+                        unsafe_allow_html=True,
+                    )
+
+        # ── 11. PRODUÇÃO PALHA ───────────────────────────────────────────────────
+        with st.expander(" Produção Palha — Ordens", expanded=False):
+            st.caption("Bandejas a produzir de palha (não se produz palha todo dia).")
+            cols_hpp = st.columns([1.4, 1])
+            for col, lbl in zip(cols_hpp, ["Sabor", "Bandejas"]):
+                hdr_cell(col, lbl)
+            prod_palha_v = {}
+            for sabor in SABORES_PALHA:
+                d = dados_palha.get(sabor, {})
+                cols = st.columns([1.4, 1])
+                sigla = SIGLA_PALHA.get(sabor, sabor)
+                cols[0].markdown(
+                    f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                    unsafe_allow_html=True,
+                )
+                pb = num_input_compact(cols[1], f"ord_prod_palha_{sabor}_{data_str}", d.get("ord_prod_band"))
+                prod_palha_v[sabor] = {"ord_prod_band": pb}
+            tot_pp = sum(prod_palha_v[s]["ord_prod_band"] for s in SABORES_PALHA)
+            if tot_pp > 0:
+                st.caption(f" **Total produção palha:** {tot_pp} bandejas")
+
+        # ── 12. CORTE PALHA — Ordens (renderizado ANTES da Coluna PALHA porque
+        #       seus valores alimentam o cálculo de "Pós-corte" do quadro Coluna PALHA)
+        with st.expander(" Corte Palha — Ordens (bandejas)", expanded=False):
+            st.caption("**50g** apenas em T, L, CH · **Pet** em todos.")
+            cols_hcp = st.columns([1.4, 1, 1])
+            for col, lbl in zip(cols_hcp, ["Sabor", "50g (band)", "Pet (band)"]):
+                hdr_cell(col, lbl)
+            corte_palha_v = {}
+            for sabor in SABORES_PALHA:
+                d = dados_palha.get(sabor, {})
+                cols = st.columns([1.4, 1, 1])
+                sigla = SIGLA_PALHA.get(sabor, sabor)
+                cols[0].markdown(
+                    f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                    unsafe_allow_html=True,
+                )
+                if sabor in SABORES_PALHA_50G:
+                    c50 = num_input_compact(cols[1], f"ord_corte_palha_50g_{sabor}_{data_str}", d.get("ord_corte_50g"))
+                else:
+                    celula_vazia(cols[1]); c50 = 0
+                cpt = num_input_compact(cols[2], f"ord_corte_palha_pet_{sabor}_{data_str}", d.get("ord_corte_pet"))
+                corte_palha_v[sabor] = {"ord_corte_50g": c50, "ord_corte_pet": cpt}
+
+        # ── 13. COLUNA PALHA — Bandejas (Leonardo) ─────────────────────────────
+        # Bandejas = input · Pós-corte = DERIVADO (Bandejas − Corte 50g − Corte Pet)
+        with st.expander(" Coluna PALHA — Bandejas (Leonardo)", expanded=False):
+            st.caption(
+                "**Bandejas (band)** = você conta a quantidade total de bandejas de palha por sabor. "
+                "**Pós-corte (band)** = calculado automaticamente subtraindo o que foi definido em "
+                "Corte Palha (50g + Pet). Em **bandejas**."
+            )
+            cols_hpv = st.columns([1.4, 1, 1])
+            for col, lbl in zip(cols_hpv, ["Sabor", "Bandejas (band)", "Pós-corte (calc.)"]):
+                hdr_cell(col, lbl)
+            cont_palha_v = {}
+            for sabor in SABORES_PALHA:
+                d = dados_palha.get(sabor, {})
+                cols = st.columns([1.4, 1, 1])
+                sigla = SIGLA_PALHA.get(sabor, sabor)
+                cols[0].markdown(
+                    f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+                    unsafe_allow_html=True,
+                )
+                cb = num_input_compact(cols[1], f"cont_band_palha_{sabor}_{data_str}", d.get("cont_band_palha"))
+                # Pós-corte: derivado em tempo real
+                corte_total = corte_palha_v[sabor]["ord_corte_50g"] + corte_palha_v[sabor]["ord_corte_pet"]
+                pos_corte = cb - corte_total
+                cor = "#065F46" if pos_corte >= 0 else "#7F1D1D"
+                cols[2].markdown(
+                    f"<div style='padding-top:7px;font-weight:700;color:{cor};text-align:center;'>"
+                    f"{pos_corte}</div>",
+                    unsafe_allow_html=True,
+                )
+                cont_palha_v[sabor] = {"cont_band_palha": cb, "cont_band_pos_corte": pos_corte}
+
+        # ── 14.  PÃO DE MEL — caixa unificada ──────────────────────────────────
+        with st.expander(" Pão de Mel", expanded=False):
+            st.caption(
+                "Tudo sobre Pão de Mel num só lugar: quantidade atual + ordem do dia + "
+                "lembrete pro próximo dia útil. Produzido pela Produção + uma auxiliar."
             )
 
-    # ── 9. EMBALAGEM — Cocada (Ordens) ───────────────────────────────────────
-    with st.expander(" Embalagem — Cocada (Ordens, em unidades)", expanded=False):
-        st.caption("Unidades a embalar hoje. Z não tem 45g.")
-        cols_h6 = st.columns([1.6, 1, 1])
-        for col, lbl in zip(cols_h6, ["Sabor", "45g (und)", "Mini (und)"]):
-            hdr_cell(col, lbl)
-        ord_emb_v = {}
-        for sabor in SABORES_COCADA:
-            d = dados_cocada.get(sabor, {})
-            cols = st.columns([1.6, 1, 1])
-            label_sabor(cols[0], sabor)
-            if sabor == "ZERO":
-                celula_vazia(cols[1]); e45 = 0
-            else:
-                e45 = num_input_compact(cols[1], f"ord_emb_45g_{sabor}_{data_str}", d.get("ord_emb_45g"))
-            emi = num_input_compact(cols[2], f"ord_emb_mini_{sabor}_{data_str}", d.get("ord_emb_mini"))
-            ord_emb_v[sabor] = {"ord_emb_45g": e45, "ord_emb_mini": emi}
-        t45 = sum(ord_emb_v[s]["ord_emb_45g"] for s in SABORES_COCADA)
-        tmi = sum(ord_emb_v[s]["ord_emb_mini"] for s in SABORES_COCADA)
-        if t45 + tmi > 0:
-            st.caption(f" **Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
+            cnt_cols = st.columns([1, 1])
+            with cnt_cols[0]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+                cnt_pm = st.number_input(
+                    label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
+                    key=f"cnt_pm_{data_str}", label_visibility="collapsed",
+                )
+            with cnt_cols[1]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
+                ord_pm = st.number_input(
+                    label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
+                    key=f"ord_pm_{data_str}", label_visibility="collapsed",
+                )
 
-    # ── 10. EMBALADOS — Palha ────────────────────────────────────────────────
-    with st.expander(" Embalados — Palha", expanded=False):
-        st.caption("**50g** apenas em T, L, CH · **Pet 160g** em todos · em **unidades**.")
-        cols_hpe = st.columns([1.4, 1, 1])
-        for col, lbl in zip(cols_hpe, ["Sabor", "50g (und)", "Pet 160g (und)"]):
-            hdr_cell(col, lbl)
-        emb_palha_v = {}
-        for sabor in SABORES_PALHA:
-            d = dados_palha.get(sabor, {})
-            cols = st.columns([1.4, 1, 1])
-            sigla = SIGLA_PALHA.get(sabor, sabor)
-            cols[0].markdown(
-                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
-                unsafe_allow_html=True,
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'> PM pro próximo dia útil</div>", unsafe_allow_html=True)
+            st.caption(
+                "Lembrete pra Produção: quantos PM produzir no próximo dia útil. "
+                "Ex: na sexta, escrever '4' lembra Joel de produzir 4 PM na segunda."
             )
-            if sabor in SABORES_PALHA_50G:
-                v50 = num_input_compact(cols[1], f"emb_palha_50g_{sabor}_{data_str}", d.get("emb_50g"))
-            else:
-                celula_vazia(cols[1]); v50 = 0
-            vpt = num_input_compact(cols[2], f"emb_palha_pet_{sabor}_{data_str}", d.get("emb_pet"))
-            emb_palha_v[sabor] = {"emb_50g": v50, "emb_pet": vpt}
-
-    # ── 10b. DISPLAYS DE PALHA 50g — contagem manual ─────────────────────────
-    with st.expander(" Displays de Palha 50g", expanded=False):
-        st.caption(
-            "Quantos displays você tem hoje em estoque. "
-            "Cada display contém **10 palhas** (4 Tradicional + 4 Leite em pó + 2 Churros)."
-        )
-        meta_dia = META_DISPLAYS_PALHA.get(nome_dia, 0)
-        cols_disp = st.columns([1, 1])
-        with cols_disp[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Displays (qtd)</div>", unsafe_allow_html=True)
-            cnt_displays = st.number_input(
-                label="cnt_displays_palha", min_value=0,
-                value=int(pbd_atual.get("cnt_displays_palha") or 0),
-                key=f"cnt_displays_palha_{data_str}",
+            ord_amanha_obs = st.text_area(
+                label="ord_amanha_obs",
+                value=pbd_atual.get("ord_amanha_obs", "") or "",
+                height=70, key=f"ord_amanha_{data_str}",
+                placeholder="Ex: 4 (quantidade de PM a produzir no próximo dia útil)",
                 label_visibility="collapsed",
             )
-        with cols_disp[1]:
-            if meta_dia > 0:
-                st.markdown(
-                    f"<div style='font-size:10px;color:#7B341E;padding-top:6px;'>"
-                    f" Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
-                    unsafe_allow_html=True,
+
+        # ── 15.  BALAS — caixa unificada ───────────────────────────────────────
+        with st.expander(" Balas", expanded=False):
+            st.caption(
+                "Balas de doce de leite (produto distinto do PM). Produzidas pela Produção e "
+                "cortadas pelo Popô. **Ordem em TACHOS** (1 tacho = 30 balas)."
+            )
+
+            bal_cols = st.columns([1, 1])
+            with bal_cols[0]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
+                cnt_balas = st.number_input(
+                    label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
+                    key=f"cnt_balas_{data_str}", label_visibility="collapsed",
                 )
-            else:
-                st.markdown(
-                    f"<div style='font-size:10px;color:#999;padding-top:6px;'>"
-                    f"Sem meta para {nome_dia}.</div>",
-                    unsafe_allow_html=True,
+            with bal_cols[1]:
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (tachos)</div>", unsafe_allow_html=True)
+                ord_balas = st.number_input(
+                    label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
+                    key=f"ord_balas_{data_str}", label_visibility="collapsed",
                 )
+                if ord_balas > 0:
+                    st.markdown(
+                        f"<div style='font-size:10px;color:#C05621;font-weight:600;'>= {ord_balas * 30} balas</div>",
+                        unsafe_allow_html=True,
+                    )
 
-    # ── 11. PRODUÇÃO PALHA ───────────────────────────────────────────────────
-    with st.expander(" Produção Palha — Ordens", expanded=False):
-        st.caption("Bandejas a produzir de palha (não se produz palha todo dia).")
-        cols_hpp = st.columns([1.4, 1])
-        for col, lbl in zip(cols_hpp, ["Sabor", "Bandejas"]):
-            hdr_cell(col, lbl)
-        prod_palha_v = {}
-        for sabor in SABORES_PALHA:
-            d = dados_palha.get(sabor, {})
-            cols = st.columns([1.4, 1])
-            sigla = SIGLA_PALHA.get(sabor, sabor)
-            cols[0].markdown(
-                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
+        # ── 16.  DOCES — caixa unificada ───────────────────────────────────────
+        with st.expander(" Doces", expanded=False):
+            st.caption(
+                "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
+                "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
+            )
+
+            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (unidades)</div>", unsafe_allow_html=True)
+            cnt_doces = st.number_input(
+                label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
+                key=f"cnt_doces_{data_str}", label_visibility="collapsed",
+            )
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # BOTÃO DE SALVAR (transação atômica)
+    # ══════════════════════════════════════════════════════════════════════════════
+    st.divider()
+    col_btn, col_badge, col_info = st.columns([2, 1.2, 4])
+    with col_btn:
+        salvar_clicked = st.form_submit_button(
+            " Salvar folha completo",
+            type="primary",
+            use_container_width=True,
+        )
+    with col_badge:
+        # Badge " Salvo" só aparece após o clique em salvar (mesma sessão, mesma data)
+        if st.session_state.get("folha_salva_em") == data_str:
+            st.markdown(
+                "<div class='badge-salvo' style='margin-top:10px;text-align:center;"
+                "padding:8px 12px;font-size:13px;'> Salvo</div>",
                 unsafe_allow_html=True,
             )
-            pb = num_input_compact(cols[1], f"ord_prod_palha_{sabor}_{data_str}", d.get("ord_prod_band"))
-            prod_palha_v[sabor] = {"ord_prod_band": pb}
-        tot_pp = sum(prod_palha_v[s]["ord_prod_band"] for s in SABORES_PALHA)
-        if tot_pp > 0:
-            st.caption(f" **Total produção palha:** {tot_pp} bandejas")
-
-    # ── 12. CORTE PALHA — Ordens (renderizado ANTES da Coluna PALHA porque
-    #       seus valores alimentam o cálculo de "Pós-corte" do quadro Coluna PALHA)
-    with st.expander(" Corte Palha — Ordens (bandejas)", expanded=False):
-        st.caption("**50g** apenas em T, L, CH · **Pet** em todos.")
-        cols_hcp = st.columns([1.4, 1, 1])
-        for col, lbl in zip(cols_hcp, ["Sabor", "50g (band)", "Pet (band)"]):
-            hdr_cell(col, lbl)
-        corte_palha_v = {}
-        for sabor in SABORES_PALHA:
-            d = dados_palha.get(sabor, {})
-            cols = st.columns([1.4, 1, 1])
-            sigla = SIGLA_PALHA.get(sabor, sabor)
-            cols[0].markdown(
-                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
-                unsafe_allow_html=True,
-            )
-            if sabor in SABORES_PALHA_50G:
-                c50 = num_input_compact(cols[1], f"ord_corte_palha_50g_{sabor}_{data_str}", d.get("ord_corte_50g"))
-            else:
-                celula_vazia(cols[1]); c50 = 0
-            cpt = num_input_compact(cols[2], f"ord_corte_palha_pet_{sabor}_{data_str}", d.get("ord_corte_pet"))
-            corte_palha_v[sabor] = {"ord_corte_50g": c50, "ord_corte_pet": cpt}
-
-    # ── 13. COLUNA PALHA — Bandejas (Leonardo) ─────────────────────────────
-    # Bandejas = input · Pós-corte = DERIVADO (Bandejas − Corte 50g − Corte Pet)
-    with st.expander(" Coluna PALHA — Bandejas (Leonardo)", expanded=False):
+    with col_info:
         st.caption(
-            "**Bandejas (band)** = você conta a quantidade total de bandejas de palha por sabor. "
-            "**Pós-corte (band)** = calculado automaticamente subtraindo o que foi definido em "
-            "Corte Palha (50g + Pet). Em **bandejas**."
+            " Salva **toda** a folha (cocada + palha + papelzinho + PM/Balas + orientações + parâmetros) "
+            "em uma única transação atômica."
         )
-        cols_hpv = st.columns([1.4, 1, 1])
-        for col, lbl in zip(cols_hpv, ["Sabor", "Bandejas (band)", "Pós-corte (calc.)"]):
-            hdr_cell(col, lbl)
-        cont_palha_v = {}
-        for sabor in SABORES_PALHA:
-            d = dados_palha.get(sabor, {})
-            cols = st.columns([1.4, 1, 1])
-            sigla = SIGLA_PALHA.get(sabor, sabor)
-            cols[0].markdown(
-                f"<div style='padding-top:7px;font-weight:600;'>{sabor} <span style='color:#999;'>({sigla})</span></div>",
-                unsafe_allow_html=True,
-            )
-            cb = num_input_compact(cols[1], f"cont_band_palha_{sabor}_{data_str}", d.get("cont_band_palha"))
-            # Pós-corte: derivado em tempo real
-            corte_total = corte_palha_v[sabor]["ord_corte_50g"] + corte_palha_v[sabor]["ord_corte_pet"]
-            pos_corte = cb - corte_total
-            cor = "#065F46" if pos_corte >= 0 else "#7F1D1D"
-            cols[2].markdown(
-                f"<div style='padding-top:7px;font-weight:700;color:{cor};text-align:center;'>"
-                f"{pos_corte}</div>",
-                unsafe_allow_html=True,
-            )
-            cont_palha_v[sabor] = {"cont_band_palha": cb, "cont_band_pos_corte": pos_corte}
-
-    # ── 14.  PÃO DE MEL — caixa unificada ──────────────────────────────────
-    with st.expander(" Pão de Mel", expanded=False):
-        st.caption(
-            "Tudo sobre Pão de Mel num só lugar: quantidade atual + ordem do dia + "
-            "lembrete pro próximo dia útil. Produzido pela Produção + uma auxiliar."
-        )
-
-        cnt_cols = st.columns([1, 1])
-        with cnt_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
-            cnt_pm = st.number_input(
-                label="cnt_pm", min_value=0, value=int(pbd_atual.get("cnt_pm") or 0),
-                key=f"cnt_pm_{data_str}", label_visibility="collapsed",
-            )
-        with cnt_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (a produzir)</div>", unsafe_allow_html=True)
-            ord_pm = st.number_input(
-                label="ord_pm", min_value=0, value=int(pbd_atual.get("ord_pm") or 0),
-                key=f"ord_pm_{data_str}", label_visibility="collapsed",
-            )
-
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;margin-top:10px;'> PM pro próximo dia útil</div>", unsafe_allow_html=True)
-        st.caption(
-            "Lembrete pra Produção: quantos PM produzir no próximo dia útil. "
-            "Ex: na sexta, escrever '4' lembra Joel de produzir 4 PM na segunda."
-        )
-        ord_amanha_obs = st.text_area(
-            label="ord_amanha_obs",
-            value=pbd_atual.get("ord_amanha_obs", "") or "",
-            height=70, key=f"ord_amanha_{data_str}",
-            placeholder="Ex: 4 (quantidade de PM a produzir no próximo dia útil)",
-            label_visibility="collapsed",
-        )
-
-    # ── 15.  BALAS — caixa unificada ───────────────────────────────────────
-    with st.expander(" Balas", expanded=False):
-        st.caption(
-            "Balas de doce de leite (produto distinto do PM). Produzidas pela Produção e "
-            "cortadas pelo Popô. **Ordem em TACHOS** (1 tacho = 30 balas)."
-        )
-
-        bal_cols = st.columns([1, 1])
-        with bal_cols[0]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (qtd)</div>", unsafe_allow_html=True)
-            cnt_balas = st.number_input(
-                label="cnt_balas", min_value=0, value=int(pbd_atual.get("cnt_balas") or 0),
-                key=f"cnt_balas_{data_str}", label_visibility="collapsed",
-            )
-        with bal_cols[1]:
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Ordem do dia (tachos)</div>", unsafe_allow_html=True)
-            ord_balas = st.number_input(
-                label="ord_balas", min_value=0, value=int(pbd_atual.get("ord_balas") or 0),
-                key=f"ord_balas_{data_str}", label_visibility="collapsed",
-            )
-            if ord_balas > 0:
-                st.markdown(
-                    f"<div style='font-size:10px;color:#C05621;font-weight:600;'>= {ord_balas * 30} balas</div>",
-                    unsafe_allow_html=True,
-                )
-
-    # ── 16.  DOCES — caixa unificada ───────────────────────────────────────
-    with st.expander(" Doces", expanded=False):
-        st.caption(
-            "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
-            "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
-        )
-
-        st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'> Quantidade atual (unidades)</div>", unsafe_allow_html=True)
-        cnt_doces = st.number_input(
-            label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
-            key=f"cnt_doces_{data_str}", label_visibility="collapsed",
-        )
-
-# ══════════════════════════════════════════════════════════════════════════════
-# BOTÃO DE SALVAR (transação atômica)
-# ══════════════════════════════════════════════════════════════════════════════
-st.divider()
-col_btn, col_badge, col_info = st.columns([2, 1.2, 4])
-with col_btn:
-    salvar_clicked = st.button(
-        " Salvar folha completo",
-        type="primary",
-        use_container_width=True,
-    )
-with col_badge:
-    # Badge " Salvo" só aparece após o clique em salvar (mesma sessão, mesma data)
-    if st.session_state.get("folha_salva_em") == data_str:
-        st.markdown(
-            "<div class='badge-salvo' style='margin-top:10px;text-align:center;"
-            "padding:8px 12px;font-size:13px;'> Salvo</div>",
-            unsafe_allow_html=True,
-        )
-with col_info:
-    st.caption(
-        " Salva **toda** a folha (cocada + palha + papelzinho + PM/Balas + orientações + parâmetros) "
-        "em uma única transação atômica."
-    )
 
 if salvar_clicked:
     try:
