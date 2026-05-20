@@ -44,8 +44,30 @@ SIGLA_COCADA = _db.SIGLA_COCADA
 SIGLA_PALHA = _db.SIGLA_PALHA
 SABORES_PALHA_50G = _db.SABORES_PALHA_50G
 
-# ── Reexporta operações de escrita / setup (cache não faz sentido) ───────────
-init_db = _db.init_db
+# ── Reexporta operações de escrita / setup ───────────────────────────────────
+# init_db é idempotente mas CARO: faz ~25 queries (CREATE TABLE IF NOT EXISTS
+# de ~13 tabelas + checagem de schema via information_schema + seed das tabelas
+# de referência). Sem cache, rodava INTEIRO a cada rerun do Streamlit — e o
+# Streamlit re-executa o script a cada interação do usuário, em TODA página
+# (lancamento.py, pages/1_Painel.py, pages/3_Suprimentos.py chamam init_db).
+# Em produção (Postgres us-east-1) isso somava ~125 ms desperdiçados por clique.
+#
+# @st.cache_resource roda o corpo UMA vez por processo do servidor e compartilha
+# entre todos os reruns e sessões. O schema não muda durante a vida do processo,
+# então rodar init_db 1x é suficiente; num redeploy o processo reinicia e o
+# cache_resource roda de novo (pega schema novo se houver).
+@st.cache_resource(show_spinner=False)
+def _init_db_once():
+    _db.init_db()
+    return True
+
+
+def init_db():
+    """Garante o schema v2. O trabalho real (~25 queries) roda 1x por processo;
+    chamadas seguintes são cache hit instantâneo."""
+    _init_db_once()
+
+
 salvar_folha_completa = _db.salvar_folha_completa
 excluir_folha = _db.excluir_folha
 duplicar_folha = _db.duplicar_folha
