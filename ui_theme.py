@@ -84,74 +84,82 @@ html, body, .stApp {{
     background: {t['page']};
 }}
 
+.stApp {{
+    font-size: 13px;
+}}
+
 .block-container {{
-    padding-top: 1.25rem;
-    padding-bottom: 2rem;
+    padding-top: 0.6rem;
+    padding-bottom: 1.5rem;
     max-width: 1200px;
 }}
 
-/* ─────────────────────────── TIPOGRAFIA (compacta + universal) ─────────────────────────── */
-/* Seletores cobrem Streamlit moderno ([data-testid]) E legacy (.main) — Streamlit
-   recente deprecou .main em favor de [data-testid="stMain"]/[stHeading]. */
+/* ─────────────────────── TIPOGRAFIA — escala modular 1.2, base 13px ───────────────────────
+   Escala harmônica (Major Second) usada em UI densa profissional (Linear/Notion/Atlassian):
+       h1 18 · h2 16 · h3 14 · body 13 · caption 11 · micro 10
+   Cada nível é perceptivelmente distinto do anterior sem criar "zoom".
+   Seletores usam [data-testid="stMain"] / [data-testid="stHeading"] — Streamlit 1.56
+   nao tem mais a classe .main (verificado em runtime: 0 elementos). */
 
-.stApp h1, [data-testid="stHeading"] h1, [data-testid="stMain"] h1, .main h1,
+.stApp h1, [data-testid="stHeading"] h1, [data-testid="stMain"] h1, [data-testid="stMain"] h1,
 section[data-testid="stMain"] h1 {{
     color: {t['text_strong']} !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 13px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     line-height: 1.25;
-    letter-spacing: -0.015em;
-    margin: 0 0 0.3rem 0 !important;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.4rem 0 !important;
 }}
 
-.stApp h2, [data-testid="stHeading"] h2, [data-testid="stMain"] h2, .main h2,
+.stApp h2, [data-testid="stHeading"] h2, [data-testid="stMain"] h2, [data-testid="stMain"] h2,
 section[data-testid="stMain"] h2 {{
     color: {t['text_strong']} !important;
-    font-size: 12px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
     line-height: 1.3;
-    letter-spacing: -0.005em;
-    margin: 0.7rem 0 0.3rem 0 !important;
+    letter-spacing: -0.01em;
+    margin: 0.8rem 0 0.35rem 0 !important;
 }}
 
-.stApp h3, [data-testid="stHeading"] h3, [data-testid="stMain"] h3, .main h3,
+.stApp h3, [data-testid="stHeading"] h3, [data-testid="stMain"] h3, [data-testid="stMain"] h3,
 section[data-testid="stMain"] h3 {{
     color: {t['text']} !important;
-    font-size: 11px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
-    line-height: 1.4;
-    margin: 0.55rem 0 0.2rem 0 !important;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    margin: 0.6rem 0 0.3rem 0 !important;
 }}
 
-.stApp h4, .stApp h5, .stApp h6, .main h4, .main h5, .main h6 {{
+.stApp h4, .stApp h5, .stApp h6, [data-testid="stMain"] h4, [data-testid="stMain"] h5, [data-testid="stMain"] h6 {{
     color: {t['text']} !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    margin: 0.4rem 0 0.2rem 0 !important;
+    margin: 0.45rem 0 0.25rem 0 !important;
 }}
 
 .stApp p, .stApp li, .stApp .stMarkdown,
-.main p, .main li, .main .stMarkdown,
+[data-testid="stMain"] p, [data-testid="stMain"] li, [data-testid="stMain"] .stMarkdown,
 [data-testid="stMarkdownContainer"] p,
 [data-testid="stMarkdownContainer"] li {{
     color: {t['text']};
-    font-size: 11px !important;
+    font-size: 13px !important;
     line-height: 1.5;
 }}
 
-.main a {{
+[data-testid="stMain"] a, .stApp a {{
     color: {t['brand']};
     text-decoration: none;
     font-weight: 500;
 }}
-.main a:hover {{
+[data-testid="stMain"] a:hover, .stApp a:hover {{
     text-decoration: underline;
 }}
 
-.main code {{
+[data-testid="stMain"] code, .stApp code {{
     font-family: 'JetBrains Mono', 'Consolas', monospace !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     background: {t['surface_alt']} !important;
     border: 1px solid {t['border']} !important;
     border-radius: 4px !important;
@@ -159,10 +167,11 @@ section[data-testid="stMain"] h3 {{
     color: {t['text_strong']} !important;
 }}
 
-.main [data-testid="stCaptionContainer"],
-.main .stCaption {{
+[data-testid="stMain"] [data-testid="stCaptionContainer"],
+.stApp [data-testid="stCaptionContainer"],
+[data-testid="stMain"] .stCaption {{
     color: {t['text_muted']} !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
     font-weight: 400 !important;
     line-height: 1.45;
 }}
@@ -256,13 +265,19 @@ section[data-testid="stSidebar"] button[kind="primary"] * {{
     color: #FFFFFF !important;
 }}
 
-/* Popover button (⋮ ao lado de cada folha) */
+/* Popover button (⋮ ao lado de cada folha) — dimensionado pra ser clicável */
 section[data-testid="stSidebar"] button[kind="popover"],
 section[data-testid="stSidebar"] [data-testid*="opover"] button,
 section[data-testid="stSidebar"] button[aria-haspopup="dialog"] {{
     background: {t['sb_surface_2']} !important;
     color: {t['sb_text']} !important;
     border: 1px solid {t['sb_surface_2']} !important;
+    min-width: 34px !important;
+    min-height: 32px !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    padding: 2px 6px !important;
+    border-radius: 5px !important;
 }}
 
 section[data-testid="stSidebar"] button[kind="popover"]:hover,
@@ -276,6 +291,14 @@ section[data-testid="stSidebar"] button[kind="popover"] *,
 section[data-testid="stSidebar"] [data-testid*="opover"] button *,
 section[data-testid="stSidebar"] button[aria-haspopup="dialog"] * {{
     color: {t['sb_text']} !important;
+    font-size: 16px !important;
+}}
+
+section[data-testid="stSidebar"] button[kind="popover"] svg,
+section[data-testid="stSidebar"] [data-testid*="opover"] button svg,
+section[data-testid="stSidebar"] button[aria-haspopup="dialog"] svg {{
+    width: 17px !important;
+    height: 17px !important;
 }}
 
 /* Expanders na sidebar */
@@ -329,135 +352,140 @@ section[data-testid="stSidebar"] .stCaption {{
 }}
 
 /* ─────────────────────────── MÉTRICAS ─────────────────────────── */
-.main [data-testid="metric-container"] {{
+[data-testid="stMain"] [data-testid="metric-container"],
+.stApp [data-testid="metric-container"],
+.stApp [data-testid="stMetric"] {{
     background: {t['page']};
     border: 1px solid {t['border']};
     border-radius: 6px;
-    padding: 7px 11px;
+    padding: 5px 9px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }}
 
-.main [data-testid="metric-container"] label {{
+[data-testid="stMain"] [data-testid="metric-container"] label,
+.stApp [data-testid="stMetric"] label {{
     color: {t['text_muted']} !important;
-    font-size: 9px !important;
+    font-size: 10px !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
     margin-bottom: 1px;
 }}
 
-.main [data-testid="metric-container"] [data-testid="stMetricValue"] {{
+[data-testid="stMain"] [data-testid="metric-container"] [data-testid="stMetricValue"],
+.stApp [data-testid="stMetricValue"] {{
     color: {t['text_strong']} !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
     line-height: 1.2;
 }}
 
-.main [data-testid="metric-container"] [data-testid="stMetricDelta"] {{
-    font-size: 10px !important;
+[data-testid="stMain"] [data-testid="metric-container"] [data-testid="stMetricDelta"],
+.stApp [data-testid="stMetricDelta"] {{
+    font-size: 11px !important;
 }}
 
 /* ─────────────────────────── BOTÕES (conteúdo principal) ─────────────────────────── */
-.main .stButton > button {{
+[data-testid="stMain"] .stButton > button {{
     background: {t['page']} !important;
     color: {t['text']} !important;
     border: 1px solid {t['border_strong']} !important;
     font-weight: 500 !important;
-    font-size: 11px !important;
-    padding: 4px 9px !important;
+    font-size: 12px !important;
+    padding: 5px 11px !important;
     border-radius: 5px !important;
     transition: all 0.15s;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }}
 
-.main .stButton > button:hover {{
+[data-testid="stMain"] .stButton > button:hover {{
     background: {t['surface']} !important;
     border-color: {t['brand']} !important;
     color: {t['text_strong']} !important;
 }}
 
-.main .stButton > button[kind="primary"] {{
+[data-testid="stMain"] .stButton > button[kind="primary"] {{
     background: {t['brand']} !important;
     color: #FFFFFF !important;
     border: none !important;
     font-weight: 600 !important;
-    padding: 5px 12px !important;
+    padding: 6px 14px !important;
     box-shadow: 0 1px 2px rgba(192, 86, 33, 0.2);
 }}
 
-.main .stButton > button[kind="primary"]:hover {{
+[data-testid="stMain"] .stButton > button[kind="primary"]:hover {{
     background: {t['brand_hover']} !important;
     color: #FFFFFF !important;
 }}
 
 /* ─────────────────────────── INPUTS ─────────────────────────── */
-.main .stTextInput input,
-.main .stNumberInput input,
-.main .stTextArea textarea,
-.main .stDateInput input {{
+[data-testid="stMain"] .stTextInput input,
+[data-testid="stMain"] .stNumberInput input,
+[data-testid="stMain"] .stTextArea textarea,
+[data-testid="stMain"] .stDateInput input {{
     border: 1px solid {t['border']} !important;
     border-radius: 5px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     font-family: 'Inter', sans-serif !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
-    padding: 4px 8px !important;
-    min-height: 28px !important;
+    padding: 3px 7px !important;
+    min-height: 26px !important;
 }}
 
-.main .stSelectbox > div > div {{
+[data-testid="stMain"] .stSelectbox > div > div {{
     border: 1px solid {t['border']} !important;
     border-radius: 5px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     color: {t['text']} !important;
     background: {t['page']} !important;
-    min-height: 28px !important;
+    min-height: 26px !important;
 }}
 
-.main .stTextInput input:focus,
-.main .stNumberInput input:focus,
-.main .stTextArea textarea:focus,
-.main .stDateInput input:focus {{
+[data-testid="stMain"] .stTextInput input:focus,
+[data-testid="stMain"] .stNumberInput input:focus,
+[data-testid="stMain"] .stTextArea textarea:focus,
+[data-testid="stMain"] .stDateInput input:focus {{
     border-color: {t['brand']} !important;
     box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.1) !important;
     outline: none !important;
 }}
 
-.main .stTextInput label,
-.main .stNumberInput label,
-.main .stSelectbox label,
-.main .stTextArea label,
-.main .stDateInput label,
-.main .stSlider label,
-.main .stCheckbox label,
-.main .stRadio label {{
+[data-testid="stMain"] .stTextInput label,
+[data-testid="stMain"] .stNumberInput label,
+[data-testid="stMain"] .stSelectbox label,
+[data-testid="stMain"] .stTextArea label,
+[data-testid="stMain"] .stDateInput label,
+[data-testid="stMain"] .stSlider label,
+[data-testid="stMain"] .stCheckbox label,
+[data-testid="stMain"] .stRadio label {{
     color: {t['text']} !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
 }}
 
 /* Slider */
-.main .stSlider [data-baseweb="slider"] [role="slider"] {{
+[data-testid="stMain"] .stSlider [data-baseweb="slider"] [role="slider"] {{
     background: {t['brand']} !important;
 }}
 
 /* ─────────────────────────── TABS ─────────────────────────── */
-.main .stTabs [data-baseweb="tab-list"] {{
+[data-testid="stMain"] .stTabs [data-baseweb="tab-list"] {{
     background: transparent;
     border-bottom: 1px solid {t['border']};
     gap: 4px;
 }}
 
-.main .stTabs [data-baseweb="tab"] {{
+[data-testid="stMain"] .stTabs [data-baseweb="tab"] {{
     background: transparent !important;
     color: {t['text_secondary']} !important;
     font-weight: 500;
-    font-size: 11px !important;
+    font-size: 12px !important;
     border-radius: 5px 5px 0 0;
-    padding: 5px 10px !important;
+    padding: 5px 11px !important;
 }}
 
-.main .stTabs [data-baseweb="tab"][aria-selected="true"] {{
+[data-testid="stMain"] .stTabs [data-baseweb="tab"][aria-selected="true"] {{
     background: transparent !important;
     color: {t['brand']} !important;
     font-weight: 600;
@@ -465,40 +493,40 @@ section[data-testid="stSidebar"] .stCaption {{
 }}
 
 /* ─────────────────────────── EXPANDER (conteúdo principal) ─────────────────────────── */
-.main [data-testid="stExpander"] {{
+[data-testid="stMain"] [data-testid="stExpander"] {{
     background: {t['page']} !important;
     border: 1px solid {t['border']} !important;
-    border-radius: 8px !important;
-    margin: 6px 0;
+    border-radius: 7px !important;
+    margin: 4px 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }}
 
-.main [data-testid="stExpander"] summary {{
+[data-testid="stMain"] [data-testid="stExpander"] summary {{
     color: {t['text']} !important;
-    font-size: 11px !important;
-    font-weight: 500 !important;
-    padding: 6px 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 5px 9px !important;
 }}
 
-.main [data-testid="stExpander"] summary:hover {{
+[data-testid="stMain"] [data-testid="stExpander"] summary:hover {{
     background: {t['surface']} !important;
 }}
 
 /* ─────────────────────────── DATAFRAME ─────────────────────────── */
-.main .stDataFrame {{
+[data-testid="stMain"] .stDataFrame {{
     border: 1px solid {t['border']} !important;
     border-radius: 8px !important;
     overflow: hidden;
 }}
 
 /* ─────────────────────────── DIVIDER ─────────────────────────── */
-.main hr {{
+[data-testid="stMain"] hr {{
     border-color: {t['border']} !important;
     margin: 1.5rem 0 !important;
 }}
 
 /* ─────────────────────────── ALERTS NATIVOS ─────────────────────────── */
-.main .stAlert {{
+[data-testid="stMain"] .stAlert {{
     border-radius: 8px !important;
     border-left-width: 4px !important;
     padding: 12px 16px !important;
@@ -566,30 +594,30 @@ section[data-testid="stSidebar"] .stCaption {{
 /* ─────────────────────────── COMPATIBILIDADE LEGACY ─────────────────────────── */
 /* Sobrescreve TODO CSS antigo das páginas pra contraste correto */
 
-.main .insight-card-master,
-.main .insight-card-warning,
-.main .insight-card-good,
-.main .insight-card-info,
-.main .didatica,
-.main .pergunta-eraldo,
-.main .anomaly-card,
-.main .alerta-alto,
-.main .alerta-medio,
-.main .alerta-ok,
-.main .limit-warning,
-.main .card-feature,
-.main .glossario-termo,
-.main .ref-box,
-.main .card-a, .main .card-b, .main .card-c,
-.main .resposta-claude,
-.main .pergunta-user,
-.main .faq-q, .main .faq-a,
-.main .erro-card,
-.main .custo-info,
-.main .exemplo-pergunta,
-.main .card-funcionario,
-.main .status-box-new,
-.main .status-box-edit {{
+[data-testid="stMain"] .insight-card-master,
+[data-testid="stMain"] .insight-card-warning,
+[data-testid="stMain"] .insight-card-good,
+[data-testid="stMain"] .insight-card-info,
+[data-testid="stMain"] .didatica,
+[data-testid="stMain"] .pergunta-eraldo,
+[data-testid="stMain"] .anomaly-card,
+[data-testid="stMain"] .alerta-alto,
+[data-testid="stMain"] .alerta-medio,
+[data-testid="stMain"] .alerta-ok,
+[data-testid="stMain"] .limit-warning,
+[data-testid="stMain"] .card-feature,
+[data-testid="stMain"] .glossario-termo,
+[data-testid="stMain"] .ref-box,
+[data-testid="stMain"] .card-a, [data-testid="stMain"] .card-b, [data-testid="stMain"] .card-c,
+[data-testid="stMain"] .resposta-claude,
+[data-testid="stMain"] .pergunta-user,
+[data-testid="stMain"] .faq-q, [data-testid="stMain"] .faq-a,
+[data-testid="stMain"] .erro-card,
+[data-testid="stMain"] .custo-info,
+[data-testid="stMain"] .exemplo-pergunta,
+[data-testid="stMain"] .card-funcionario,
+[data-testid="stMain"] .status-box-new,
+[data-testid="stMain"] .status-box-edit {{
     background: {t['page']} !important;
     background-image: none !important;
     border: 1px solid {t['border']} !important;
@@ -601,108 +629,108 @@ section[data-testid="stSidebar"] .stCaption {{
 }}
 
 /* Cards de SUCESSO */
-.main .insight-card-good,
-.main .alerta-ok,
-.main .card-a,
-.main .status-box-new {{
+[data-testid="stMain"] .insight-card-good,
+[data-testid="stMain"] .alerta-ok,
+[data-testid="stMain"] .card-a,
+[data-testid="stMain"] .status-box-new {{
     background: {t['success_bg']} !important;
     border-left: 4px solid {t['success']} !important;
     color: {t['success_text']} !important;
 }}
 
-.main .insight-card-good *,
-.main .alerta-ok *,
-.main .card-a *,
-.main .status-box-new * {{
+[data-testid="stMain"] .insight-card-good *,
+[data-testid="stMain"] .alerta-ok *,
+[data-testid="stMain"] .card-a *,
+[data-testid="stMain"] .status-box-new * {{
     color: {t['success_text']} !important;
 }}
 
 /* Cards de AVISO */
-.main .insight-card-warning,
-.main .alerta-medio,
-.main .card-b,
-.main .limit-warning,
-.main .didatica,
-.main .pergunta-eraldo,
-.main .glossario-termo,
-.main .faq-q,
-.main .status-box-edit {{
+[data-testid="stMain"] .insight-card-warning,
+[data-testid="stMain"] .alerta-medio,
+[data-testid="stMain"] .card-b,
+[data-testid="stMain"] .limit-warning,
+[data-testid="stMain"] .didatica,
+[data-testid="stMain"] .pergunta-eraldo,
+[data-testid="stMain"] .glossario-termo,
+[data-testid="stMain"] .faq-q,
+[data-testid="stMain"] .status-box-edit {{
     background: {t['warning_bg']} !important;
     border-left: 4px solid {t['warning']} !important;
     color: {t['warning_text']} !important;
 }}
 
-.main .insight-card-warning *,
-.main .alerta-medio *,
-.main .card-b *,
-.main .limit-warning *,
-.main .didatica *,
-.main .pergunta-eraldo *,
-.main .glossario-termo *,
-.main .faq-q *,
-.main .status-box-edit * {{
+[data-testid="stMain"] .insight-card-warning *,
+[data-testid="stMain"] .alerta-medio *,
+[data-testid="stMain"] .card-b *,
+[data-testid="stMain"] .limit-warning *,
+[data-testid="stMain"] .didatica *,
+[data-testid="stMain"] .pergunta-eraldo *,
+[data-testid="stMain"] .glossario-termo *,
+[data-testid="stMain"] .faq-q *,
+[data-testid="stMain"] .status-box-edit * {{
     color: {t['warning_text']} !important;
 }}
 
 /* Cards de INFO */
-.main .insight-card-info,
-.main .insight-card-master,
-.main .card-feature,
-.main .ref-box,
-.main .custo-info,
-.main .exemplo-pergunta {{
+[data-testid="stMain"] .insight-card-info,
+[data-testid="stMain"] .insight-card-master,
+[data-testid="stMain"] .card-feature,
+[data-testid="stMain"] .ref-box,
+[data-testid="stMain"] .custo-info,
+[data-testid="stMain"] .exemplo-pergunta {{
     background: {t['info_bg']} !important;
     border-left: 4px solid {t['info']} !important;
     color: {t['info_text']} !important;
 }}
 
-.main .insight-card-info *,
-.main .insight-card-master *,
-.main .card-feature *,
-.main .ref-box *,
-.main .custo-info *,
-.main .exemplo-pergunta * {{
+[data-testid="stMain"] .insight-card-info *,
+[data-testid="stMain"] .insight-card-master *,
+[data-testid="stMain"] .card-feature *,
+[data-testid="stMain"] .ref-box *,
+[data-testid="stMain"] .custo-info *,
+[data-testid="stMain"] .exemplo-pergunta * {{
     color: {t['info_text']} !important;
 }}
 
 /* Cards de PERIGO */
-.main .anomaly-card,
-.main .alerta-alto,
-.main .card-c,
-.main .erro-card {{
+[data-testid="stMain"] .anomaly-card,
+[data-testid="stMain"] .alerta-alto,
+[data-testid="stMain"] .card-c,
+[data-testid="stMain"] .erro-card {{
     background: {t['danger_bg']} !important;
     border-left: 4px solid {t['danger']} !important;
     color: {t['danger_text']} !important;
 }}
 
-.main .anomaly-card *,
-.main .alerta-alto *,
-.main .card-c *,
-.main .erro-card * {{
+[data-testid="stMain"] .anomaly-card *,
+[data-testid="stMain"] .alerta-alto *,
+[data-testid="stMain"] .card-c *,
+[data-testid="stMain"] .erro-card * {{
     color: {t['danger_text']} !important;
 }}
 
 /* Resposta do Claude — usa BRAND */
-.main .resposta-claude {{
+[data-testid="stMain"] .resposta-claude {{
     background: {t['brand_subtle']} !important;
     border-left: 4px solid {t['brand']} !important;
     color: {t['text_strong']} !important;
 }}
 
-.main .resposta-claude * {{
+[data-testid="stMain"] .resposta-claude * {{
     color: {t['text_strong']} !important;
 }}
 
 /* Pergunta do usuário — neutro */
-.main .pergunta-user,
-.main .card-funcionario {{
+[data-testid="stMain"] .pergunta-user,
+[data-testid="stMain"] .card-funcionario {{
     background: {t['surface']} !important;
     border-left: 4px solid {t['border_strong']} !important;
     color: {t['text']} !important;
 }}
 
 /* FAQ-answer (faq-a) — sem fundo, só texto */
-.main .faq-a {{
+[data-testid="stMain"] .faq-a {{
     background: transparent !important;
     border: none !important;
     padding: 4px 18px !important;
@@ -711,7 +739,7 @@ section[data-testid="stSidebar"] .stCaption {{
 }}
 
 /* Badges */
-.main .badge-ativo {{
+[data-testid="stMain"] .badge-ativo {{
     background: {t['success_bg']} !important;
     color: {t['success']} !important;
     padding: 3px 10px;
@@ -721,7 +749,7 @@ section[data-testid="stSidebar"] .stCaption {{
     border: 1px solid {t['success']}33;
 }}
 
-.main .badge-inativo {{
+[data-testid="stMain"] .badge-inativo {{
     background: {t['surface_alt']} !important;
     color: {t['text_muted']} !important;
     padding: 3px 10px;
