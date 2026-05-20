@@ -310,9 +310,11 @@ with aba_insumos:
 with aba_bom:
     st.subheader(" Receitas (Bill of Materials)")
     st.caption(
-        "Pra cada produto, lista de insumos que ele consome **por unidade de produção** "
-        "(1 bandeja, 1 bolo, 1 tacho). Ex: 1 bandeja de Cocada Tradicional 45g pode "
-        "consumir 5 kg de coco ralado + 2 L de leite condensado + 0,5 kg de açúcar."
+        "Pra cada produto, a lista de insumos que ele consome **por tacho** "
+        "(cocada e palha) ou por unidade de produção (1 bolo de Pão de Mel, 1 tacho "
+        "de bala). A receita é a mesma pro sabor inteiro — o formato (45g, Mini, Pet) "
+        "é decidido só no corte. Ex: 1 tacho de Cocada Tradicional consome 19 L de "
+        "leite in natura + 8 kg de açúcar + 4 kg de coco ralado."
     )
 
     insumos_disponiveis = get_insumos(somente_ativos=True)
@@ -374,9 +376,9 @@ with aba_bom:
             ins_label = st.selectbox("Insumo", options=list(opc_ins.keys()))
             ins_obj = opc_ins[ins_label]
             qtd = st.number_input(
-                f"Quantidade ({ins_obj['unidade']}) por 1 unidade do produto",
+                f"Quantidade ({ins_obj['unidade']}) por 1 unidade de produção",
                 min_value=0.0, step=0.1, format="%.3f",
-                help=f"Ex: pra 1 bandeja consumir 5 kg de {ins_obj['nome']}, digite 5",
+                help=f"Ex: pra 1 tacho consumir 8 kg de {ins_obj['nome']}, digite 8",
             )
             obs_bom = st.text_input("Observação (opcional)", value="")
             submitted = st.form_submit_button(" Salvar linha", type="primary", use_container_width=True)

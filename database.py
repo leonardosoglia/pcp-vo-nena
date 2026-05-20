@@ -137,48 +137,44 @@ ATIVIDADES_CAPACIDADE = [
 ]
 
 
-def chave_produto_cocada(sabor: str, tamanho: str) -> str:
-    """Gera a chave canônica usada na tabela bom_produto pra cocada.
-    Ex: ('TRADICIONAL', '45g') → 'cocada_T_45g_band'
-        ('ZERO', 'Mini')       → 'cocada_Z_Mini_band'
-    Convenção: tudo é POR BANDEJA (unidade básica de produção da cocada).
+def chave_produto_cocada(sabor: str) -> str:
+    """Chave canônica do produto cocada na tabela bom_produto.
+
+    A receita é POR TACHO (uma produção inteira), NÃO por formato — descoberta
+    da entrevista com a Gestão (15/05/2026): "a mesma receita da Tradicional 45g
+    vai na Mini e na Pet, só os formatos são diferentes". O formato (45g/Mini/Pet)
+    é decidido só no corte, depois — não afeta a receita.
+    Ex: 'TRADICIONAL' → 'cocada_T_tacho' · 'ZERO' → 'cocada_Z_tacho'.
     """
     sigla = SIGLA_COCADA.get(sabor, sabor[:1])
-    return f"cocada_{sigla}_{tamanho}_band"
+    return f"cocada_{sigla}_tacho"
 
 
-def chave_produto_palha(sabor: str, tamanho: str) -> str:
-    """Chave pra palha. Ex: ('LEITE EM PÓ', '50g') → 'palha_L_50g_band'."""
+def chave_produto_palha(sabor: str) -> str:
+    """Chave canônica do produto palha — uma receita por tacho/sabor.
+    Mesma lógica de chave_produto_cocada. Ex: 'LEITE EM PÓ' → 'palha_L_tacho'."""
     sigla = SIGLA_PALHA.get(sabor, sabor[:3])
-    return f"palha_{sigla}_{tamanho}_band"
+    return f"palha_{sigla}_tacho"
 
 
 def listar_produtos_possiveis() -> list[dict]:
-    """Retorna lista de produtos que podem ter receita (BOM) cadastrada.
-    Cada produto tem 'chave' (string canônica) e 'nome' (label amigável pra UI).
+    """Produtos que podem ter receita (BOM) cadastrada.
+    Cada item tem 'chave' (canônica), 'nome' (label pra UI) e 'grupo'.
+    Cocada e palha: UMA receita por sabor (por tacho) — não por formato.
     """
     produtos = []
-    # Cocada — por bandeja, em 3 tamanhos. ZERO não tem 45g.
     for sabor in SABORES_COCADA:
-        for tamanho in ["45g", "Mini", "Pet"]:
-            if sabor == "ZERO" and tamanho == "45g":
-                continue
-            produtos.append({
-                "chave": chave_produto_cocada(sabor, tamanho),
-                "nome": f"Cocada {sabor} {tamanho} (por bandeja)",
-                "grupo": "Cocada",
-            })
-    # Palha — 50g só em T/L/CH, Pet em todos os 5.
+        produtos.append({
+            "chave": chave_produto_cocada(sabor),
+            "nome": f"Cocada {sabor} (1 tacho)",
+            "grupo": "Cocada",
+        })
     for sabor in SABORES_PALHA:
-        for tamanho in ["50g", "Pet"]:
-            if tamanho == "50g" and sabor not in SABORES_PALHA_50G:
-                continue
-            produtos.append({
-                "chave": chave_produto_palha(sabor, tamanho),
-                "nome": f"Palha {sabor} {tamanho} (por bandeja)",
-                "grupo": "Palha",
-            })
-    # Outros produtos
+        produtos.append({
+            "chave": chave_produto_palha(sabor),
+            "nome": f"Palha {sabor} (1 tacho)",
+            "grupo": "Palha",
+        })
     produtos.extend([
         {"chave": "pm_bolo",     "nome": "Pão de Mel (1 bolo = 70 unidades)", "grupo": "PM/Balas/Doces"},
         {"chave": "bala_tacho",  "nome": "Bala de doce de leite (1 tacho = 30 balas)", "grupo": "PM/Balas/Doces"},
@@ -1841,26 +1837,26 @@ def calcular_necessidades_do_dia(data: str) -> list[dict]:
             })
             necessidades[iid]["necessidade"] += linha["quantidade"] * qtd_produzir
 
-    # Cocada — ord_prod_band por sabor × 3 tamanhos? Não, ord_prod_band é total
-    # de bandejas pra produzir (não discrimina tamanho). Aplico no `_band`
-    # do sabor. Tamanho específico vem se for cadastrado separado.
-    # Por ora, atribui à variante 45g se for não-Zero, Mini se for Zero.
+    # Cocada — a receita é por TACHO. ord_prod_band é o total de bandejas a
+    # produzir do sabor; converte pra tachos pela conversão 1 tacho = 8 band
+    # (Zero = 3, ver CLAUDE.md). Necessidade = receita_por_tacho × nº de tachos.
     for r in folha_c:
         sabor = r["sabor"]
         band = r.get("ord_prod_band") or 0
         if band > 0:
-            # Heurística: a maior fração de produção da cocada é 45g
-            # (exceto Zero que vai pra Mini). Usuário pode refinar depois.
-            tam = "Mini" if sabor == "ZERO" else "45g"
-            _adicionar_necessidade(chave_produto_cocada(sabor, tam), band)
+            band_por_tacho = 3 if sabor == "ZERO" else 8
+            _adicionar_necessidade(chave_produto_cocada(sabor), band / band_por_tacho)
 
-    # Palha — ord_prod_band por sabor (tamanho 50g por convenção)
+    # Palha — também por tacho. ATENÇÃO: o rendimento do tacho de palha
+    # (bandejas por tacho) ainda não foi confirmado — está no Bloco 2 do
+    # questionário de Suprimentos (entrevistas/02_suprimentos.docx). Valor
+    # provisório 8; ajustar aqui quando a Gestão responder.
+    BAND_POR_TACHO_PALHA = 8  # PROVISÓRIO — confirmar via questionário
     for r in folha_p:
         sabor = r["sabor"]
         band = r.get("ord_prod_band") or 0
         if band > 0:
-            tam = "50g" if sabor in SABORES_PALHA_50G else "Pet"
-            _adicionar_necessidade(chave_produto_palha(sabor, tam), band)
+            _adicionar_necessidade(chave_produto_palha(sabor), band / BAND_POR_TACHO_PALHA)
 
     # PM (ord_pm em bolos)
     _adicionar_necessidade("pm_bolo", pmbd.get("ord_pm") or 0)
