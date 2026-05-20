@@ -449,15 +449,20 @@ section[data-testid="stSidebar"] .stCaption {{
     min-height: 26px !important;
 }}
 
-/* Esconde os steppers (− +) do st.number_input. Esses botoezinhos ocupavam
-   ~64px DENTRO da caixa, cobriam/cortavam o numero digitado e confundiam
-   (pareciam um "x"). O usuario digita o numero direto — caixa de input
-   limpa, sem botoes. O conteudo do número usa a largura toda. */
+/* Caixa de input limpa — o st.number_input injeta DOIS controles dentro
+   da caixa, ambos escondidos aqui:
+   1. steppers − + (stNumberInputStepUp/Down) — aparecem na caixa.
+   2. botao "x" (svg aria "Clear value") — aparece quando a caixa tem
+      numero; ocupava 24px e cortava o ultimo digito (54px sobravam pro
+      texto em vez de 78px).
+   O usuario digita o numero direto, sem botao nenhum. */
 [data-testid="stMain"] [data-testid="stNumberInputStepUp"],
-[data-testid="stMain"] [data-testid="stNumberInputStepDown"] {{
+[data-testid="stMain"] [data-testid="stNumberInputStepDown"],
+[data-testid="stMain"] [data-testid="stNumberInputContainer"] svg[aria-label="Clear value"] {{
     display: none !important;
 }}
-[data-testid="stMain"] [data-testid="stNumberInputContainer"] > div:has([data-testid="stNumberInputStepUp"]) {{
+[data-testid="stMain"] [data-testid="stNumberInputContainer"] > div:has([data-testid="stNumberInputStepUp"]),
+[data-testid="stMain"] [data-testid="stNumberInputContainer"] div:has(> svg[aria-label="Clear value"]) {{
     display: none !important;
 }}
 
