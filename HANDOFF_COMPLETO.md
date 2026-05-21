@@ -1,424 +1,278 @@
-# HANDOFF COMPLETO — Encerramento sessão 19/05/2026 ~16h30
+# HANDOFF COMPLETO — Encerramento sessão 21/05/2026
 
-> **Pra Claude da próxima sessão:** este é o documento MASTER definitivo.
-> Ler INTEIRO antes de qualquer ação. Em seguida: `CLAUDE.md`, `HANDOFF_SIGEE.md`,
-> `CADERNO.md`, memórias persistentes em `~/.claude/projects/.../memory/`.
-> Sessão atual encerrou após várias iterações de design + 391 emojis removidos.
+> **Pra Claude da próxima sessão:** este é o documento MASTER. Ler INTEIRO antes
+> de qualquer ação. Em seguida: `CLAUDE.md` (referência técnica), `HANDOFF_SIGEE.md`
+> (plano de integração com o SIGE Cloud), `CADERNO.md` (diário), e as memórias
+> persistentes em `~/.claude/projects/C--Users-bandr-.../memory/` (abrir `MEMORY.md`,
+> que é o índice).
 
 ---
 
 ## 🔴 PRIMEIRA AÇÃO NA PRÓXIMA SESSÃO
 
-**ANTES de qualquer outra coisa** o Leonardo quer:
+A sessão encerrou **no meio da extração dos insumos do SIGE Cloud**. Retomar daí.
 
-### Diminuir AINDA MAIS os tamanhos de fonte
+**Contexto:** o Leonardo está sem acesso às pessoas (Eraldo, Mariana) pra responder
+o questionário, mas tem a conta do SIGE Cloud aberta. Estávamos investigando como
+extrair a lista de insumos de lá.
 
-Mesmo após reduzir de 28px → 18px (h1), 22px → 14px (h2), etc., o Leonardo
-ainda acha **grande demais**. Pista no print do dia 19/05 às 16:13 — "TRADICIONAL"
-quebrando em 2 linhas no quadro Embalados, "LEITE CONDENSADO" também.
+**O que já descobrimos do SIGE Cloud (`app.sigecloud.com.br`):**
+- O cadastro de **Estoque → Produtos** tem um botão **"Importar/Exportar"** (dentro
+  do menu "Mais Ações") — ou seja, **dá pra exportar** os produtos (Excel/CSV).
+- O catálogo de produtos é **GRANDE** — tem muito mais coisa que os insumos da
+  fábrica. NÃO exportar tudo: filtrar primeiro.
+- Existem **categorias de produtos**. As relevantes pro módulo de Suprimentos:
+  - **PRODUÇÃO** (provável: ingredientes das receitas — a confirmar)
+  - **EMBALAGEM** (embalagens: plástico, cinta, pote, display)
+  - **PRODUTOS DE USO FABRICA** (conteúdo desconhecido — perguntar ao Leonardo)
+  - As demais (ATIVO, PRODUTOS LOJA, VENDAS LOJAS, Despesas Fixas, etc) NÃO interessam.
 
-**Plano de ação:**
-1. Abrir `ui_theme.py` no raiz do projeto
-2. Reduzir mais 1-2 pontos em cada nível:
-   - h1: 18px → **15-16px**
-   - h2: 14px → **12-13px**
-   - h3: 12px → **11px**
-   - body: 12px → **11px**
-   - caption: 11px → **10-11px**
-   - métrica valor: 16px → **14-15px**
-3. **Reduzir altura das células do quadro Embalados** (responsável por
-   quebrar "TRADICIONAL" em 2 linhas). O CSS de `[data-testid="metric-container"]`
-   pode ser reaproveitado, ou criar regras específicas pra os inputs do quadro Embalados.
-4. **Largura das colunas** do quadro Embalados — provavelmente a coluna "Sabor"
-   está estreita demais. Verificar `lancamento.py` no bloco `Embalados — Cocada`
-   e ajustar as proporções `st.columns([...])`.
-5. **Validar com Leonardo** antes de continuar pra outras tarefas. Mandar
-   screenshot do app rebuildado depois do ajuste.
+**Próximo passo concreto:** pedir ao Leonardo pra, na tela Estoque → Produtos, usar
+a **Busca Avançada** e filtrar por **Categoria = PRODUÇÃO**; mandar print. Confirmar
+que são os ingredientes. Depois exportar as categorias PRODUÇÃO + EMBALAGEM
+(+ talvez PRODUTOS DE USO FABRICA) num arquivo, receber esse arquivo, e criar o
+script `importar_csv_sigee.py` pra povoar a tabela `insumos`.
 
-**Princípio:** o Leonardo já reclamou 3 vezes da fonte grande. Não cometer
-o mesmo erro de só ajustar 1-2px. Fazer reducao real (~30-40%) + verificar
-o quadro Embalados especificamente.
+**Lembrar:** Claude NÃO acessa o SIGE (conta privada). O Leonardo é a ponte —
+ele clica, manda print, Claude orienta.
 
 ---
 
-## 1. ESTADO ATUAL DO SISTEMA (final da sessão 19/05)
+## 1. ESTADO ATUAL DO SISTEMA (21/05/2026)
 
-### URLs em produção
-- **Principal:** `https://huggingface.co/spaces/leonardosoglia/pcp-vo-nena` (Docker)
-- **Backup:** `https://pcp-vo-nena.streamlit.app` (pausar próxima semana)
-- **Repo:** `https://github.com/leonardosoglia/pcp-vo-nena` (público)
+### URLs
+- **App em produção:** `https://huggingface.co/spaces/leonardosoglia/pcp-vo-nena` (HF Spaces, Docker)
+- **Repositório:** `https://github.com/leonardosoglia/pcp-vo-nena` (público)
+- **Banco:** Supabase Postgres `pcp-vo-nena-us` (região us-east-1)
+- Remotes git locais: `origin` (GitHub) e `hf` (Hugging Face). Push vai pros dois.
 
-### Bancos
-- **Ativo:** Supabase `pcp-vo-nena-us` (us-east-1) — latência ~5ms
-- **Backup pausável:** Supabase `pcp-vo-nena` (sa-east-1) — fallback de emergência
+### Git
+- Branch `main`. Todos os commits desta sessão já foram pushed pra `origin` e `hf`.
+- Há um stash pendente: `entrevistas-eraldo-respondida-15-05` (arquivos
+  `entrevistas/01_pcp_inicial.docx/.pdf` modificados — guardados no início da sessão
+  durante o `git pull`; decidir o destino: provavelmente commitar como "respostas
+  do Eraldo").
 
-### 10 Páginas no sistema
-| # | Arquivo | Função |
-|---|---|---|
-| 1 | `lancamento.py` | Entry point — formulário da folha do dia |
-| 2 | `pages/1_Painel.py` | Visualização por departamento |
-| 3 | `pages/2_Insights.py` | Diagnóstico operacional (regras hardcoded) |
-| 4 | `pages/3_Suprimentos.py` | Insumos + BOM + necessidades (aguarda Sigee) |
-| 5 | `pages/4_Curva_ABC.py` | Pareto dos produtos |
-| 6 | `pages/5_Anomalias_ML.py` | Isolation Forest + botão "Explicar via IA" |
-| 7 | `pages/6_Media_Movel.py` | Comparativo meta × realidade |
-| 8 | `pages/7_Assistente_IA.py` | Claude Q&A (não ativado) |
-| 9 | `pages/8_Equipe.py` | Funcionários + capacidades + presença |
-| 10 | `pages/9_Ajuda.py` | Central de documentação |
-
-### Tema visual atual (refatorado nesta sessão)
-- **Fonte:** Inter (Google Fonts)
-- **Paleta:** sistema profissional (Linear/Vercel/Stripe-like)
-  - Sidebar dark slate-900 (#0F172A)
-  - Conteúdo claro (#FFFFFF / #FAFAFA)
-  - Brand orange #C05621 apenas em accents (botões primários, links, item ativo)
-  - Status: success/warning/danger/info com bg sutil + border-left 4px
-- **Tipografia atual** (Leonardo acha grande, REDUZIR mais):
-  - h1: 18px / h2: 14px / h3: 12px / body: 12px / caption: 11px / métrica: 16px
-- **CSS centralizado em `ui_theme.py`** — cada página chama `aplicar_tema()`
-- **391 emojis decorativos removidos** dos 10 arquivos Streamlit
-- **Sidebar** com items 12px, padding 5/10, botões laranja brand consistentes
-
-### Features de IA (código pronto, NÃO ativadas)
-1. **Pergunte ao Claude** (página dedicada)
-2. **Explicação de Anomalia** (botão na página Anomalias ML)
-3. Ambas requerem `ANTHROPIC_API_KEY` secret no HF Spaces
-4. Custo: ~R$5-15/mês uso típico
-5. Leonardo decidiu **não ativar agora** por questão de custo
-
-### Animação de salvamento (NÃO REMOVER)
-Adicionada no `lancamento.py:1187-1196`. Quando salva folha:
-- `st.toast()` no canto com check verde
-- `st.success()` inline confirmando
-- `st.balloons()` REMOVIDO (festivo demais)
+### 10 páginas do sistema
+`lancamento.py` (folha) · `pages/1_Painel.py` · `2_Insights.py` · `3_Suprimentos.py` ·
+`4_Curva_ABC.py` · `5_Anomalias_ML.py` · `6_Media_Movel.py` · `7_Assistente_IA.py` ·
+`8_Equipe.py` · `9_Ajuda.py`.
 
 ---
 
-## 2. HISTÓRICO COMPLETO DO PROJETO
+## 2. O QUE FOI FEITO NESTA SESSÃO (20-21/05/2026)
 
-### Sessões anteriores (12-18/05)
-- **12-13/05:** Etapa 4 — Deploy Postgres/Supabase + Streamlit Cloud
-- **14/05:** Etapa A — Renomeação por departamento (Gestão / Produção / Corte / Embalagem)
-- **15/05:** Etapa B — Schema Suprimentos (tabelas `insumos`, `bom_produto`, `movimentos_insumo`) + página com 4 abas
-- **15/05:** Entrevista parcial Eraldo (Blocos 1-3 + parte 5/6/7)
-  - Descobertas críticas: ajustes são pedidos antecipados; tachos parciais viram potes; receita é por tacho; capacidade variável da embalagem
-- **17/05:** Migração Streamlit Cloud → HF Spaces via Docker
-- **17/05:** Insights recalibrado com respostas do Eraldo
-- **17/05:** Fase 1 ML completa — Curva ABC + Anomalia ML + Média Móvel
-- **18/05:** Correção stock vs flow (Forrester 1961) — insight crítico do Leonardo
-- **18/05:** Quick wins de performance (cache 30min, pre-warm, pool maior)
+### 2.1 Sincronização e segurança (git)
+- `main` local estava 13 commits atrás de `origin/main` — feito fast-forward.
+- A credencial `pcp-vo-nena-us.txt` estava SOLTA dentro do repo. Movida pra
+  `~/Documentos/credenciais/` (fora do repo) + `.gitignore` ganhou bloco
+  "Credenciais". **Atenção:** a senha nesse arquivo está DESATUALIZADA (de antes do
+  reset de senha de 19/05) — não serve mais; a senha boa está no painel do Supabase.
+- `.gitattributes` (Git LFS pra docx/pdf/xlsx) tinha sido deletado por engano —
+  restaurado.
 
-### Sessão atual (19/05)
-1. **Manhã:** Migração Supabase sa-east-1 → us-east-1 (latência -97%)
-2. **Manhã:** Reset de senha do banco (segurança após vazamento em prints)
-3. **Tarde:** Fase 3 LLM — código entregue, não ativado
-4. **Tarde:** Ideia 2 — Explicação de anomalia via Claude
-5. **Tarde:** Ideia 4 Etapa A — Cadastro funcionários + capacidades + presença
-6. **Tarde:** 2 bugs corrigidos (KeyError Media Movel + Anomalias ML expander)
-7. **Tarde:** Página `Ajuda` criada (central de docs)
-8. **Tarde:** Enxugamento das páginas ML (textos longos → captions curtas)
-9. **Tarde:** Bug TypeError corrigido (`bala_p_cortar + bala_cortadas`)
-10. **Tarde/Noite:** Refatoração FINAL do tema:
-    - `ui_theme.py` completamente reescrito (sistema de design profissional)
-    - 391 emojis decorativos removidos
-    - Sidebar dark consistente
-    - Compatibilidade backward com classes legacy
-    - Contraste WCAG validado
-11. **Noite:** Iterações de ajuste de fonte (h1 28→22→18, h2 22→17→14...)
-    — **AINDA GRANDE, próxima sessão reduz mais**
-12. **Noite:** Animação de salvamento (`st.toast` + `st.success`, removeu `st.balloons`)
+### 2.2 Design — 4 passadas de fonte/tema
+**Causa raiz descoberta:** o `ui_theme.py` usava seletores CSS `.main ...`, mas o
+Streamlit 1.56 NÃO tem mais a classe `.main` (verificado em runtime: 0 elementos).
+Os 123 seletores estavam mortos — por isso reduzir a fonte no código não surtia
+efeito. Corrigido: `.main` → `[data-testid="stMain"]`.
+- Escala tipográfica modular base 13px: h1 18 / h2 16 / h3 14 / body 13 /
+  caption 11 / micro 10. Definida no `ui_theme.py`.
+- Coluna "Sabor" da folha alargada; `hdr_cell`/`label_sabor` uniformizados.
+- Commits: `196b03c`, `53ab76a`, `159a659`.
 
-### Commits desta sessão 19/05 (em ordem)
-- `0446786` — feat(insights): recalibrar com respostas Eraldo
-- `f32ef70` — feat(deploy): preparar migração HF Spaces
-- `3a5af81` — docs: roadmap IA em 3 fases
-- `0324efb` — config: Git LFS pra PDFs/DOCXs
-- `678d6ad` — fix YAML header HF
-- `3424897` — perf: 3 quick wins
-- `e1f3341` — feat: Curva ABC
-- `4d1f41e` — feat: Anomalias ML
-- `cc096ad` — fix: estoque vs fluxo (Forrester)
-- `015c14b` — feat: Média Móvel + Fase 1 completa
-- `5b11a1d` — docs: CADERNO atualizado
-- `4e2cb09` — feat(ia): código Pergunte ao Claude
-- `0129f1f` — feat(ia): explicação anomalia via LLM
-- `8c6febd` — feat(equipe): cadastro funcionários + capacidades + presença
-- `61daec7` — fix(secrets) + ux polimento legendas
-- `1d5c417` — fix: KeyError + enxugar páginas + criar Ajuda
-- `14551a2` — ux(visual): tema Inter + folha vazia + handoff Sigee
-- `8a31e35` — fix: TypeError soma bala_p_cortar
-- `eb1b857` — docs: HANDOFF_COMPLETO.md
-- `6e66c93` — ux(refatoracao): tema profissional + 391 emojis removidos
-- `0188b2c` — ux: reduzir fontes (1ª vez)
-- `b7e1f6f` — ux: compactar tudo + animação salvar
-- **(próximo commit)** — handoff final
+### 2.3 Inputs da folha — número cortado
+O número aparecia cortado ao digitar. Causas (todas corrigidas):
+- Gap padrão do Streamlit entre colunas (16px) desperdiçava espaço — reduzido p/ 0.3rem.
+- Os **steppers − +** do `st.number_input` ocupavam espaço — escondidos via CSS.
+- O botão **"Clear value" (x)** do `st.number_input` (aparece quando o campo tem
+  número) cobria o último dígito — escondido via CSS.
+- Commits: `b960a4b`, `0259770`, `3f663b0`.
 
-### Memórias persistentes salvas
-- `project_migracao_hf_spaces.md`
-- `project_fase1_ml_completa.md`
-- `project_handoff_sigee.md`
-- `project_etapa4_deploy.md`
-- `project_departamentos_e_mrp.md`
-- `project_pm_unidades.md`
-- `project_engrenagem_virada.md`
-- `project_reposicionamento_insumos.md`
-- `project_ajustes_antecipacao.md`
-- `project_tachos_parciais_potes.md`
-- `project_receita_por_tacho.md`
-- `project_pessoa_mariana_e_sigee.md`
+### 2.4 Performance
+Diagnóstico (instrumentação): cada rerun do app levava **~12 s** — setup 2,2 s +
+render da folha 9,7 s.
+- **`init_db` cacheado** (`be6146e`): rodava ~25 queries no banco a CADA rerun, em
+  toda página. Agora roda 1× por processo via `@st.cache_resource` no `cached_db.py`.
+- **Folha num `st.form`** (`df1b5e4`): a folha (lancamento.py linhas ~387-1155) foi
+  envolvida num `st.form`. Preencher os campos NÃO dispara mais rerun — só o botão
+  "Salvar" dispara. Antes: ~12 s por campo. Agora: preencher é instantâneo.
+  **Trade-off aceito pelo Leonardo:** os quadros derivados (Cortados ②③, Viradas,
+  P/Virar) deixaram de atualizar em tempo real — recalculam ao Salvar.
+  O Leonardo testou e confirmou que o Salvar funciona.
+- **Pendente:** "abrir uma folha" ainda leva ~12 s (1 render dos ~700 widgets).
+  A reforma pra resolver isso ("carregar sob demanda" / lazy render) foi **ADIADA
+  pra depois do TCC** — decisão do Leonardo, por ser reforma grande e arriscada na
+  reta final.
 
-Verificar `~/.claude/projects/C--Users-bandr-OneDrive-Documentos-DISCIPLINAS-P10-Est-gio-Novo-projeto/memory/MEMORY.md` (índice).
+### 2.5 Módulo de Suprimentos
+- **Questionário criado:** `entrevistas/02_suprimentos.docx` (Word, paisagem). 6
+  tabelas: receita de cocada (Tradicional pré-preenchida), receita de palha, receita
+  de PM, receita de bala, embalagens, lista de insumos. Pendente: o Leonardo abrir
+  no Word e conferir o visual (Claude não conseguiu converter pra ver — sem
+  LibreOffice no PC).
+- **Chaves de BOM refatoradas** (`aba1272`): de por-formato (`cocada_T_45g_band`)
+  pra **por-tacho** (`cocada_T_tacho`). A entrevista de 15/05 revelou que a receita
+  é por tacho/sabor, não por formato. `chave_produto_cocada/palha` perderam o
+  parâmetro `tamanho`; `listar_produtos_possiveis()` foi de 28 → 14 produtos;
+  `calcular_necessidades_do_dia()` converte bandejas → tachos (1 tacho = 8 band,
+  Zero = 3). Rendimento do tacho de **palha** ficou provisório (8) — confirmar no
+  questionário.
+- **SIGE Cloud:** exploração iniciada (ver seção "Primeira Ação" acima).
+
+### Commits desta sessão (em ordem)
+```
+196b03c  ux: compactar fontes (2a passada) + ajustar coluna Sabor
+53ab76a  ux: fontes 3a passada — seletores universais + uniformidade
+159a659  ux: corrigir tema (bug raiz: seletor .main morto no Streamlit 1.56)
+b960a4b  fix(ux): inputs cortavam o numero — gap das colunas + coluna Sabor
+0259770  fix(ux): esconder steppers do number_input — caixa de input limpa
+3f663b0  fix(ux): esconder tambem o botao "Clear value" do number_input
+be6146e  perf: rodar init_db 1x por processo (era ~25 queries a cada rerun)
+df1b5e4  perf: envolver a folha num st.form — fim do rerun a cada campo
+aba1272  fix(suprimentos): chaves de BOM por tacho, nao por formato
+```
 
 ---
 
 ## 3. PRÓXIMOS PASSOS (priorizados)
 
-### 🥇 PRIORIDADE 0 — Fix de tipografia (PRIMEIRA AÇÃO próxima sessão)
+### 🥇 Continuar a extração dos insumos do SIGE Cloud
+Detalhado na seção "Primeira Ação". Filtrar Produtos por categoria, exportar
+PRODUÇÃO + EMBALAGEM, receber o arquivo, criar `importar_csv_sigee.py`.
 
-Detalhado no topo deste documento. Reduzir fontes mais 30%, ajustar células
-do quadro Embalados pra não quebrar "TRADICIONAL"/"LEITE CONDENSADO" em 2 linhas.
+### 🥈 Coletar respostas do questionário
+- O Leonardo leva `entrevistas/02_suprimentos.docx` pro **Eraldo** (receitas) e
+  pra **Mariana** (insumos — ou resolver via export do SIGE).
+- Pendências antigas que o questionário cobre: receitas de palha; quantidades de
+  amendoim (Pé de Moça) e adoçante (Zero); confirmar 15 kg de leite condensado;
+  rendimento do tacho de palha.
 
-### 🥈 PRIORIDADE 1 — Integração Sigee Cloud
+### 🥉 Etapas C / D / E do roadmap
+- **C — Cadastro de insumos:** povoar a tabela `insumos` (via `importar_csv_sigee.py`
+  ou cadastro manual).
+- **D — BOM (receitas):** cadastrar as receitas na aba Receitas da página
+  Suprimentos, usando as chaves por tacho.
+- **E — Auto-baixa por produção:** quando a folha é salva, baixar o consumo de
+  insumos automaticamente. Integra com `salvar_folha_completa`.
 
-Seguir o **`HANDOFF_SIGEE.md`** (separate file). Resumo:
+### Refinos pendentes (menores)
+- Reforma da folha (lazy render — resolver o "abrir 12 s") — **adiada pós-TCC**.
+- Decidir destino do stash `entrevistas-eraldo-respondida-15-05`.
+- Atualizar o `CLAUDE.md` (seção 6 cita chaves de BOM antigas `..._band`;
+  seção 8 "estado atual" está em 13/05).
+- Limpeza técnica: deprecation `use_container_width` → `width="stretch"`; pausar
+  Supabase antigo (sa-east-1); desativar app Streamlit Cloud + GitHub Actions
+  keepalive.
 
-1. **Investigação inicial** (Leonardo + Claude): print do painel Sigee, ver se tem aba "API" ou "Integrações"
-2. **Caminho A (CSV manual)** — Mariana exporta lista de insumos do Sigee, criamos `importar_csv_sigee.py`
-3. **Caminho B (API REST)** — se Sigee tiver, criar cliente em Python
-4. **Recomendação:** começar por A, investigar B em paralelo
-
-**Pré-requisitos:**
-- Mariana topa exportar CSV? (Leonardo pergunta)
-- API do Sigee existe? (investigar)
-- Bloco 4 questionário Eraldo (lista de insumos com fornecedor/lead time)
-
-### 🥉 PRIORIDADE 2 — Refinamentos pendentes
-
-| Item | Esforço | Impacto |
-|---|---|---|
-| Folha PM/Balas: trocar `st.number_input` por `st.text_input` (vazio em vez de 0 + setas movem entre células) | 2h | Médio |
-| Pausar Supabase antigo (sa-east-1) | 5 min | Limpeza |
-| Deletar app Streamlit Cloud + desabilitar GitHub Actions keepalive | 10 min | Limpeza |
-| Substituir `use_container_width=True` por `width="stretch"` (~10 ocorrências, deprecation) | 30 min | Limpeza |
-| Page_icon vazio em algumas páginas (pós-emoji removal) | 10 min | Cosmético |
-
-### Continuação roadmap
-
-| Item | Pré-requisito | Fase |
-|---|---|---|
-| Etapa C — Cadastro de insumos | Mariana CSV ou Sigee API | Pós-Sigee |
-| Etapa D — BOM (receitas) | Eraldo confirmar receitas (Bloco 5) | Pós-C |
-| Etapa E — Auto-baixa por produção | BOM cadastrada | Pós-D |
-| Ideia 4 Etapa B — Input presença no Lançamento | Etapa A (já feita) | Independente |
-| Ideia 4 Etapa C — Algoritmo Sugestão de Ordem | Etapa B + capacidades reais | Após entrevista capacidades |
-| Ideia 4 Etapa D — Claude explica sugestão | Etapa C | Após C |
-| Ideia 3 — Predição de falta de insumo | BOM + lead time | Após D |
-| Fase 2 ML — Regressão + Prophet + Tendência | 8+ semanas de dados | Junho |
-
-### 🎓 Escrita do TCC (a partir de 05/06)
-
-- **Cap 1 — Introdução**
-- **Cap 2 — Revisão de literatura** (Pareto, Juran, Forrester, MRP, OEE, Isolation Forest, LLMs)
-- **Cap 3 — Metodologia** (stack, decisões arquiteturais, dual-backend)
-- **Cap 4 — Implementação** (Camadas 0, 1, 1.5, 2)
-- **Cap 5 — Resultados** (métricas reais, anomalias detectadas, decisões apoiadas)
-- **Cap 6 — Conclusão + trabalhos futuros**
+### 🎓 Escrita do TCC — começa ~05/06/2026 (faltam ~2 semanas)
 
 ---
 
 ## 4. PROBLEMAS CONHECIDOS / LIMITAÇÕES
 
-### Tipografia AINDA GRANDE (URGENTE)
-Cobertura no item PRIORIDADE 0 acima. Leonardo já reclamou 3x.
-
-### Folha PM/Balas mostra "0" em vez de vazio
-Razão: regex anterior aplicou `value=None` em number_inputs cuja variável era
-usada em somas (`bala_p_cortar + bala_cortadas`). Reverti pra evitar TypeError.
-**Solução próxima:** trocar `st.number_input` → `st.text_input` com validação.
-
-### Setas do teclado incrementam valor (em vez de mover entre células)
-Limitação Streamlit nativo. Solução junto com PM/Balas (text_input).
-
-### Deprecation warnings `use_container_width`
-~10 ocorrências. Trocar por `width="stretch"`.
-
-### Quadro Embalados com colunas estreitas
-"TRADICIONAL"/"LEITE CONDENSADO" quebrando em 2 linhas. Ajustar proporções de
-`st.columns([...])` em `lancamento.py` bloco "Embalados — Cocada".
-
-### page_icon vazio em várias páginas
-Após remoção de emojis, alguns `page_icon=""` ficaram vazios. Streamlit aceita
-mas mostra favicon default. Cosmético.
-
-### Sidebar "Adicionar nova folha" pode estar invisível em alguns rebuilds
-Já corrigido na refatoração final, mas validar visualmente após rebuild novo.
+- **"Abrir uma folha" leva ~12 s** — 1 render de ~700 widgets. Reforma adiada.
+- **`PoolClosed`** — em testes locais, após vários reloads, o pool de conexões
+  Postgres fechava (`psycopg_pool.PoolClosed`). Reiniciar o app resolve. Pode
+  afetar produção se o HF Space dormir/acordar — investigar `database.py` se o
+  Leonardo relatar tela de erro de banco. Não confirmado em produção.
+- **Questionário .docx não foi visualizado** — gerado e conferido na estrutura (6
+  tabelas), mas Claude não converteu pra imagem (sem LibreOffice no PC do Leonardo).
+  Leonardo precisa abrir no Word e validar o visual.
 
 ---
 
 ## 5. ARQUIVOS-CHAVE
 
-### Documentação (ler nesta ordem)
-1. **`HANDOFF_COMPLETO.md`** ← ESTE arquivo
-2. **`HANDOFF_SIGEE.md`** — plano integração Sigee
-3. **`CLAUDE.md`** — referência técnica permanente
-4. **`CADERNO.md`** — diário do projeto
-5. **`ROADMAP_IA.md`** — visão IA em 3 fases
-6. **`HUGGINGFACE_SETUP.md`** — guia de deploy
-
-### Código principal
-| Arquivo | O que faz |
+| Arquivo | O que é |
 |---|---|
-| `database.py` | Schema + CRUD (backend dual SQLite/Postgres) |
-| `cached_db.py` | Wrappers `@st.cache_data` sobre `database.py` |
-| `ui_theme.py` | Tema visual centralizado — **EDITAR PRIMEIRO próxima sessão** |
-| `claude_assistant.py` | Claude API integration (Q&A + explicação anomalia) |
-| `lancamento.py` | Entry point — formulário da folha (com animação salvar) |
-| `pages/1_Painel.py` ... `pages/9_Ajuda.py` | 9 páginas Streamlit |
-| `migrar_postgres_para_postgres.py` | Migração entre Supabases |
-| `Dockerfile` | Receita do container HF Spaces |
-
-### Configs
-- `.streamlit/config.toml` — paleta base
-- `requirements.txt` — Python deps
-- `.gitattributes` — Git LFS
+| `database.py` | Schema + CRUD, backend dual SQLite/Postgres. Chaves de BOM por tacho. |
+| `cached_db.py` | Wrappers `@st.cache_data`/`@st.cache_resource` sobre database.py. `init_db` cacheado aqui. |
+| `ui_theme.py` | Tema visual. Escala modular base 13px. Seletores `[data-testid="stMain"]`. |
+| `lancamento.py` | Folha do dia. A folha está dentro de um `st.form`. |
+| `pages/3_Suprimentos.py` | Módulo de Suprimentos — 4 abas. Aba Receitas usa chaves por tacho. |
+| `entrevistas/02_suprimentos.docx` | Questionário de Suprimentos gerado nesta sessão. |
+| `entrevistas/01_pcp_inicial.docx` | Entrevista anterior (parcial). |
 
 ---
 
-## 6. CREDENCIAIS (sempre no Notepad privado do Leonardo, nunca no chat)
+## 6. DECISÕES IMPORTANTES DESTA SESSÃO
 
-### Supabase
-- Conta: `bandroid289@gmail.com`
-- Projeto ATIVO: `pcp-vo-nena-us` (us-east-1)
-- Projeto LEGACY: `pcp-vo-nena` (sa-east-1)
-
-### Hugging Face
-- Conta: `leonardosoglia` (login Google)
-- Space: `huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
-- Secret configurado: `DATABASE_URL`
-
-### GitHub
-- Conta: `leonardosoglia`
-- Repo: `github.com/leonardosoglia/pcp-vo-nena` (público)
-- Remotes locais: `origin` (GitHub), `hf` (Hugging Face)
-
-### Anthropic (NÃO ativada)
-- Sem créditos
-- Código pronto: `claude_assistant.py` + `pages/7_Assistente_IA.py`
-- Ativar: criar conta `console.anthropic.com`, gerar API key, configurar `ANTHROPIC_API_KEY` no HF
-
-### Sigee Cloud (próxima sessão investigar)
-- Mariana tem acesso (compras + estoque insumos)
-- Eraldo tem acesso
-- API existe? — DESCONHECIDO, investigar
+- **Streamlit 1.56 não tem `.main`** — CSS deve mirar `[data-testid="stMain"]`.
+- **Folha num `st.form`** — preencher não dispara rerun; derivados atualizam no
+  Salvar (não em tempo real). Decisão do Leonardo, ciente do trade-off.
+- **Receita é por tacho** — chaves de BOM `cocada_<sigla>_tacho` / `palha_<sigla>_tacho`.
+- **Reforma da folha (lazy render) adiada** — não fazer reforma grande na reta do TCC.
+- **Comunicação sem jargão** — o Leonardo é engenheiro de produção, não programador.
+  Explicar tudo em linguagem simples, pelo efeito visível. Termos de PCP são ok.
+- **Validar UI antes de entregar** — medir no DOM renderizado (preview local), não
+  chutar. (3 passadas de fonte foram desperdiçadas chutando.)
 
 ---
 
-## 7. COMANDOS DE DEPLOY
+## 7. REGRAS INVARIÁVEIS
 
-### Atualizar produção
-```powershell
-cd "C:\Users\bandr\OneDrive\Documentos\DISCIPLINAS\P10\Estágio\Novo projeto"
-
-# Empurra pra GitHub (Streamlit Cloud rebuilda automaticamente)
-git push origin HEAD:main
-
-# Empurra pra HF Spaces (rebuilda em ~3-5 min)
-git push hf HEAD:main
-```
-
-### Acessar logs do HF
-URL: `huggingface.co/spaces/leonardosoglia/pcp-vo-nena/logs`
-
-### Restart manual do HF
-Dashboard do Space → 3 pontos → "Restart Space"
+1. **PT-BR informal e direto.** Sem floreio. **Sem jargão de programação** com o Leonardo.
+2. Especialista técnico em PCP + software sênior. Defender decisões com argumentos.
+3. **Eraldo/Gestão decide.** O sistema sugere/visualiza/alerta, nunca comanda.
+4. Antes de codar: identificar inconsistências com o fluxo real da fábrica.
+5. Código completo, sem placeholders. Pedaços validáveis antes do próximo.
+6. Unidades explícitas: und · band · tachos · kg · L · displays · bolos.
+7. **Estoque vs Fluxo (Forrester 1961):** nunca somar `emb_*` entre dias.
+8. Memória persistente: salvar descobertas críticas em `~/.claude/.../memory/`.
+9. Decisões arquiteturais explicam o porquê — viram capítulo do TCC.
+10. Senha exposta em print → revogar imediatamente.
+11. Zero emoji decorativo no sistema.
+12. Validar mudança de UI no app renderizado antes de commitar.
 
 ---
 
-## 8. REGRAS INVARIÁVEIS PARA TODAS AS SESSÕES
-
-1. **PT-BR informal direto.** Sem floreios, sem "como posso ajudar".
-2. **Especialista técnico em PCP + software sênior.** Defender decisões com argumentos.
-3. **Eraldo decide.** Sistema sugere/visualiza/alerta, NUNCA comanda.
-4. **Antes de codar:** identificar inconsistências com fluxo real da fábrica.
-5. **Código completo, sem placeholders.**
-6. **Unidades explícitas:** und · band · tachos · kg · L · displays · bolos.
-7. **Estoque vs Fluxo (Forrester 1961):** nunca somar `emb_*` entre dias. Usar `ord_corte_*`/`ord_emb_*`.
-8. **Memória persistente:** salvar descobertas críticas em `~/.claude/.../memory/`.
-9. **TCC sempre em mente:** decisões viram capítulos. Citar referências.
-10. **Senhas em prints:** revogar imediatamente, criar nova.
-11. **Zero emoji decorativo.** Sistema profissional.
-12. **Animação ao salvar folha (NÃO REMOVER):** `st.toast` + `st.success` em `lancamento.py:1187+`.
-
----
-
-## 9. CRONOGRAMA TCC
+## 8. CRONOGRAMA TCC
 
 | Data | O quê |
 |---|---|
-| 19/05 (hoje) | Sessão encerrada |
-| 20-29/05 | Fix design + integração Sigee + Etapa C |
-| 29/05-04/06 | Etapa D (BOM) + Etapa E (auto-baixa) |
-| **05/06** | **Início da escrita do TCC** |
-| 05/06-12/06 | Caps 1-4 + Ideia 4 Etapa C (algoritmo Sugestão) |
-| 12-25/06 | Cap 5 (Resultados) com métricas reais |
-| 25/06-10/07 | Cap 6 + revisão + ensaios defesa |
+| 21/05 (hoje) | Sessão encerrada — módulo de Suprimentos / extração SIGE em andamento |
+| 22/05 – 04/06 | Extração SIGE + Etapa C (insumos) + D (receitas) + E (auto-baixa) |
+| **~05/06** | **Início da escrita do TCC** |
+| 05/06 – 25/06 | Capítulos 1-5 + coleta de métricas reais |
+| 25/06 – 10/07 | Cap 6 + revisão + ensaios |
 | **~18/07/2026** | **DEFESA** |
 
 ---
 
-## 10. PRIMEIRA AÇÃO DA PRÓXIMA SESSÃO (resumo)
-
-Quando Leonardo abrir sessão nova, **você (Claude) deve:**
-
-1. **Ler `HANDOFF_COMPLETO.md` INTEIRO** (este arquivo)
-2. **Ler `HANDOFF_SIGEE.md`** (plano Sigee detalhado)
-3. **Ler `CLAUDE.md`** (referência técnica)
-4. **Ler `CADERNO.md`** (diário)
-5. **Ler memórias persistentes** (`MEMORY.md` é o índice)
-6. **Resumir em 5-7 linhas:** estado + os 3 problemas principais (fontes grandes, folha PM 0, setas teclado) + próximo passo
-7. **PERGUNTAR antes de mexer:** *"Posso começar reduzindo as fontes do `ui_theme.py` agora? Ou prefere abrir outro tópico primeiro?"*
-8. **Não tomar atitude antes do alinhamento.**
-
----
-
-## TEXTO INICIAL PRA COPIAR NA PRÓXIMA SESSÃO
+## 9. TEXTO INICIAL PRA COPIAR NA PRÓXIMA SESSÃO
 
 ```
 Oi, sessão nova do PCP Vó Nena.
 
 Antes de QUALQUER ação, lê na ordem:
-
-1. HANDOFF_COMPLETO.md (raiz do repo) — documento MASTER. Tem TUDO:
-   estado atual, histórico, próximos passos priorizados, primeira ação
-   urgente (fonte ainda grande), regras invariáveis, cronograma TCC.
-
-2. HANDOFF_SIGEE.md — plano detalhado de integração com Sigee Cloud.
-
-3. CLAUDE.md — referência técnica permanente.
-
+1. HANDOFF_COMPLETO.md (raiz do repo) — documento MASTER, estado atual,
+   o que foi feito, próximos passos. Tem a "primeira ação" no topo.
+2. HANDOFF_SIGEE.md — plano de integração com o SIGE Cloud (atualizado
+   com o que descobrimos sobre as categorias e a exportação).
+3. CLAUDE.md — referência técnica.
 4. CADERNO.md — diário do projeto.
+5. Memórias em ~/.claude/projects/.../memory/ — abre MEMORY.md (índice).
 
-5. Memórias persistentes em ~/.claude/projects/.../memory/ — abre
-   MEMORY.md (índice) e lê as mais recentes.
-
-Depois de ler tudo, me dá um resumo em ~7 linhas:
+Depois me dá um resumo em ~7 linhas:
    (a) Estado atual do sistema
-   (b) O problema URGENTE da fonte (que ficou grande mesmo após 2 reduções)
-   (c) Outros problemas pendentes (folha PM mostra 0, setas teclado, etc)
-   (d) Status da integração Sigee Cloud (pendente)
+   (b) O que a sessão passada fez (design, performance, Suprimentos)
+   (c) Onde paramos: extração dos insumos do SIGE Cloud
+   (d) O próximo passo concreto
 
-Aí me pergunta: "Posso começar reduzindo as fontes do ui_theme.py agora
-(prioridade 0 do handoff)? Quanto você quer reduzir — manter compacto
-profissional, ou ainda mais radical?"
+Contexto pra retomar: eu estou com o SIGE Cloud aberto. Na sessão passada
+a gente descobriu que dá pra exportar os produtos e que existem categorias
+(PRODUÇÃO, EMBALAGEM, PRODUTOS DE USO FABRICA). O próximo passo era eu
+filtrar a lista de Produtos por categoria e te mandar print. Me guia daí.
 
-NÃO tome atitude antes desse alinhamento. NÃO faça nada além de ler e
-me perguntar.
+Lembra: fala comigo em linguagem simples, sem termo técnico de programação.
 
 Manda ver.
 ```
 
 ---
 
-**Boa sorte na próxima sessão. Quando fonte ficar compacta + Sigee integrar, o projeto destrava.**
+**Fim do handoff. Sessão encerrada em 21/05/2026.**
+*Próxima sessão retoma na extração dos insumos do SIGE Cloud.*
 
-— Claude Opus 4.7 max mode, sessão 19/05/2026 ~16h30 BRT
+— Claude Opus 4.7 (1M context)
