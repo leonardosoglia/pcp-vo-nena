@@ -13,6 +13,7 @@ Princípio: o sistema SUGERE, a Gestão DECIDE.
 """
 import os
 import sys
+from datetime import date
 import streamlit as st
 import pandas as pd
 
@@ -33,6 +34,13 @@ from palha_planejamento import (
     COMPOSICAO_DISPLAY, REND_50G_POR_BANDEJA, REND_PET_POR_BANDEJA,
     EXEMPLO_VALIDACAO_18_05, ESPERADO_18_05,
 )
+import cached_db
+
+# Sabor no banco → sigla na calculadora
+SIGLA_PALHA_DB = {
+    'TRADICIONAL': 'T', 'LEITE EM PÓ': 'L',
+    'CHURROS': 'CH', 'COOKIES': 'CK', 'LIMÃO': 'LIM',
+}
 
 st.set_page_config(
     page_title="Sugestão Palha • Doces Vó Nena",
@@ -49,15 +57,67 @@ st.caption(
     "e quanto produzir de bandejas de palha, a partir dos estoques do dia. "
     "**A Gestão decide** — o sistema só sugere e pode ser ajustado."
 )
-usar_exemplo = st.toggle(
-    "Carregar exemplo de validação (18/05/2026)",
-    value=False,
+
+# Seletor de data: puxa os estoques direto do banco
+col_data, _ = st.columns([1, 3])
+data_sel = col_data.date_input(
+    "Data da folha",
+    value=None,
+    format="DD/MM/YYYY",
     help=(
-        "Liga pra preencher automaticamente com os números reais do 18/05 — "
-        "útil pra ver como o sistema se comporta com inputs conhecidos e checar "
-        "a validação no fim da página. Desligado (padrão): tabela vazia."
+        "Selecione uma data com folha lançada — o sistema preenche os estoques "
+        "do dia automaticamente. Deixe vazio pra preencher manualmente."
     ),
 )
+
+# Tenta carregar do banco se a data foi escolhida
+ZERO_DEFAULTS = {
+    "estoque_displays": 0,
+    "estoque_50g": {s: 0 for s in SABORES_50G},
+    "estoque_pet": {s: 0 for s in SABORES},
+    "estoque_bandejas": {s: 0 for s in SABORES},
+}
+defaults = dict(ZERO_DEFAULTS)
+ks = "manual"  # sufixo das keys dos widgets
+fonte_dados = "manual"
+
+if data_sel is not None:
+    try:
+        rows = cached_db.get_folha_palha(data_sel.isoformat())
+    except Exception as e:
+        st.error(f"Não consegui ler a folha do banco: {e}")
+        rows = []
+    if rows:
+        by_sabor = {r['sabor']: r for r in rows}
+        e50 = {}
+        ep = {}
+        cb = {}
+        for nome, sigla in SIGLA_PALHA_DB.items():
+            r = by_sabor.get(nome, {})
+            ep[sigla] = r.get('emb_pet') or 0
+            cb[sigla] = r.get('cont_band_palha') or 0
+            if sigla in SABORES_50G:
+                e50[sigla] = r.get('emb_50g') or 0
+        defaults = {
+            "estoque_displays": 0,  # não está no banco
+            "estoque_50g": e50,
+            "estoque_pet": ep,
+            "estoque_bandejas": cb,
+        }
+        ks = data_sel.isoformat()
+        fonte_dados = "banco"
+        st.success(
+            f"Folha de **{data_sel.strftime('%d/%m/%Y')}** carregada do banco. "
+            "Os estoques (50g, Pet, bandejas) abaixo vieram da folha lançada. "
+            "Edite se quiser testar um cenário."
+        )
+    else:
+        st.warning(
+            f"Não há folha lançada pra **{data_sel.strftime('%d/%m/%Y')}**. "
+            "Os campos ficam zerados — preencha manualmente."
+        )
+        ks = f"vazio_{data_sel.isoformat()}"
+
 st.divider()
 
 
@@ -65,18 +125,6 @@ st.divider()
 # Inputs — estoque do dia
 # ════════════════════════════════════════════════════════════════════════════
 st.header("Estoque do dia")
-
-# Defaults: zeros (padrão) OU exemplo 18/05 se o toggle estiver ligado.
-ZERO_DEFAULTS = {
-    "estoque_displays": 0,
-    "estoque_50g": {s: 0 for s in SABORES_50G},
-    "estoque_pet": {s: 0 for s in SABORES},
-    "estoque_bandejas": {s: 0 for s in SABORES},
-}
-defaults = EXEMPLO_VALIDACAO_18_05 if usar_exemplo else ZERO_DEFAULTS
-# Sufixo de key — força o Streamlit a recriar os widgets quando o toggle muda,
-# senão os values default não atualizam depois que o usuário interagiu.
-ks = "ex" if usar_exemplo else "zero"
 
 st.info(
     "**Input mais importante:** quantos displays de 50g já estão montados. "
@@ -226,10 +274,10 @@ if divergencias:
 else:
     st.caption("Os dois quadros chegaram nos mesmos valores — não há fração em zona cinza esta semana.")
 
-# Validação automática só roda quando o toggle "Carregar exemplo" está ligado
-# E os inputs não foram alterados pelo usuário.
+# Validação automática só roda quando a data é 18/05/2026 + displays = 35
+# (valor histórico que faz o sistema bater com a decisão real da Gestão).
 inputs_iguais_validacao = (
-    usar_exemplo
+    data_sel == date(2026, 5, 18)
     and estoque_displays == EXEMPLO_VALIDACAO_18_05["estoque_displays"]
     and estoque_50g == EXEMPLO_VALIDACAO_18_05["estoque_50g"]
     and estoque_pet == EXEMPLO_VALIDACAO_18_05["estoque_pet"]

@@ -18,6 +18,7 @@ Princípio: o sistema SUGERE, a Gestão DECIDE.
 """
 import os
 import sys
+from datetime import date
 import streamlit as st
 import pandas as pd
 
@@ -38,6 +39,7 @@ from cocada_planejamento import (
     BAND_POR_TACHO, BAND_POR_TACHO_Z,
     EXEMPLO_11_05, ESPERADO_11_05,
 )
+import cached_db
 
 st.set_page_config(
     page_title="Sugestão Cocada • Doces Vó Nena",
@@ -56,15 +58,85 @@ st.caption(
     "e **viração calculada** pra alimentar o corte dos próximos dias. "
     "**A Gestão decide** — o sistema só sugere e pode ser ajustado."
 )
-usar_exemplo = st.toggle(
-    "Carregar exemplo de validação (11/05/2026)",
-    value=False,
+
+# Seletor de data — puxa todos os estoques do dia direto do banco
+col_data, _ = st.columns([1, 3])
+data_sel = col_data.date_input(
+    "Data da folha",
+    value=None,
+    format="DD/MM/YYYY",
     help=(
-        "Liga pra preencher automaticamente com os números reais do 11/05 — "
-        "útil pra ver como o sistema se comporta com inputs conhecidos e checar "
-        "a validação no fim da página. Desligado (padrão): tabela vazia."
+        "Selecione uma data com folha lançada — o sistema preenche emb, cortados, "
+        "papelzinho do Joel, potes em estoque e parâmetro real do dia automaticamente. "
+        "Deixe vazio pra preencher manualmente."
     ),
 )
+
+# Carrega tudo do banco se a data foi escolhida
+def _vazio():
+    """Defaults zerados quando não tem data ou folha vazia."""
+    return {
+        'emb_45g': {s: 0 for s in SABORES},
+        'emb_mini': {s: 0 for s in SABORES},
+        'emb_pet': {s: 0 for s in SABORES},
+        'cort_45g': {s: 0 for s in SABORES},
+        'cort_mini': {s: 0 for s in SABORES},
+        'cort_pet': {s: 0 for s in SABORES},
+        'joel_v': {s: 0 for s in SABORES},
+        'joel_pv': {s: 0 for s in SABORES},
+        'estoque_pote_260g': {s: 0 for s in SABORES},
+        'estoque_pote_605g': {s: 0 for s in SABORES},
+        'param_real_45g': {s: 0 for s in SABORES},
+        'param_real_mini': {s: 0 for s in SABORES},
+        'param_real_pet': {s: 0 for s in SABORES},
+        'weekday': 0,
+    }
+
+dados = _vazio()
+ks = "manual"
+
+if data_sel is not None:
+    try:
+        folha_rows = cached_db.get_folha_cocada(data_sel.isoformat())
+        papel_rows = cached_db.get_papelzinho_joel(data_sel.isoformat())
+    except Exception as e:
+        st.error(f"Não consegui ler a folha do banco: {e}")
+        folha_rows, papel_rows = [], []
+    if folha_rows:
+        f_by = {r['sabor']: r for r in folha_rows}
+        p_by = {r['sabor']: r for r in papel_rows} if papel_rows else {}
+        for s in SABORES:
+            f = f_by.get(s, {})
+            p = p_by.get(s, {})
+            dados['emb_45g'][s] = f.get('emb_45g') or 0
+            dados['emb_mini'][s] = f.get('emb_mini') or 0
+            dados['emb_pet'][s] = f.get('emb_pet') or 0
+            dados['cort_45g'][s] = f.get('cort1_45g') or 0
+            dados['cort_mini'][s] = f.get('cort1_mini') or 0
+            dados['cort_pet'][s] = f.get('cort1_pet') or 0
+            dados['estoque_pote_260g'][s] = f.get('emb_potes_260g') or 0
+            dados['estoque_pote_605g'][s] = f.get('emb_potes_605g') or 0
+            dados['param_real_45g'][s] = f.get('param_real_45g') or 0
+            dados['param_real_mini'][s] = f.get('param_real_mini') or 0
+            dados['param_real_pet'][s] = f.get('param_real_pet') or 0
+            dados['joel_v'][s] = p.get('joel_v') or 0
+            dados['joel_pv'][s] = p.get('joel_pv') or 0
+        dados['weekday'] = data_sel.weekday()
+        ks = data_sel.isoformat()
+        msg_papel = "" if papel_rows else " ⚠ Papelzinho do Joel não lançado pra este dia (joel_v e joel_pv = 0)."
+        st.success(
+            f"Folha de **{data_sel.strftime('%d/%m/%Y')}** carregada do banco — "
+            "todos os estoques abaixo vieram da folha lançada. Edite se quiser testar um cenário."
+            + msg_papel
+        )
+    else:
+        st.warning(
+            f"Não há folha lançada pra **{data_sel.strftime('%d/%m/%Y')}**. "
+            "Os campos ficam zerados — preencha manualmente ou escolha outra data."
+        )
+        dados['weekday'] = data_sel.weekday()
+        ks = f"vazio_{data_sel.isoformat()}"
+
 st.divider()
 
 
@@ -77,7 +149,8 @@ weekday = col1.selectbox(
     "Dia da semana",
     options=list(range(5)),
     format_func=lambda i: WEEKDAYS_PT[i],
-    index=EXEMPLO_11_05['weekday'] if usar_exemplo else 0,
+    index=dados['weekday'] if dados['weekday'] < 5 else 0,
+    key=f"weekday_{ks}",
 )
 horizonte_corte = col2.slider(
     "Horizonte do corte (dias)",
@@ -109,19 +182,17 @@ st.caption(
     "**Potes** = unidades de pote já produzidas."
 )
 
-# Default zero (padrão) OU exemplo 11/05 (toggle ligado).
-_e = EXEMPLO_11_05 if usar_exemplo else None
 def _vals(k):
-    return [_e[k][s] for s in SABORES] if _e else [0 for _ in SABORES]
+    return [dados[k][s] for s in SABORES]
 
 df_estoque_default = pd.DataFrame({
     "Sabor": SABORES,
     "emb_45g (und)": _vals('emb_45g'),
     "emb_mini (und)": _vals('emb_mini'),
     "emb_pet (und)": _vals('emb_pet'),
-    "cort_45g (und)": [0 for _ in SABORES],
-    "cort_mini (und)": [0 for _ in SABORES],
-    "cort_pet (und)": [0 for _ in SABORES],
+    "cort_45g (und)": _vals('cort_45g'),
+    "cort_mini (und)": _vals('cort_mini'),
+    "cort_pet (und)": _vals('cort_pet'),
     "joel_v (band)": _vals('joel_v'),
     "joel_pv (band)": _vals('joel_pv'),
     "pote 260g": _vals('estoque_pote_260g'),
@@ -132,7 +203,7 @@ df_estoque = st.data_editor(
     use_container_width=True,
     hide_index=True,
     disabled=["Sabor"],
-    key=f"estoque_{'ex' if usar_exemplo else 'zero'}",
+    key=f"estoque_{ks}",
 )
 
 
@@ -153,7 +224,7 @@ df_param = st.data_editor(
     use_container_width=True,
     hide_index=True,
     disabled=["Sabor"],
-    key=f"param_{'ex' if usar_exemplo else 'zero'}",
+    key=f"param_{ks}",
 )
 st.divider()
 
@@ -290,7 +361,7 @@ if sabores_alerta:
 # Validação contra 11/05/2026 (quando inputs batem com o caso pré-carregado)
 # ════════════════════════════════════════════════════════════════════════════
 def _inputs_iguais_11_05():
-    if not usar_exemplo:
+    if data_sel != date(2026, 5, 11):
         return False
     e = EXEMPLO_11_05
     if weekday != e['weekday']:
