@@ -376,6 +376,8 @@ fig.update_layout(
     plot_bgcolor="white",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
 )
+fig.update_xaxes(fixedrange=True)
+fig.update_yaxes(fixedrange=True)
 st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 

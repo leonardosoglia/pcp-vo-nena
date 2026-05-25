@@ -56,7 +56,12 @@ aplicar_tema()
 # CÁLCULOS — funções puras, sem Streamlit dentro
 # ════════════════════════════════════════════════════════════════════════════
 def _calc_tachos_parciais(datas, folhas_cocada):
-    """H1 — ordens com ord_prod_band fora dos múltiplos de tacho."""
+    """H1 — ordens com ord_prod_band fora dos múltiplos de tacho.
+
+    1 tacho = receita inteira, rende 8 bandejas (3 no Zero). Não se cozinha
+    meio tacho: um pedido não-múltiplo cozinha ceil(band/8) tachos inteiros;
+    o pedido todo vira bandeja e o resto da massa (tachos*8 − band) vira potes.
+    """
     total = 0
     parciais = []
     for d in datas:
@@ -67,15 +72,14 @@ def _calc_tachos_parciais(datas, folhas_cocada):
                 continue
             modulo = 3 if s == "ZERO" else 8
             total += 1
-            sobra = band % modulo
-            if sobra != 0:
+            if band % modulo != 0:
+                tachos = (band + modulo - 1) // modulo
                 parciais.append({
                     "data": d,
                     "sabor": s,
                     "bandejas": band,
-                    "tachos_cheios": band // modulo,
-                    "sobra_band": sobra,
-                    "falta_pra_completar": modulo - sobra,
+                    "tachos_cozidos": tachos,
+                    "band_potes": tachos * modulo - band,
                 })
     pct = (len(parciais) / total * 100) if total else 0
     return {"total": total, "parciais": parciais, "pct": pct}
@@ -234,7 +238,7 @@ st.markdown(
     f"Alguns sabores aparecem com Cortados ③ médio <b>persistentemente negativo</b> (produção abaixo do parâmetro real), "
     f"outros com ③ médio <b>persistentemente positivo</b> (produção acima do parâmetro real). "
     f"<br><br>"
-    f"<b>️ Importante:</b> a Gestão confirmou (15/05/2026) que <b>NÃO sente</b> esse desbalanceamento na prática. "
+    f"<b>️ Importante:</b> é só uma pista — não um diagnóstico fechado. "
     f"Esse sinal pode ser:<br>"
     f"&nbsp;&nbsp;• <b>Viés de amostra pequena</b> (só {dados['n_folhas']} folhas — precisa de 60-90 pra estabilizar)<br>"
     f"&nbsp;&nbsp;• <b>Reflexo dos ajustes antecipados</b> da Gestão: o <code>param_real</code> do dia já embute pedidos da semana seguinte, então a produção 'atrasa' em relação ao parâmetro inflado.<br><br>"
@@ -256,15 +260,21 @@ fig_h2.add_trace(go.Bar(
     orientation="h",
     marker_color=cores,
     text=[f"{v:+.0f} und/dia" for v in df_h2["media"]],
-    textposition="outside",
+    textposition="auto",
+    cliponaxis=False,
     hovertemplate="<b>%{y}</b><br>Média: %{x:+.0f} und/dia<extra></extra>",
 ))
+# Folga nas pontas pra os rótulos não baterem na borda do gráfico
+_x_min = float(df_h2["media"].min())
+_x_max = float(df_h2["media"].max())
+_x_folga = max(abs(_x_min), abs(_x_max), 1) * 0.15
 fig_h2.update_layout(
     title="③ médio por sabor/tamanho — vermelho = abaixo do param_real · verde = acima",
-    xaxis_title="Cortados ③ médio (unidades/dia útil)",
-    yaxis_title="",
+    xaxis=dict(title="Cortados ③ médio (unidades/dia útil)",
+               range=[_x_min - _x_folga, _x_max + _x_folga], fixedrange=True),
+    yaxis=dict(title="", fixedrange=True),
     height=420,
-    margin=dict(l=20, r=80, t=60, b=40),
+    margin=dict(l=20, r=60, t=60, b=40),
     showlegend=False,
     plot_bgcolor="white",
 )
@@ -291,27 +301,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Já respondido pela Gestão (15/05/2026)
-st.markdown(
-    "<div class='insight-card-good'>"
-    "<b> Já discutido com a Gestão (15/05/2026):</b><br>"
-    "• <i>\"Eu não sinto Pé de Moça sobrando — talvez pareça por sempre ter no estoque acima, mas não tem me incomodado.\"</i><br>"
-    "• <i>\"A proporção T/L oscila porque eu antecipo pedidos da semana seguinte distribuindo entre os dias — não é capacidade, é planejamento.\"</i><br>"
-    "→ Recalibrado: este achado vira <b>sinal pra acompanhar</b>, não diagnóstico confirmado. Reavaliar quando houver 60+ folhas."
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-# Perguntas que continuam abertas
-st.markdown("####  Ainda em aberto pra acompanhar")
-perguntas_master = [
-    "O padrão se mantém quando temos 60+ folhas, ou some quando a amostra cresce?",
-    "Os ajustes antecipados (param_real − base) deveriam aparecer marcados na folha com origem do pedido (cliente X, semana Y)?",
-    "Quando o sistema mostrar 'sinal forte', a Gestão prefere ver no Insights ou no Painel do dia?",
-]
-for p in perguntas_master:
-    st.markdown(f"<div class='pergunta-eraldo'> {p}</div>", unsafe_allow_html=True)
-
 st.divider()
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -324,8 +313,7 @@ st.markdown(
     f"<div class='insight-card-info'>"
     f"<b>De {h1['total']} ordens de produção, {len(h1['parciais'])} têm bandejas que não fecham tacho cheio.</b><br><br>"
     f"Cada tacho rende 8 bandejas (3 no Zero). Quando a Gestão ordena 18 em vez de 16 ou 24, "
-    f"a sobra do último tacho <b>não é perdida</b> — vai pra <b>potes 260g ou 605g</b> do mesmo sabor. "
-    f"Confirmado pela Gestão (15/05/2026): <i>\"o resto do tacho vai pros potes\"</i>."
+    f"a sobra do último tacho <b>não é perdida</b> — vai pra <b>potes 260g ou 605g</b> do mesmo sabor."
     f"</div>",
     unsafe_allow_html=True,
 )
@@ -333,7 +321,7 @@ st.markdown(
 if h1["parciais"]:
     df_h1 = pd.DataFrame(h1["parciais"])
     df_h1["data"] = pd.to_datetime(df_h1["data"]).dt.strftime("%d/%m/%Y")
-    df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cheios", "Sobra (band) → potes", "Pra fechar próximo tacho"]
+    df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cozidos", "Bandejas de massa → potes"]
     st.dataframe(df_h1, use_container_width=True, hide_index=True)
 
 st.markdown(
@@ -343,22 +331,6 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
-
-st.markdown(
-    "<div class='insight-card-info'>"
-    "<b> Melhoria futura (UX):</b> quando a Gestão lançar <code>ord_prod_band = 18</code>, mostrar ao lado: "
-    "<i>\"18 = 2 tachos cheios (16 band) + sobra do 3º tacho (~10 kg de massa) — sugestão de pote: 605g × Y ou 260g × Z\"</i>. "
-    "Informativo, não impositivo."
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-st.markdown("####  Em aberto pra acompanhar")
-for p in [
-    "Mistério dos 36 kg de Pé de Moça vs apenas 30 potes 260g (15/05) — pra onde foram os outros 28 kg?",
-    "Sistema deveria sugerir automaticamente ord_prod_potes a partir da sobra do tacho parcial?",
-]:
-    st.markdown(f"<div class='pergunta-eraldo'> {p}</div>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -382,15 +354,6 @@ if h5["anomalias"]:
     df_h5["razao"] = df_h5["razao"].apply(lambda v: f"{v:.2f}x")
     df_h5.columns = ["Data", "Tradicional (band)", "Leite em Pó (band)", "Razão L/T"]
     st.dataframe(df_h5, use_container_width=True, hide_index=True)
-
-    st.markdown(
-        "<div class='insight-card-good'>"
-        "<b> Detecção validada pela Gestão (15/05/2026):</b> "
-        "<i>\"Sim, me parece que nesses dias realmente foi maior. É interessante que o sistema sempre entregue isso.\"</i><br>"
-        "Manter este alerta ativo — é exatamente o tipo de sinal que vale acompanhar."
-        "</div>",
-        unsafe_allow_html=True,
-    )
 else:
     st.markdown(
         "<div class='insight-card-good'>"
@@ -398,14 +361,6 @@ else:
         "</div>",
         unsafe_allow_html=True,
     )
-
-if h5["anomalias"]:
-    st.markdown("####  Em aberto pra acompanhar")
-    for p in [
-        "Quando o sistema detectar nova anomalia, vale notificar a Gestão imediatamente (push/email) ou só ao abrir o app?",
-        "Existe lista de encomendas grandes esperadas (cliente X pede Y palha LP toda quinta)?",
-    ]:
-        st.markdown(f"<div class='pergunta-eraldo'> {p}</div>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -431,8 +386,7 @@ sobrecarga_dinamica = [r for r in h4["todas"] if r["total"] > cap]
 
 st.markdown(
     f"<div class='insight-card-info'>"
-    f"<b>Capacidade NÃO é fixa.</b> A Gestão confirmou (15/05/2026): "
-    f"<i>\"a capacidade de 3000 não é fixa, varia — às vezes tem mais pessoas, ou pessoas com capacidade maior\"</i>.<br><br>"
+    f"<b>Capacidade NÃO é fixa</b> — varia conforme quantas pessoas estão embalando e a velocidade de cada uma.<br><br>"
     f"Com a capacidade atual de <b>{cap:,} und/dia</b>, <b>{len(sobrecarga_dinamica)} dia(s)</b> "
     f"do histórico passariam do limite."
     f"</div>",
@@ -483,15 +437,9 @@ fig_h4.update_layout(
     margin=dict(l=20, r=20, t=60, b=40),
     plot_bgcolor="white",
 )
+fig_h4.update_xaxes(fixedrange=True)
+fig_h4.update_yaxes(fixedrange=True)
 st.plotly_chart(fig_h4, use_container_width=True, config={"displayModeBar": False, "responsive": True})
-
-st.markdown("####  Em aberto pra acompanhar")
-for p in [
-    "Faz sentido a folha ter um campo 'embaladores presentes hoje' pra capacidade ser calculada automaticamente?",
-    "Existe registro de quanto cada pessoa embala em média (Popô × Leonília × extras)?",
-    "Hora extra da Embalagem é registrada em algum lugar (papel, sistema, planilha)?",
-]:
-    st.markdown(f"<div class='pergunta-eraldo'> {p}</div>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -541,6 +489,8 @@ if not df_h6_valid.empty:
         plot_bgcolor="white",
         showlegend=False,
     )
+    fig_h6.update_xaxes(fixedrange=True)
+    fig_h6.update_yaxes(fixedrange=True)
     st.plotly_chart(fig_h6, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
     # Estatísticas

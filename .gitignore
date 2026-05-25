@@ -42,6 +42,9 @@ smoke_test_*.py
 # Locks de Office (Word/Excel) quando arquivo está aberto
 ~$*
 
+# Logs gerados (dev local)
+*.log
+
 # Credenciais (NUNCA commitar — manter sempre fora do repo)
 pcp-vo-nena-us.txt
 *credenciais*.txt

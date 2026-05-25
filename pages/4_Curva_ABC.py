@@ -302,6 +302,8 @@ fig.update_layout(
     hovermode="x unified",
 )
 
+fig.update_xaxes(fixedrange=True)
+fig.update_yaxes(fixedrange=True)
 st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 

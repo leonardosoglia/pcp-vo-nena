@@ -333,6 +333,8 @@ fig_heat.update_layout(
     plot_bgcolor="white",
     xaxis=dict(side="top"),
 )
+fig_heat.update_xaxes(fixedrange=True)
+fig_heat.update_yaxes(fixedrange=True)
 st.plotly_chart(fig_heat, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 
@@ -413,6 +415,8 @@ fig_lin.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     hovermode="closest",
 )
+fig_lin.update_xaxes(fixedrange=True)
+fig_lin.update_yaxes(fixedrange=True)
 st.plotly_chart(fig_lin, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
 
