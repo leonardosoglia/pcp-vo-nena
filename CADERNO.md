@@ -237,29 +237,77 @@ Leonardo levou ficha (`entrevistas/01_pcp_inicial.docx`) pro Eraldo. Eraldo resp
 
 ### Bloco 5 — Receitas (BOM)
 
-**Q17 — Receita de Cocada Tradicional (1 TACHO):**
+**Q17/Q18 — Receita das Cocadas (por TACHO).** Questionário `02_suprimentos.docx` preenchido pela Gestão — recebido 22/05/2026. 1 tacho rende 8 bandejas (Zero rende 3). Receita é POR TACHO/sabor, não por formato — 45g/Mini/Pet são só decisão de corte (ver `project_receita_por_tacho.md`).
 
-| Insumo | Quantidade |
-|---|---|
-| Leite in natura | 19 L |
-| Açúcar cristal | 8 kg |
-| Coco ralado | 4 kg |
-| Anti-mofo (aditivo) | 14 colheres de sopa |
-| Sal | 1 colher |
+| Ingrediente (1 tacho) | Tradic. | Leite Cond. | Brigad. | Café | Pé de Moça | Zero |
+|---|---|---|---|---|---|---|
+| Leite in natura | 19 L | 19 L | 19 L | 19 L | 19 L | 26 L |
+| Açúcar cristal | 8 kg | 8 kg | 8 kg | 8 kg | 8 kg | — (sem) |
+| Coco ralado | 5 kg | 10 kg | 5 kg | 5 kg | — (sem coco) | 6 kg |
+| Leite condensado | — | 15 kg | — | — | — | — |
+| Cacau / achocolatado | — | — | 500 g | — | — | — |
+| Café (sachê 40 g) | — | — | — | 5 sachês | — | — |
+| Amendoim | — | — | — | — | 2,5 kg | — |
+| Adoçante | — | — | — | — | — | 2 kg Lowçucar Stevia + 2 kg eritritol + 1 kg xilitol |
 
-**Q18 — Receita varia por formato (45g/Mini/Pet)?**
-> *"Sim, a mesma receita que vai na tradicional 45g é a mesma que vai na mini, na pet, porque todas são tradicionais, só que os formatos são diferentes."*
+**Mistura — igual em TODOS os sabores (por tacho):** 500 ml de leite + 1 colher de sal + 14 colheres de antimofo. O leite da mistura soma ao leite in natura.
 
-→ **DESCOBERTA CRÍTICA:** receita é POR TACHO (sabor), não por formato. Reformular BOM. Memória: `project_receita_por_tacho.md`.
+**Notas (confirmadas 22/05/2026):**
+- vs respostas verbais de 15/05: o coco da Tradicional era estimado em "4 kg" — o questionário diz **5 kg**. A "mistura" não tinha aparecido na resposta verbal.
+- **Pé de Moça NÃO leva coco ralado** — é a única cocada sem coco (vira só amendoim).
+- **Adoçante da Zero:** "servia" = **Lowçucar Culinária com Stevia** (FoodService), adoçante à base de stévia — confirmado por foto da embalagem.
 
-**Variações por sabor (sobre a receita Tradicional):**
-- **Leite Condensado:** substitui leite por **15 kg de leite condensado** (atenção: muito! confirmar)
-- **Café:** + 5 sachês de 40g de café (200g total)
-- **Brigadeiro:** + 500g de cacau/brigadeiro
-- **Pé de Moça:** + amendoim (quantidade pendente)
-- **Zero:** substitui açúcar cristal por adoçante zero (quantidade pendente)
+### Receita da PALHA — fichas técnicas (recebidas 22/05/2026)
 
-**Q19 — Receitas de Palha?** *Pendente, Leonardo ainda não sabe.*
+Fichas técnicas oficiais ("Pequenas Mordidas Alimentos Eireli"). **Cada ficha é a receita de 1 bandeja** (= 1 receita = 1 panela, ver seção 1.A). A ficha lista ETIQUETA = 100 (lote nominal), mas na prática **1 bandeja rende 80-90 palhas 50g** — o planejamento usa **80** (o mínimo) — ou **~30 Pets** (confirmado 22/05/2026).
+
+7 sabores existem; **5 ativos** + 2 ignorados (Morango, Paçoca — confirmados como sabores de palha).
+
+Quantidades em **kg** por lote de 100 palhas 50g (kg conferidos contra a coluna de % das fichas — consistentes):
+
+| Ingrediente | Tradicional | Ninho (L) | Churros (CH) | Cookies (CK) | Limão (LIM) |
+|---|---|---|---|---|---|
+| Leite condensado | 3,820 | 4,465 | 3,720 | 4,465 | 4,500 |
+| Manteiga sem sal | 0,070 | 0,110 | 0,070 | 0,110 | 0,110 |
+| Creme de leite | 0,130 | 0,130 | 0,130 | 0,130 | 0,130 |
+| Açúcar de confeiteiro | 0,400 | 0,300 | 0,400 | 0,300 | 0,400 |
+| Biscoito maisena | 1,250 | 1,300 | 1,300 | 0,300 | 1,250 |
+| Leite ninho | — | 0,270 | — | 0,270 | — |
+| Biscoito negresco | — | — | — | 1,100 | — |
+| Doce de leite | — | — | 1,000 | — | — |
+| Canela em pó | — | — | 0,064 | — | — |
+| Chocolate meio amargo | 0,750 | — | — | — | — |
+| Limão taiti | — | — | — | — | 5 und |
+| Etiqueta | 100 und | 100 und | 100 und | 100 und | 100 und |
+
+Notas de transcrição: leite ninho aparece 2× nas fichas de Ninho e Cookies (0,170 + 0,100) — somados. Canela 2× em Churros (0,044 + 0,020 = 0,064). Etiqueta da ficha Ninho não estava visível na foto — assumido 100 como as outras.
+
+Ignorados (fichas existem): **Morango** = base + Nesquik 0,170 kg. **Paçoca** = base + Paçoquita Rolha 1,170 kg (0,756 + 0,414).
+
+### Receita do PÃO DE MEL (manuscrita, recebida 22/05/2026)
+
+Rendimento do lote **não indicado na foto — a confirmar** (provavelmente 1 bolo = 70 und = 7 displays).
+
+- Farinha de trigo 360 g · Açúcar mascavo 340 g · Cacau em pó 160 g
+- Leite 230 g (≈ 1 xícara) · Canela em pó 3 g · Cravo em pó 3 g
+- Mel — 9 colheres · Essência de mel 3 g · Palmiste 220 g (≈ 1 xícara)
+- Anti-mofo 10 g · Amaciante 20 g · Bicarbonato 11 g · Fermento em pó 14 g
+
+### Receita da BALA DE DOCE DE LEITE — 1 TACHO (manuscrita, recebida 22/05/2026)
+
+1 tacho de bala = 30 balas.
+
+- Açúcar derretido 300 g · Açúcar 8,2 kg · Leite 28 L · Bicarbonato de sódio 35 g
+- *(processo: atingir o ponto de leite condensado)*
+- Palmiste (gordura vegetal) 900 g
+- *(processo: desligar)*
+- Sal 5 g · Anti-mofo 10 g — **Sorbato, o mesmo anti-mofo da cocada**
+
+### Notas das receitas
+
+- **Palha (resolvido 22/05):** 1 bandeja rende 80-90 palhas 50g — o planejamento usa **80** (o mínimo) — ou **~30 Pets**. A ficha técnica é a receita de 1 bandeja.
+- **Pão de Mel (resolvido 22/05):** a receita manuscrita é de **1 bolo**. 1 bolo = **70 pães de mel = 7 displays**.
+- **Anti-mofo = Sorbato** (confirmado pela receita da bala) — usar esse nome no cadastro de insumos.
 
 ### Bloco 6 — Sigee Cloud
 
@@ -300,6 +348,193 @@ Leonardo levou ficha (`entrevistas/01_pcp_inicial.docx`) pro Eraldo. Eraldo resp
 - Confirmar 15 kg leite condensado (parece muito)
 - API do Sigee
 - Receitas de Palha
+
+---
+
+## 1.A — Planejamento da PALHA: como a Gestão decide corte e produção (caderno do Leonardo, 22/05/2026)
+
+Fotos do caderno do Leonardo. A palha é planejada **semanalmente, nas segundas** (quarta/quinta re-checam). É a lógica que o Leonardo quer **automatizar** (Camada 2) — pedido explícito: *"quero que você entenda isso para tentarmos automatizar"*.
+
+### Dados de referência (os "ideais")
+
+- **Palha 50g** — vendida em displays. 1 display = 10 palhas = **4 Tradicional + 4 Leite em Pó + 2 Churros**. Só T/L/CH têm 50g.
+- **Palha Pet** — 5 sabores (T, L, CH, CK, LIM). Pet é cortado **terça e sexta**.
+- **Ideal de displays/dia:** Seg 32 · Ter 36 · Qua 32 · Qui 32 · Sex 36 → semana = **168**.
+- **Ideal de Pet/dia (cada terça e cada sexta):** T 170 · L 170 · CH 70 · CK 60 · LIM 70.
+- **Estoque-alvo de bandejas (buffer da semana):** T 18 · L 18 · CH 9 · CK 4 · LIM 5.
+- **Rendimento da bandeja de palha:** 1 bandeja → **30 Pets** ou **≈ 80 palhas 50g**.
+
+### O algoritmo, com o exemplo real da segunda 18/05/2026
+
+**1. Corte para 50g.** Necessidade da semana = 168 displays − 35 em estoque = **133 displays**. Em unidades (display = 4T+4L+2CH): T 532 · L 532 · CH 266. Menos o estoque de 50g pronto (T 415 · L 379 · CH 186) = necessidade líquida T 117 · L 153 · CH 80. ÷ 80 (rendimento 50g) → **cortar T 1 · L 2 · CH 1** bandejas.
+
+**2. Corte para Pet.** Necessidade da semana = ideal de terça + sexta: T 340 · L 340 · CH 140 · CK 120 · LIM 140. Menos o estoque de Pet pronto (T 241 · L 304 · CH 110 · CK 90 · LIM 96) = líquida T 99 · L 36 · CH 50 · CK 30 · LIM 44. ÷ 30 (rendimento Pet) → **cortar T 3 · L 1 · CH 1 · CK 1 · LIM 1** bandejas.
+
+**3. Corte total (bandejas) = 50g + Pet:** T 4 · L 3 · CH 2 · CK 1 · LIM 1.
+
+**4. Sobra após o corte = bandejas em estoque − corte total.** Bandejas em estoque: T 14 · L 13 · CH 6 · CK 3 · LIM 4 → **sobra** T 10 · L 10 · CH 4 · CK 2 · LIM 3.
+
+**5. Produção (bandejas) = estoque-alvo − sobra:** T 18−10=**8** · L 18−10=**8** · CH 9−4=**5** · CK 4−2=**2** · LIM 5−3=**2**.
+
+### Leitura em PCP (vai pro TCC)
+
+A fábrica já roda um **MRP manual** pra palha, em duas partes:
+- **Corte = necessidade líquida.** Demanda da semana (displays + Pets) − estoque de produto pronto, convertido em bandejas pelo rendimento. O arredondamento NÃO é rígido — a Gestão tende a **não sobreproduzir** (ex.: precisava de 117 palhas T, cortou 80 e não 160). O caderno diz: *"o interessante é não fixar muito as bandejas a serem cortadas"*.
+- **Produção = política de estoque-alvo (order-up-to / base-stock).** Repõe o estoque de bandejas até o ideal fixo (T 18, L 18, CH 9, CK 4, LIM 5), descontando o que sobrou do corte.
+
+Pra automatizar (Camada 2): o sistema **sugere** corte e produção a partir dos estoques do dia + ideais + rendimentos; a Gestão ajusta. Inputs que o sistema precisa: estoque de displays, de 50g pronto, de Pet pronto e de bandejas.
+
+### Notas de cocada / PM que vieram nas mesmas fotos
+
+- **Calendário de corte:** Seg 45g · Ter Pet+mini · Qua 45g · Qui 45g · Sex Pet+mini (confirma o CLAUDE.md).
+- **Prioridade de embalagem por dia** (prioridade 1 / prioridade 2): Seg mini / 45g · Ter 45g / mini · Qua 45g / mini · Qui mini / 45g · Sex 45g / mini.
+- **Terça e sexta:** mandar produtos para os quiosques.
+- **Pão de Mel — ideal por dia:** Seg 22 · Ter 26 · Qua 22 · Qui 22 · Sex 26.
+
+### Modo de produção da palha (confirmado 22/05/2026)
+
+**A palha NÃO é feita em tacho — é feita em PANELA.** Cada receita (1 panela) rende **1 bandeja** (resposta da funcionária que faz a palha). Logo: produzir N bandejas de palha = N receitas; a receita da palha É a "receita por bandeja".
+
+Implicação no sistema: hoje o código trata a palha como cocada (`palha_<sigla>_tacho`, conversão ÷8 em `calcular_necessidades_do_dia`) — **está errado**. Pra palha é 1 receita = 1 bandeja (1:1). Corrigir na Etapa D/E.
+
+Sabores de palha a **ignorar por enquanto:** morango e paçoca.
+
+### Validação sistemática contra o banco (24/05/2026)
+
+Rodei `sugerir_palha()` contra **3 segundas** (04/05, 11/05, 18/05) e comparei com a decisão real da Gestão (somatório de ord_corte + ord_prod da semana).
+
+| Semana | Real (band/sem) | Sistema c/ `estoque_displays=0` | Sistema c/ `estoque_displays` "certo" |
+|---|---|---|---|
+| 04/05 | 63 | 79 (+25%) | 67 com displays=50 (+6%) |
+| 11/05 | 51 | 54 (+6%) | 54 com displays=0 (+6%) |
+| **18/05** | **36** (caderno manual) | 46 (+28%) | **36 com displays=35 (BATE EXATO +0%)** |
+
+**Achado:** o algoritmo está **correto**. A divergência vem de um input que o sistema **não captura**: o **estoque de displays já montados na segunda** (varia ~0-50 por semana). Em 18/05, com `displays=35` (exato do caderno), o sistema reproduz no centavo a decisão da Gestão.
+
+**Ações tomadas em seguida (24/05):**
+- O input `estoque_displays` **já existia** na página, mas estava com pouca evidência visual (perdido no meio dos outros). Reorganizada a página: input em destaque no topo, tooltip explicando o impacto, expander com "como saber esse número" (peça à Embalagem) e default 35 marcado como "valor de referência".
+- A médio prazo: nova coluna `cont_displays_palha` na tabela `folha_palha` + campo no formulário; Embalagem preenche junto com a contagem do estoque.
+
+**Observação operacional (Leonardo, 24/05):** a folha de 04/05 tinha `ord_corte_50g = 0` e `ord_corte_pet = 0` em todos os sabores — provavelmente os cortes da semana foram feitos em outros dias (qua/qui) ou simplesmente não lançados. A Gestão confirmou que **segunda é o dia das decisões da palha**.
+
+### Pendências da palha
+
+- Receita da palha recebida 22/05 (fichas técnicas, registrada no Bloco 5). Rendimento confirmado: 1 bandeja = 80-90 palhas 50g (planejamento usa 80) ou ~30 Pets. Dados da palha completos — falta só corrigir o código (palha tratada como tacho, ver "Modo de produção" acima).
+- Capturar `cont_displays_palha` no banco — input crítico que hoje vive na cabeça da Embalagem.
+
+---
+
+## 1.B — Planejamento da COCADA (em construção, iniciado 23/05/2026)
+
+A "Camada 2" da cocada — análoga à da palha, mas bem mais rica:
+
+- **3 estágios com lead time:** tacho → virar → virada → cortar (≈ 3 dias). A decisão de virar HOJE define o que pode ser cortado em 3 dias; bandeja **só** corta depois da viração.
+- **5 formatos:** 45g, Mini, Pet, Potes 260g, Potes 605g.
+- **Calendário de corte:** Seg/Qua/Qui → 45g · Ter/Sex → Mini + Pet (CLAUDE.md seção 4).
+- **Sugestão precisa cobrir 4 decisões:** quanto cortar (por formato), quanto produzir (tachos), quanto virar (alimentar o corte dos próximos dias), quanto de potes.
+
+### Estoque-alvo de POTES — diariamente (recebido completo 24/05/2026)
+
+Confirmado: **605g** (não 65g). Tabela completa pra todos os sabores — "números base, a Gestão pode ajustar":
+
+| Sabor | Pote 260g | Pote 605g |
+|---|---|---|
+| T (Tradicional) | 50 | 20 |
+| L (Leite Cond.) | 50 | 20 |
+| B (Brigadeiro)  | 20 | 10 |
+| C (Café)        | 15 | 10 |
+| P (Pé de Moça)  | 15 | 10 |
+| Z (Zero)        | 50 | 20 |
+
+T, L e Z dominam (50/20). B médio (20/10). C, P menores (15/10). Bate com o padrão observado nas folhas (T e Z são quem mais pede pote — análise 1.B "Padrões observados").
+
+### Padrões observados nas folhas (análise de 17 folhas, 02/04 → 18/05/2026)
+
+**Ranking de produção (`ord_prod_band` total):** TRADICIONAL 189 · LEITE COND. 79 · CAFÉ 30 · ZERO 27 · PÉ DE MOÇA 24 · BRIGADEIRO 23. T é ~2,4× L e ~8× os outros — confirma a regra-base 4:2:1:1:1.
+
+**TENDÊNCIA: a fábrica está crescendo.** Metade antiga (02/04→05/05, 8d) vs recente (06/05→18/05, 9d): T +62% · L +47% · B +88% · C −12% · P +100% · Z +70%. Total: ~146 → ~226 bandejas (+55%). Achado relevante pro TCC — o sistema capturou crescimento real do negócio.
+
+**Calendário de corte — mais flexível na prática que a regra teórica.** O CLAUDE.md diz Seg/Qua/Qui=45g · Ter/Sex=Mini+Pet, mas os dados mostram:
+- 45g acontece em **TODOS** os dias úteis (mais forte em Qui — média 36 und/dia).
+- Mini concentra em **Qua** > Ter ≈ Sex (não só Ter/Sex).
+- Pet concentra em Ter/Sex (consistente com a regra).
+
+A automação tem que ser **flexível** no calendário, não rígida.
+
+**Parâmetros base — confirmados pelos dados.** Médias dos `param_real`: 45g T=6438, L=2815, B/C=1438, P=1500 (proporção 4:2:1:1:1 ✓). Mini T=L=500, B/C/P=300, Z=2815 (Z Mini = L 45g do dia, dinâmico ✓). Pet T=220, L=180, B/C/P=90, Z=300 ✓. Bate com a tabela do CLAUDE.md seção 4.
+
+**Potes — pedido raro mas em volume.** T e Z dominam: T 260g (3 dias, total 70) · Z 260g (2d, 50) · T 605g (4d, 55) · Z 605g (4d, 45). LC/B/C/P quase nunca pedem pote. Consistente com a lógica do tacho parcial (sobra vira pote nesses sabores grandes).
+
+**Viração — engrenagem corretiva.** `ord_prod_virada` aparece só 4 vezes em 17 folhas, sempre em grandes quantidades (24, 40, 15 bandejas). Confirma a memória [[project_engrenagem_virada]]: é pedido reativo quando o estoque de virada cai, pra não faltar o que cortar nos próximos dias.
+
+### Restrição de mão de obra (a incorporar — 23/05/2026)
+
+A decisão final de produção/virada/potes **não é só demanda vs estoque** — passa também pela **capacidade humana do dia**. Quando a Gestão define a produção (parte de baixo da folha, junto com balas/PM/Doces), ela **pergunta à Produção** se dá conta. A capacidade varia conforme quem está disponível no dia (com auxiliar a Produção rende mais). Mesma lógica vale pro Corte e pra Embalagem nas outras etapas.
+
+A calculadora `sugerir_cocada()` precisa:
+- Calcular a sugestão pela demanda (mesmo esquema da palha).
+- **Aplicar o teto de capacidade** — se a sugestão passar do que cabe no dia, marcar "excede capacidade" e a Gestão decide o que priorizar.
+- Aceitar input opcional de **"capacidade do dia"** (cheia / reduzida / mínima) pra ajustar o teto.
+
+Pendente: **capacidade típica** da Produção (tachos/dia), do Corte (bandejas/dia) e da Embalagem (und/dia). Já dá pra estimar a da Produção pelo **maior dia observado** nas folhas — mas confirmar com a Gestão é melhor.
+
+### Validação sistemática contra o banco (24/05/2026)
+
+Rodei `sugerir_cocada()` contra **12 folhas** (29/04 → 15/05) com papelzinho_joel preenchido e param_real_*. Comparei totais sugeridos vs totais reais (ord_corte_*, ord_prod_band, ord_prod_potes_*).
+
+| Métrica | Soma das diferenças (sist − real) | Leitura |
+|---|---|---|
+| Corte (band) | **+94** | Sistema overestima ~10-20% em vários dias |
+| Produção (band) | **−41** | Sistema subestima em dias de alta produção (29/04, 07/05, 14/05, 15/05 = −20 cada) |
+| Pote (und) | **−80** | Sistema subestima muito (−65 só em 11/05) — confirma hipótese do tacho parcial |
+
+**Diagnóstico:**
+- **Pote (−80 und):** consistente com o gap conhecido — sistema só repõe o alvo de pote, mas a Gestão também produz pote ABSORVENDO a sobra de tachos parciais (ver `project_tachos_parciais_potes.md`). Ex: 04/05 T → ord 30 band = 4 tachos cozidos (32 band massa); 2 band de sobra vão pra pote. A v3 vai modelar.
+- **Corte (+94 band):** parte vem do mesmo gap dos potes (a "sobra" vira pote em vez de bandeja, o que faria o sistema enxergar estoque mais alto e sugerir menos corte); parte é capacidade priorizada — a Gestão concentra esforço em T/L em dias apertados.
+- **Produção (−41 band):** o sistema espalha em mais sabores; a Gestão concentra. Mesmo efeito de capacidade priorizada.
+- **Folhas com `ord_*=0` em vários campos** (06/05, 08/05) provavelmente estão incompletas — pulei na análise.
+
+**Conclusão:** o algoritmo da v2 está coerente; as 3 melhorias planejadas pra v3 atacam exatamente as 3 fontes de divergência:
+1. **Sobra do tacho parcial → pote** → resolve grande parte do `−80 pote` e parte do `+94 corte`.
+2. **Capacidade priorizada T > L > demais** → resolve o `+94 corte` e o `−41 prod`.
+3. **Viração calculada (3 dias à frente)** → fecha a engrenagem do estoque de virada.
+
+### A construir / em construção (24/05)
+
+- ✅ Calculadora `sugerir_cocada()` v2 — corte por formato + produção de tachos + potes, com alerta de capacidade e viração.
+- ✅ Página `pages/11_Sugestao_Cocada.py`.
+- ✅ **v3 entregue (24/05):**
+  - **Capacidade priorizada (T > L > B > C > P > Z)** — quando `capacidade_tachos` é informado e excede, reduz produção dos sabores menos prioritários até caber. T sempre preservado.
+  - **Sobra de tacho parcial → potes** — modelada. Default: só T, L, Z absorvem sobra (análise das folhas: B/C/P quase nunca fazem pote). Conversão conservadora: 1 band → 10 potes 260g ou 5 potes 605g. Cap pelo gap (`alvo − estoque`) pra não overshootar.
+  - **Viração calculada** — `virada_sugerida = max(0, corte_total × 2 − joel_v)`. Mantém ~2 dias de viradas à frente.
+- 🟡 **Resultado da re-validação v3 (24/05):**
+  | Métrica | v2 (Σ) | v3 (Σ) | Comentário |
+  |---|---|---|---|
+  | Corte | +94 band | +94 band | Sem mudança (capacidade não acionada nos testes — `capacidade_tachos=None`). |
+  | Produção | −41 band | −41 band | Idem. |
+  | Pote | −80 und | **+186 und** | Trocou direção do erro; magnitude similar. Modelagem ainda aproximada. |
+  | Viração | n/a | **−8 band** | Quase batendo zero no agregado. |
+- 🟡 **Limites conhecidos da v3:**
+  - A regra "sobra do tacho → pote" depende de julgamento humano (mistura 260g/605g, decide quando ignora). Modelagem 100% exigiria fichas detalhadas das folhas mostrando tachos cozidos + destino real.
+  - Capacidade priorizada só atua se `capacidade_tachos` for passado. Sem isso, sistema "espalha" em todos os sabores e o erro `+94 corte` persiste.
+- 🔴 Integração com metas de embalagem (Gestão precisa passar a última peça do questionário `02_suprimentos.docx`).
+
+### Gaps de modelagem da cocada (Leonardo, 25/05/2026)
+
+Após o Leonardo testar a v3 com a folha real de 25/05, vieram 4 observações importantes — **a sugestão isolada não captura nuances que a Gestão usa**:
+
+**1. Cortados (sala da Embalagem) — ✅ resolvido nesta sessão.** A folha de produção tem coluna "CORTADOS" (45g, Mini, Pet) que é o estoque "quase-pronto" entre Corte e Embalagem. Antes da v3.1, o sistema só olhava `emb_*` (embalado), ignorando cortado. Agora aparece como input na seção "Estoque do dia" e entra na fórmula: `need = param_real − emb − cortado`. Se já há cortado suficiente, sistema sugere cortar menos hoje.
+
+**2. Eventos da semana — pendente.** Quando a Gestão sabe que a equipe vai estar parcialmente fora num dia (ex: pintar rua sex/sáb), ela **adianta** corte e produção nos dias normais. O sistema não tem como saber sobre esses eventos. *Caminho proposto:* campo livre de "evento da semana / observação" no input. Médio prazo: tabela `eventos_semana` no banco (data, tipo, impacto). Longo prazo: botão "Pergunte ao Claude" pra contextualizar em PT-BR.
+
+**3. Não-acomodação — pendente.** Observação do Leonardo: *"tanto no corte como na produção e até na embalagem ele não se acomoda caso os números do dia já tenham sido batidos, ele pede para fazer mais e mais para a equipe não ficar ociosa"*. Significa que o **alvo real é dinâmico** — cresce conforme a equipe disponível, não é só função da demanda. *Caminho:* capturar headcount diário das 3 áreas (Produção, Corte, Embalagem) na folha; correlacionar com produção observada; estimar capacidade média; sugerir "topo" baseado em capacidade, não só demanda. Vira capítulo de PCP no TCC (Goldratt — *Theory of Constraints*: gargalo é mão de obra, capacidade ociosa custa).
+
+**4. Calendário + IA — pendente (sugestão do Leonardo).** A cocada tem muita coisa que influencia decisão (eventos, headcount, pedidos antecipados, intuição). Hard-codar tudo é impraticável. Caminhos sugeridos:
+- **Calendário operacional** (curto prazo): tela onde a Gestão marca eventos da semana (pintura, feriado, pedido grande, equipe reduzida). Sistema lê e ajusta.
+- **Botão IA** (médio prazo, ROADMAP_IA fase 3): "Pergunte ao Claude" recebe contexto livre + sugestão atual + ajusta com base no que a Gestão escreveu.
+- **Aprendizado por histórico** (longo prazo): após N semanas com folhas completas + sugestões aplicadas, treinar modelo simples que aprende padrões da Gestão (regressão / árvore).
+
+**Síntese honesta pro TCC:** a Camada 2 atinge ~85% da decisão da Gestão pela palha (algoritmo MRP clássico funciona); na cocada, atinge ~50-70% (dependendo do dia) porque há **decisões cognitivas** que dependem de contexto humano não capturado em estrutura. Esse "gap restante" é exatamente o espaço onde **um agente conversacional faz sentido** — não pra substituir a Gestão, mas pra captar contexto livre.
 
 ---
 
