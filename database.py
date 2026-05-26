@@ -151,10 +151,15 @@ def chave_produto_cocada(sabor: str) -> str:
 
 
 def chave_produto_palha(sabor: str) -> str:
-    """Chave canônica do produto palha — uma receita por tacho/sabor.
-    Mesma lógica de chave_produto_cocada. Ex: 'LEITE EM PÓ' → 'palha_L_tacho'."""
+    """Chave canônica do produto palha — uma receita por BANDEJA.
+
+    Confirmado 22/05/2026 (CADERNO 1.A): a palha NÃO é feita em tacho, é em
+    PANELA. Cada receita = 1 panela = 1 bandeja. A receita técnica das fichas
+    é, portanto, 'por bandeja', não 'por tacho'.
+    Ex: 'LEITE EM PÓ' → 'palha_L_band'.
+    """
     sigla = SIGLA_PALHA.get(sabor, sabor[:3])
-    return f"palha_{sigla}_tacho"
+    return f"palha_{sigla}_band"
 
 
 def listar_produtos_possiveis() -> list[dict]:
@@ -172,7 +177,7 @@ def listar_produtos_possiveis() -> list[dict]:
     for sabor in SABORES_PALHA:
         produtos.append({
             "chave": chave_produto_palha(sabor),
-            "nome": f"Palha {sabor} (1 tacho)",
+            "nome": f"Palha {sabor} (1 bandeja)",
             "grupo": "Palha",
         })
     produtos.extend([
@@ -1847,16 +1852,13 @@ def calcular_necessidades_do_dia(data: str) -> list[dict]:
             band_por_tacho = 3 if sabor == "ZERO" else 8
             _adicionar_necessidade(chave_produto_cocada(sabor), band / band_por_tacho)
 
-    # Palha — também por tacho. ATENÇÃO: o rendimento do tacho de palha
-    # (bandejas por tacho) ainda não foi confirmado — está no Bloco 2 do
-    # questionário de Suprimentos (entrevistas/02_suprimentos.docx). Valor
-    # provisório 8; ajustar aqui quando a Gestão responder.
-    BAND_POR_TACHO_PALHA = 8  # PROVISÓRIO — confirmar via questionário
+    # Palha — receita É POR BANDEJA (1 panela = 1 bandeja), confirmado 22/05/2026
+    # via CADERNO 1.A. Necessidade = receita_por_bandeja × ord_prod_band (1:1).
     for r in folha_p:
         sabor = r["sabor"]
         band = r.get("ord_prod_band") or 0
         if band > 0:
-            _adicionar_necessidade(chave_produto_palha(sabor), band / BAND_POR_TACHO_PALHA)
+            _adicionar_necessidade(chave_produto_palha(sabor), band)
 
     # PM (ord_pm em bolos)
     _adicionar_necessidade("pm_bolo", pmbd.get("ord_pm") or 0)
