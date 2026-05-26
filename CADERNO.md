@@ -707,8 +707,8 @@ Só 3 pares de dias com gap de 3 dias úteis disponíveis. Várias folhas histó
 |---|---|---|---|
 | **A — Renomeação** | UI/variáveis: nomes próprios → departamentos (Gestão, Produção, Corte, Embalagem, Suprimentos). Mantém retrocompat no banco. | 2h | ✅ **Feito 14/05/2026** |
 | **B — Modelo de Suprimentos** | ✅ **Feito 15/05/2026.** Schema novo (3 tabelas), CRUD completo, página com 4 abas, helpers `chave_produto_*`, função `calcular_necessidades_do_dia(data)` (MRP simplificado). Smoke test passou contra Supabase. Pronto pra cadastro real após entrevista. | 4h | ✅ 15/05/2026 |
-| **C — Cadastro inicial de insumos** | Lista de matérias-primas + estoque atual + mínimo + fornecedor. Depende de entrevista com Gestão. | manual | Esta semana |
-| **D — BOM (receitas)** | Pra cada produto, quanto consome de cada insumo. Pergunta-chave pra Produção/Gestão. | entrevista | Esta semana |
+| **C — Cadastro inicial de insumos** | Lista de matérias-primas + estoque atual + mínimo + fornecedor. ✅ **33 insumos básicos cadastrados em 26/05/2026** via `seed_bom_completa.py` (estoque inicial 0). Falta cruzamento com SIGE Cloud quando acesso voltar pra preencher estoque atual + fornecedor + custo. | script + SIGE | ✅ parcial 26/05 |
+| **D — BOM (receitas)** | ✅ **Concluída 26/05/2026.** 12 produtos cadastrados (6 cocadas + 5 palhas + PM + Bala) com 91 linhas de BOM via `seed_bom_completa.py` + página `pages/0_Admin_Seed.py`. Receitas vieram do CADERNO Bloco 5 (entrevistas 15/05 e 22/05). Idempotente — pode reaplicar se mudar. | script | ✅ 26/05 |
 | **E — Auto-baixa por produção** | Quando folha é salva, sistema calcula consumo e baixa do almoxarifado. Sai da pura visualização — Camada 1.5. | 6-8h | 22-29/05 (Etapa 5 do TCC) |
 | **F — Alertas + sugestão de compra + Sigee** | "Vai faltar X em Y dias", "Comprar Z". Importação de dados do Sigee Cloud. | 10h+ | Parcial até a defesa, completo pós-TCC |
 
