@@ -43,5 +43,6 @@ COPY --chown=user:user . .
 EXPOSE 8501
 
 # Comando que liga o app quando o Space inicia.
-# Usa lancamento.py como entry-point (mesmo do Streamlit Cloud).
-CMD ["streamlit", "run", "lancamento.py"]
+# Entry novo: app.py — usa st.navigation pra montar sidebar organizada.
+# O lancamento.py virou apenas uma das paginas (referenciada pelo app.py).
+CMD ["streamlit", "run", "app.py"]
