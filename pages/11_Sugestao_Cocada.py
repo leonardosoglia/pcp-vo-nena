@@ -82,6 +82,9 @@ def _vazio():
         'cort_45g': {s: 0 for s in SABORES},
         'cort_mini': {s: 0 for s in SABORES},
         'cort_pet': {s: 0 for s in SABORES},
+        'joel_45g': {s: 0 for s in SABORES},
+        'joel_mini': {s: 0 for s in SABORES},
+        'joel_pet': {s: 0 for s in SABORES},  # em BANDEJAS
         'joel_v': {s: 0 for s in SABORES},
         'joel_pv': {s: 0 for s in SABORES},
         'estoque_pote_260g': {s: 0 for s in SABORES},
@@ -119,6 +122,9 @@ if data_sel is not None:
             dados['param_real_45g'][s] = f.get('param_real_45g') or 0
             dados['param_real_mini'][s] = f.get('param_real_mini') or 0
             dados['param_real_pet'][s] = f.get('param_real_pet') or 0
+            dados['joel_45g'][s] = p.get('joel_45g') or 0
+            dados['joel_mini'][s] = p.get('joel_mini') or 0
+            dados['joel_pet'][s] = p.get('joel_pet') or 0   # em BANDEJAS
             dados['joel_v'][s] = p.get('joel_v') or 0
             dados['joel_pv'][s] = p.get('joel_pv') or 0
         dados['weekday'] = data_sel.weekday()
@@ -178,8 +184,10 @@ st.header("Estoque do dia")
 st.caption(
     "Edite os valores. **Embalado** = pronto pra venda (sala de venda/estoque). "
     "**Cortado** = já cortado mas ainda não embalado (sala da Embalagem). "
-    "**joel_v / joel_pv** = bandejas viradas / pra virar (papelzinho do Joel). "
-    "**Potes** = unidades de pote já produzidas."
+    "**joel_45g / joel_mini / joel_pet** = contagem matinal do papelzinho do Joel "
+    "(produto cortado na Produção). joel_pet em BANDEJAS, os outros em unidades. "
+    "**joel_v / joel_pv** = bandejas viradas / pra virar. "
+    "**Potes** = unidades já produzidas."
 )
 
 def _vals(k):
@@ -193,6 +201,9 @@ df_estoque_default = pd.DataFrame({
     "cort_45g (und)": _vals('cort_45g'),
     "cort_mini (und)": _vals('cort_mini'),
     "cort_pet (und)": _vals('cort_pet'),
+    "joel_45g (und)": _vals('joel_45g'),
+    "joel_mini (und)": _vals('joel_mini'),
+    "joel_pet (band)": _vals('joel_pet'),
     "joel_v (band)": _vals('joel_v'),
     "joel_pv (band)": _vals('joel_pv'),
     "pote 260g": _vals('estoque_pote_260g'),
@@ -242,6 +253,9 @@ inputs = {
     'cort_45g': _dict_from_col(df_estoque, "cort_45g (und)"),
     'cort_mini': _dict_from_col(df_estoque, "cort_mini (und)"),
     'cort_pet': _dict_from_col(df_estoque, "cort_pet (und)"),
+    'joel_45g': _dict_from_col(df_estoque, "joel_45g (und)"),
+    'joel_mini': _dict_from_col(df_estoque, "joel_mini (und)"),
+    'joel_pet': _dict_from_col(df_estoque, "joel_pet (band)"),
     'joel_v': _dict_from_col(df_estoque, "joel_v (band)"),
     'joel_pv': _dict_from_col(df_estoque, "joel_pv (band)"),
     'estoque_pote_260g': _dict_from_col(df_estoque, "pote 260g"),

@@ -135,6 +135,9 @@ def sugerir_cocada(
     cort_45g=None,
     cort_mini=None,
     cort_pet=None,
+    joel_45g=None,
+    joel_mini=None,
+    joel_pet=None,
     horizonte_corte=3,
     horizonte_producao=5,
     alvo_pv=None,
@@ -147,9 +150,14 @@ def sugerir_cocada(
     """Computa sugestão diária de corte + produção da cocada (incluindo potes).
 
     cort_45g/cort_mini/cort_pet: estoque de cortados na sala da Embalagem (já cortados,
-                     ainda não embalados). São subtraídos da necessidade de corte —
-                     se já há cortado suficiente pra atender o param_real, não precisa
-                     cortar mais hoje. Default: zeros.
+                     ainda não embalados). Em UNIDADES. Default: zeros.
+    joel_45g/joel_mini/joel_pet: contagem matinal do papelzinho do Joel — produto
+                     cortado na sala da Produção, ainda não passou pra Embalagem.
+                     joel_45g e joel_mini em UNIDADES; joel_pet em BANDEJAS
+                     (convertido internamente: ×30 ou ×60 pra Z).
+    Fórmula clássica do sistema (Cortados②, ver database.py:21-23):
+       Cortados②(formato) = emb + cort + joel  (com conversão de joel_pet pra und)
+       need_de_corte = param_real − Cortados②
     regra_sobra_pote: 'completar_alvo' (padrão — primeiro fecha gap 260g, depois 605g),
                      '260g' (tudo no 260g) ou '605g' (tudo no 605g).
     sabores_com_pote_da_sobra: conjunto de sabores onde a sobra do tacho parcial
@@ -164,6 +172,12 @@ def sugerir_cocada(
         cort_mini = {s: 0 for s in SABORES}
     if cort_pet is None:
         cort_pet = {s: 0 for s in SABORES}
+    if joel_45g is None:
+        joel_45g = {s: 0 for s in SABORES}
+    if joel_mini is None:
+        joel_mini = {s: 0 for s in SABORES}
+    if joel_pet is None:
+        joel_pet = {s: 0 for s in SABORES}
     if alvo_pv is None:
         alvo_pv = dict(ALVO_PV_PADRAO)
     if alvo_pote_260g is None:
@@ -175,25 +189,31 @@ def sugerir_cocada(
     if estoque_pote_605g is None:
         estoque_pote_605g = {s: 0 for s in SABORES}
 
-    # 1. Corte por formato
-    # need = param_real - emb - cortado (o que já está cortado na Embalagem conta como
-    # "quase pronto", então reduz a necessidade de cortar mais hoje).
+    # 1. Corte por formato — fórmula clássica do sistema (Cortados②):
+    # need = param_real − emb − cort − joel  (joel_pet em bandejas vira und)
+    # Cortados② cobre as 3 camadas de produto cortado: embalado (emb),
+    # cortado na sala da Embalagem (cort), e cortado no papel do Joel (joel).
     corte_45g, corte_mini, corte_pet = {}, {}, {}
     for s in SABORES:
+        rend_pet = REND_PET_Z if s == 'ZERO' else REND_PET
         if s != 'ZERO' and weekday in DIAS_CORTE_45G:
-            need = max(0, param_real_45g.get(s, 0) - emb_45g.get(s, 0) - cort_45g.get(s, 0))
+            cortados2 = emb_45g.get(s, 0) + cort_45g.get(s, 0) + joel_45g.get(s, 0)
+            need = max(0, param_real_45g.get(s, 0) - cortados2)
             corte_45g[s] = math.ceil(need / REND_45G / horizonte_corte) if need > 0 else 0
         else:
             corte_45g[s] = 0
         if weekday in DIAS_CORTE_MINI:
-            need = max(0, param_real_mini.get(s, 0) - emb_mini.get(s, 0) - cort_mini.get(s, 0))
+            cortados2 = emb_mini.get(s, 0) + cort_mini.get(s, 0) + joel_mini.get(s, 0)
+            need = max(0, param_real_mini.get(s, 0) - cortados2)
             corte_mini[s] = math.ceil(need / REND_MINI / horizonte_corte) if need > 0 else 0
         else:
             corte_mini[s] = 0
         if weekday in DIAS_CORTE_PET:
-            rend = REND_PET_Z if s == 'ZERO' else REND_PET
-            need = max(0, param_real_pet.get(s, 0) - emb_pet.get(s, 0) - cort_pet.get(s, 0))
-            corte_pet[s] = math.ceil(need / rend / horizonte_corte) if need > 0 else 0
+            # joel_pet vem em BANDEJAS — converte pra unidades antes de somar
+            joel_pet_und = joel_pet.get(s, 0) * rend_pet
+            cortados2 = emb_pet.get(s, 0) + cort_pet.get(s, 0) + joel_pet_und
+            need = max(0, param_real_pet.get(s, 0) - cortados2)
+            corte_pet[s] = math.ceil(need / rend_pet / horizonte_corte) if need > 0 else 0
         else:
             corte_pet[s] = 0
 
