@@ -4,8 +4,13 @@ pages/6_Media_Movel.py — Média Móvel por dia da semana
 Compara a META BASE da tabela metas_45g (parâmetro fixo definido pela Gestão)
 com a MÉDIA MÓVEL OBSERVADA nas últimas N ocorrências do mesmo dia da semana.
 
-Métrica usada: ord_emb_45g (fluxo de embalagem 45g) — fluxo, não estoque
-(mesma lição da Curva ABC corrigida com insight do Leonardo 17/05).
+Métrica usada: Cortados² 45g = emb_45g + cort1_45g + joel_45g (3 camadas
+de produto cortado — fórmula clássica do sistema, ver database.py:21).
+
+Histórico: até 26/05 usava `ord_emb_45g` (só ordem de embalagem do dia),
+que dava mapa SEMPRE vermelho porque é fração pequena. Corrigido após
+feedback do Leonardo 26/05 — agora reflete o estoque REAL de produto
+cortado no dia (todas as 3 camadas somadas).
 
 Objetivo: alertar quando a realidade observada se descolar muito do
 parâmetro base. Permite que a Gestão recalibre antecipadamente em vez de
@@ -39,7 +44,7 @@ if _RAIZ not in sys.path:
     sys.path.insert(0, _RAIZ)
 
 from cached_db import (
-    list_datas_folha, get_folha_cocada, get_metas_45g,
+    list_datas_folha, get_folha_cocada, get_papelzinho_joel, get_metas_45g,
     SABORES_COCADA,
 )
 
@@ -64,20 +69,37 @@ WEEKDAY_TO_PT = {0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta", 4: "Sexta"
 # CÁLCULOS
 # ════════════════════════════════════════════════════════════════════════════
 def _carregar_observacoes_45g():
-    """Retorna DataFrame com colunas: data, weekday, weekday_pt, sabor, ord_emb_45g.
-    Uma linha por (data × sabor) onde houve ordem de embalagem > 0.
+    """Retorna DataFrame com colunas: data, weekday, weekday_pt, sabor, cortados2_45g.
+
+    `cortados2_45g` = emb_45g + cort1_45g + joel_45g (fórmula clássica do sistema,
+    ver database.py:21). Representa o TOTAL de produto cortado 45g (em und) na
+    fábrica naquele dia — soma das 3 camadas:
+      - embalado (estoque/venda)
+      - cortado sala da Embalagem (cort1_45g)
+      - cortado pelo Joel/Produção (joel_45g, papelzinho)
+
+    Antes (até 26/05/2026) esta página usava `ord_emb_45g` — que é só a ordem
+    de embalagem do dia, uma fração pequena. Resultado: mapa de calor SEMPRE
+    vermelho (fugia da realidade). Corrigido pra Cortados² após feedback do
+    Leonardo (26/05).
     """
     datas = list_datas_folha()
     if not datas:
         return pd.DataFrame()
     linhas = []
     for d in datas:
-        for r in get_folha_cocada(d):
+        folha = get_folha_cocada(d)
+        papel_rows = get_papelzinho_joel(d)
+        papel_by = {r["sabor"]: r for r in papel_rows} if papel_rows else {}
+        for r in folha:
             s = r["sabor"]
             if s == "ZERO":
                 continue  # Zero 45g não existe
-            ord_emb = int(r.get("ord_emb_45g") or 0)
-            if ord_emb > 0:
+            emb = int(r.get("emb_45g") or 0)
+            cort1 = int(r.get("cort1_45g") or 0)
+            joel = int((papel_by.get(s) or {}).get("joel_45g") or 0)
+            cortados2 = emb + cort1 + joel
+            if cortados2 > 0:
                 data_dt = datetime.strptime(d, "%Y-%m-%d")
                 wd = data_dt.weekday()
                 if wd < 5:  # só dia útil
@@ -87,7 +109,10 @@ def _carregar_observacoes_45g():
                         "weekday": wd,
                         "weekday_pt": WEEKDAY_TO_PT[wd],
                         "sabor": s,
-                        "ord_emb_45g": ord_emb,
+                        "cortados2_45g": cortados2,
+                        "emb_45g": emb,
+                        "cort1_45g": cort1,
+                        "joel_45g": joel,
                     })
     return pd.DataFrame(linhas)
 
@@ -122,7 +147,7 @@ def _calcular_media_movel(df, janela=4):
 
             # Janela: as ÚLTIMAS `janela` observações
             ultimas = sub.tail(janela)
-            mm = float(ultimas["ord_emb_45g"].mean())
+            mm = float(ultimas["cortados2_45g"].mean())
 
             desvio_abs = mm - base if base > 0 else 0
             desvio_pct = (desvio_abs / base * 100) if base > 0 else 0
@@ -165,8 +190,9 @@ def calcular_tudo(janela=4):
 # ════════════════════════════════════════════════════════════════════════════
 st.title("Calibração de Metas")
 st.caption(
-    "Compara as metas fixas da tabela `metas_45g` com a média das últimas semanas. "
-    " [Saiba mais](/Ajuda) na página de Ajuda."
+    "Compara a **meta-base 45g** (tabela `metas_45g`, fixa) com o **Cortados² médio** "
+    "observado nas últimas semanas — `emb_45g + cort sala + papelzinho do Joel`. "
+    "Mostra onde a realidade se descolou do parâmetro e pede recalibração."
 )
 
 
@@ -189,7 +215,7 @@ df_obs, df_mm = calcular_tudo(janela=janela)
 
 if df_obs.empty:
     st.warning(
-        "️ Ainda não há folhas com ordens de embalagem 45g (`ord_emb_45g`) preenchidas. "
+        "Ainda não há folhas com estoque 45g lançado. "
         "Cadastra algumas folhas em Lançamento antes."
     )
     st.stop()
@@ -208,7 +234,7 @@ n_atencao = (df_mm["severidade"] == "Atenção").sum()
 col_a, col_b, col_c, col_d = st.columns(4)
 col_a.metric(
     " Folhas analisadas (45g)", n_obs,
-    help="Quantas linhas de folha tem ordem de embalagem 45g preenchida",
+    help="Quantas linhas de folha tem produto 45g cortado (emb + cort sala + papelzinho)",
 )
 col_b.metric(
     " Combinações analisadas", n_combos,
@@ -378,7 +404,7 @@ for wd_pt, cor in cores_dia.items():
         continue
     fig_lin.add_trace(go.Scatter(
         x=sub["data_dt"],
-        y=sub["ord_emb_45g"],
+        y=sub["cortados2_45g"],
         mode="markers+lines",
         name=wd_pt,
         line=dict(color=cor, width=2),
@@ -386,7 +412,7 @@ for wd_pt, cor in cores_dia.items():
         hovertemplate=(
             "<b>%{x|%d/%m/%Y}</b><br>"
             f"{wd_pt}<br>"
-            "Ord. embalagem: %{y:,} und<br>"
+            "Cortados² 45g: %{y:,} und<br>"
             "<extra></extra>"
         ),
     ))
@@ -406,7 +432,7 @@ if meta_sabor:
         )
 
 fig_lin.update_layout(
-    title=f"Ordens de embalagem 45g — {labels_sabor.get(sabor_sel, sabor_sel)}",
+    title=f"Cortados² 45g (emb + cort sala + papelzinho) — {labels_sabor.get(sabor_sel, sabor_sel)}",
     xaxis_title="Data",
     yaxis_title="Unidades pedidas pra embalar",
     height=400,
