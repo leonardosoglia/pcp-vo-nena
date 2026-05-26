@@ -275,9 +275,14 @@ r = sugerir_cocada(
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Resultado — corte e produção de bandejas
+# Resultado — sugestão CONSERVADORA (fórmula `param − Cortados²` com horizonte)
 # ════════════════════════════════════════════════════════════════════════════
-st.header("Sugestão — corte e produção (bandejas)")
+st.header("Sugestão CONSERVADORA — fórmula (param − Cortados²)")
+st.caption(
+    "Calculada pelo algoritmo: pega o param do dia, desconta o que já está cortado "
+    "(emb + cort sala + papelzinho do Joel), divide pelo horizonte. **Tende a sugerir "
+    "POUCO ou ZERO quando o estoque já cobre o param.**"
+)
 df_sug = pd.DataFrame({
     "Sabor": SABORES,
     "Corte 45g (band)": [r['corte_45g'][s] for s in SABORES],
@@ -413,16 +418,25 @@ if data_sel is not None:
     if historico:
         st.divider()
         nome_dia = WEEKDAYS_PT[data_sel.weekday()]
-        st.header(f"Contexto histórico — últimas {len(historico)} {nome_dia}s antes desta data")
-        st.caption(
-            "**Não é sugestão — é referência.** O que a Gestão decidiu nos últimos "
-            f"dias-{nome_dia} disponíveis no banco. Útil pra ver a 'mão típica' da Gestão "
-            "nesse dia da semana (que a fórmula pura `param − Cortados²` não captura). "
-            "Datas usadas: " + ", ".join(h['data'].strftime('%d/%m') for h in historico)
+        datas_usadas = ", ".join(h['data'].strftime('%d/%m') for h in historico)
+
+        # Cabeçalho destacado em azul claro
+        st.markdown(
+            f"""<div style="background:#e6f3ff; padding: 14px 18px; border-radius: 8px;
+            border-left: 6px solid #1f6feb; margin-top: 8px;">
+            <h3 style="margin: 0 0 6px 0;">Sugestão HISTÓRICA — o que a Gestão tipicamente faz</h3>
+            <p style="margin: 0; font-size: 0.92em; color: #555;">
+            Mediana das últimas <strong>{len(historico)}</strong> {nome_dia.lower()}s
+            disponíveis no banco ({datas_usadas}). Reflete a "mão" da Gestão — captura
+            a <strong>não-acomodação</strong> (ela pede corte/produção mesmo com estoque
+            cobrindo o param). <strong>Use como sanity check da conservadora acima.</strong>
+            </p>
+            </div>""",
+            unsafe_allow_html=True,
         )
 
         def _stats_campo(campo):
-            """Retorna {sabor: (mediana, min, max)} pro campo dado."""
+            """Retorna {sabor: (mediana, min, max, n_zero, n_total)}."""
             out = {}
             for s in SABORES:
                 vals = []
@@ -432,18 +446,25 @@ if data_sel is not None:
                     if v is not None:
                         vals.append(v)
                 if vals:
-                    out[s] = (statistics.median(vals), min(vals), max(vals))
+                    n_zero = sum(1 for v in vals if v == 0)
+                    out[s] = (statistics.median(vals), min(vals), max(vals), n_zero, len(vals))
                 else:
-                    out[s] = (0, 0, 0)
+                    out[s] = (0, 0, 0, 0, 0)
             return out
 
-        def _fmt(v):
-            med, lo, hi = v
-            if lo == hi == 0:
+        def _fmt_mediana(v):
+            """Mediana arredondada como número principal."""
+            med, *_ = v
+            return int(round(med))
+
+        def _fmt_range(v):
+            """Range pra contexto secundário."""
+            med, lo, hi, nz, n = v
+            if n == 0:
                 return "—"
             if lo == hi:
-                return f"{med:g}"
-            return f"{med:g} (entre {lo}–{hi})"
+                return f"{lo:g}"
+            return f"{lo:g}–{hi:g}"
 
         ec45 = _stats_campo('ord_corte_45g')
         ecmi = _stats_campo('ord_corte_mini')
@@ -454,17 +475,50 @@ if data_sel is not None:
 
         df_hist = pd.DataFrame({
             "Sabor": SABORES,
-            "Corte 45g (band)": [_fmt(ec45[s]) for s in SABORES],
-            "Corte Mini (band)": [_fmt(ecmi[s]) for s in SABORES],
-            "Corte Pet (band)": [_fmt(ecpe[s]) for s in SABORES],
-            "Produção (band)": [_fmt(epb[s]) for s in SABORES],
-            "Pote 260g (und)": [_fmt(epp260[s]) for s in SABORES],
-            "Pote 605g (und)": [_fmt(epp605[s]) for s in SABORES],
+            "Corte 45g (band)": [_fmt_mediana(ec45[s]) for s in SABORES],
+            "Corte Mini (band)": [_fmt_mediana(ecmi[s]) for s in SABORES],
+            "Corte Pet (band)": [_fmt_mediana(ecpe[s]) for s in SABORES],
+            "Produção (band)": [_fmt_mediana(epb[s]) for s in SABORES],
+            "Pote 260g (und)": [_fmt_mediana(epp260[s]) for s in SABORES],
+            "Pote 605g (und)": [_fmt_mediana(epp605[s]) for s in SABORES],
         })
-        st.dataframe(df_hist, use_container_width=True, hide_index=True)
-        st.caption(
-            "Como ler: número simples = mediana das folhas. `med (entre lo–hi)` = "
-            "mediana com range observado quando houve variação. `—` = nunca cortou/produziu."
+        st.dataframe(
+            df_hist.style.set_properties(**{"background-color": "#e6f3ff"}),
+            use_container_width=True, hide_index=True,
+        )
+
+        # Sumário
+        total_corte_h = sum(_fmt_mediana(ec45[s]) + _fmt_mediana(ecmi[s]) + _fmt_mediana(ecpe[s]) for s in SABORES)
+        total_prod_h = sum(_fmt_mediana(epb[s]) for s in SABORES)
+        total_p260_h = sum(_fmt_mediana(epp260[s]) for s in SABORES)
+        total_p605_h = sum(_fmt_mediana(epp605[s]) for s in SABORES)
+        st.markdown(
+            f"**Histórico típico:** cortar **{total_corte_h} bandejas** · "
+            f"produzir **{total_prod_h} bandejas** · "
+            f"**{total_p260_h} potes 260g** + **{total_p605_h} potes 605g**."
+        )
+
+        # Range observado (detalhe pra Gestão checar variação)
+        with st.expander("Ver range observado (mín–máx) de cada número", expanded=False):
+            df_range = pd.DataFrame({
+                "Sabor": SABORES,
+                "Corte 45g": [_fmt_range(ec45[s]) for s in SABORES],
+                "Corte Mini": [_fmt_range(ecmi[s]) for s in SABORES],
+                "Corte Pet": [_fmt_range(ecpe[s]) for s in SABORES],
+                "Produção": [_fmt_range(epb[s]) for s in SABORES],
+                "Pote 260g": [_fmt_range(epp260[s]) for s in SABORES],
+                "Pote 605g": [_fmt_range(epp605[s]) for s in SABORES],
+            })
+            st.dataframe(df_range, use_container_width=True, hide_index=True)
+            st.caption(
+                "Mostra o range (mín–máx) observado nas folhas usadas. `—` = nunca "
+                "cortou/produziu nesses dias. Útil pra entender quão estável é a 'mão' da Gestão."
+            )
+    else:
+        st.divider()
+        st.info(
+            "**Sugestão histórica indisponível** — não há folhas anteriores do mesmo "
+            f"dia da semana no banco pra calcular. Use só a conservadora acima."
         )
 
 
