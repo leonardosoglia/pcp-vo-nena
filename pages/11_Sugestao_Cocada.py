@@ -18,7 +18,8 @@ Princípio: o sistema SUGERE, a Gestão DECIDE.
 """
 import os
 import sys
-from datetime import date
+import statistics
+from datetime import date, timedelta
 import streamlit as st
 import pandas as pd
 
@@ -369,6 +370,102 @@ if sabores_alerta:
         f"**Atenção viração:** sobra de viradas baixa (≤ 2 band) em {', '.join(sabores_alerta)}. "
         "Veja a tabela de virada sugerida acima."
     )
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Contexto histórico — o que a Gestão fez em dias semelhantes
+# ════════════════════════════════════════════════════════════════════════════
+def _contexto_historico_cocada(data_ref, n=4, max_lookback_semanas=12):
+    """Busca últimas N folhas do mesmo dia da semana antes de data_ref,
+    pegando apenas folhas COMPLETAS (com papelzinho + param_real preenchido).
+    Retorna lista de dicts {data, folha_por_sabor, papel_por_sabor}.
+    """
+    if data_ref is None:
+        return []
+    encontradas = []
+    for k in range(1, max_lookback_semanas + 1):
+        if len(encontradas) >= n:
+            break
+        d = data_ref - timedelta(days=7 * k)
+        try:
+            folha = cached_db.get_folha_cocada(d.isoformat())
+            papel = cached_db.get_papelzinho_joel(d.isoformat())
+        except Exception:
+            continue
+        if not folha or not papel:
+            continue
+        papel_tem_dados = any(
+            (p.get('joel_v') or 0) + (p.get('joel_45g') or 0) + (p.get('joel_pet') or 0) > 0
+            for p in papel
+        )
+        param_tem_dados = any(
+            (f.get('param_real_45g') or 0) > 0 for f in folha
+        )
+        if not (papel_tem_dados and param_tem_dados):
+            continue
+        f_by = {r['sabor']: r for r in folha}
+        encontradas.append({'data': d, 'folha': f_by})
+    return encontradas
+
+
+if data_sel is not None:
+    historico = _contexto_historico_cocada(data_sel, n=4)
+    if historico:
+        st.divider()
+        nome_dia = WEEKDAYS_PT[data_sel.weekday()]
+        st.header(f"Contexto histórico — últimas {len(historico)} {nome_dia}s antes desta data")
+        st.caption(
+            "**Não é sugestão — é referência.** O que a Gestão decidiu nos últimos "
+            f"dias-{nome_dia} disponíveis no banco. Útil pra ver a 'mão típica' da Gestão "
+            "nesse dia da semana (que a fórmula pura `param − Cortados²` não captura). "
+            "Datas usadas: " + ", ".join(h['data'].strftime('%d/%m') for h in historico)
+        )
+
+        def _stats_campo(campo):
+            """Retorna {sabor: (mediana, min, max)} pro campo dado."""
+            out = {}
+            for s in SABORES:
+                vals = []
+                for h in historico:
+                    f = h['folha'].get(s, {})
+                    v = f.get(campo)
+                    if v is not None:
+                        vals.append(v)
+                if vals:
+                    out[s] = (statistics.median(vals), min(vals), max(vals))
+                else:
+                    out[s] = (0, 0, 0)
+            return out
+
+        def _fmt(v):
+            med, lo, hi = v
+            if lo == hi == 0:
+                return "—"
+            if lo == hi:
+                return f"{med:g}"
+            return f"{med:g} (entre {lo}–{hi})"
+
+        ec45 = _stats_campo('ord_corte_45g')
+        ecmi = _stats_campo('ord_corte_mini')
+        ecpe = _stats_campo('ord_corte_pet')
+        epb = _stats_campo('ord_prod_band')
+        epp260 = _stats_campo('ord_prod_potes_260g')
+        epp605 = _stats_campo('ord_prod_potes_605g')
+
+        df_hist = pd.DataFrame({
+            "Sabor": SABORES,
+            "Corte 45g (band)": [_fmt(ec45[s]) for s in SABORES],
+            "Corte Mini (band)": [_fmt(ecmi[s]) for s in SABORES],
+            "Corte Pet (band)": [_fmt(ecpe[s]) for s in SABORES],
+            "Produção (band)": [_fmt(epb[s]) for s in SABORES],
+            "Pote 260g (und)": [_fmt(epp260[s]) for s in SABORES],
+            "Pote 605g (und)": [_fmt(epp605[s]) for s in SABORES],
+        })
+        st.dataframe(df_hist, use_container_width=True, hide_index=True)
+        st.caption(
+            "Como ler: número simples = mediana das folhas. `med (entre lo–hi)` = "
+            "mediana com range observado quando houve variação. `—` = nunca cortou/produziu."
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════════
