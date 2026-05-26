@@ -118,7 +118,11 @@ if not api_key_configurada:
 # IMPORT lazy do helper (depois de checar key)
 # ════════════════════════════════════════════════════════════════════════════
 try:
-    from claude_assistant import perguntar, estimar_custo, usd_para_brl
+    from claude_assistant import (
+        perguntar, estimar_custo, usd_para_brl,
+        perguntar_streaming, sugestoes_contextuais,
+        expandir_slash_command, SLASH_COMMANDS,
+    )
 except ImportError as e:
     st.markdown(
         f"<div class='erro-card'>"
@@ -167,37 +171,43 @@ with col_modelo:
     )
 
 
-# Exemplos de perguntas pra clicar
-st.markdown("#####  Exemplos de perguntas (clica pra usar)")
-exemplos = [
-    "Resume pra mim a folha do dia em 3 linhas: o que foi produzido, o que tá pendente.",
-    "Comparado com a semana passada no mesmo dia da semana, como foi a produção hoje?",
-    "Tem algum sabor que parece estar com problema (excesso ou falta) nos últimos dias?",
-    "Quais sabores estão precisando de atenção máxima hoje (estoque baixo, alta demanda)?",
-    "Por que o sistema sugere essa ordem de corte específica hoje?",
-]
-cols_exemplos = st.columns(len(exemplos))
-for i, exemplo in enumerate(exemplos):
-    with cols_exemplos[i]:
-        if st.button(exemplo[:60] + "...", key=f"ex_{i}", use_container_width=True,
-                     help=exemplo):
-            st.session_state["_pergunta_input"] = exemplo
+# Sugestões contextuais (perguntas baseadas no estado da folha selecionada)
+sugestoes = sugestoes_contextuais(data_ref)
+st.markdown("##### Sugestões pra esta folha (clica pra usar)")
+cols_sug = st.columns(min(3, len(sugestoes)))
+for i, sug in enumerate(sugestoes):
+    col = cols_sug[i % len(cols_sug)]
+    with col:
+        # Mostra os primeiros ~70 chars como label do botão; tooltip mostra completo
+        label = sug if len(sug) <= 70 else sug[:67] + "..."
+        if st.button(label, key=f"sug_{i}", use_container_width=True, help=sug):
+            st.session_state["_pergunta_input"] = sug
 
+# Slash commands disponíveis (expander pra não poluir)
+with st.expander("Comandos rápidos (digite `/` no campo abaixo)", expanded=False):
+    st.markdown("**Atalhos disponíveis:**")
+    for cmd, descr in SLASH_COMMANDS.items():
+        st.markdown(f"- **`{cmd}`** — {descr.split('.')[0]}.")
+    st.caption(
+        "Digite o comando como pergunta (ex: `/resumo` ou `/comparar 18/05`) "
+        "e clique em Perguntar. O sistema expande pra um prompt completo."
+    )
 
 # Campo principal de pergunta
 pergunta_default = st.session_state.get("_pergunta_input", "")
 pergunta = st.text_area(
-    "️ Sua pergunta",
+    "Sua pergunta",
     value=pergunta_default,
     height=100,
-    placeholder="Ex: 'Por que estamos sugerindo cortar 20 bandejas de Tradicional hoje?'",
+    placeholder="Ex: 'Por que estamos sugerindo cortar 20 bandejas de Tradicional hoje?' "
+                "ou um comando como /resumo, /anomalias, /comparar 18/05",
 )
 
 col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 4])
 with col_btn1:
-    perguntar_clicked = st.button(" Perguntar", type="primary", use_container_width=True)
+    perguntar_clicked = st.button("Perguntar", type="primary", use_container_width=True)
 with col_btn2:
-    limpar = st.button("️ Limpar histórico", use_container_width=True)
+    limpar = st.button("Limpar histórico", use_container_width=True)
 
 if limpar:
     st.session_state.historico_perguntas = []
@@ -206,25 +216,46 @@ if limpar:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# EXECUTA A CONSULTA
+# EXECUTA A CONSULTA — com streaming (resposta aparece em tempo real)
 # ════════════════════════════════════════════════════════════════════════════
 if perguntar_clicked:
     pergunta_limpa = (pergunta or "").strip()
     if not pergunta_limpa:
-        st.warning("️ Escreve uma pergunta antes de clicar em Perguntar.")
+        st.warning("Escreve uma pergunta antes de clicar em Perguntar.")
     else:
-        with st.spinner(" Claude está pensando..."):
-            resultado = perguntar(
-                pergunta=pergunta_limpa,
-                data_referencia=data_ref,
-                modelo=modelo,
-            )
+        # Slash command? Expande pro prompt completo
+        prompt_expandido = expandir_slash_command(pergunta_limpa)
+        if prompt_expandido is not None:
+            pergunta_efetiva = prompt_expandido
+            slash_usado = pergunta_limpa.split(maxsplit=1)[0].lower()
+        else:
+            pergunta_efetiva = pergunta_limpa
+            slash_usado = None
 
-        if resultado["erro"]:
+        # Renderiza pergunta acima (antes do streaming começar)
+        st.divider()
+        from datetime import datetime as _dt
+        ts_now = _dt.now().strftime("%H:%M:%S")
+        label_pergunta = f"**{ts_now} · folha {data_ref}**"
+        if slash_usado:
+            label_pergunta += f" · comando `{slash_usado}`"
+        st.markdown(label_pergunta)
+        st.markdown(f"> {pergunta_limpa}")
+
+        # Streaming da resposta
+        sr = perguntar_streaming()
+        with st.chat_message("assistant"):
+            resposta_completa = st.write_stream(
+                sr.chunks(pergunta_efetiva, data_ref, modelo, 1024)
+            )
+        meta = sr.meta
+
+        # Erro?
+        if meta.get("erro"):
             st.markdown(
                 f"<div class='erro-card'>"
-                f"<b> Erro ao consultar o Claude:</b><br>"
-                f"<code>{resultado['erro']}</code><br><br>"
+                f"<b>Erro ao consultar o Claude:</b><br>"
+                f"<code>{meta['erro']}</code><br><br>"
                 f"<b>Causas comuns:</b><br>"
                 f"• API key inválida ou sem créditos<br>"
                 f"• Falha de rede temporária<br>"
@@ -239,40 +270,60 @@ if perguntar_clicked:
         else:
             # Calcula custo
             custo_usd = estimar_custo(
-                resultado["tokens_input"],
-                resultado["tokens_output"],
-                resultado["tokens_cache_read"],
-                modelo=resultado["modelo"],
+                meta.get("tokens_input", 0),
+                meta.get("tokens_output", 0),
+                meta.get("tokens_cache_read", 0),
+                modelo=meta.get("modelo", modelo),
             )
             custo_brl = usd_para_brl(custo_usd)
+
+            # Mostra rodapé compacto com custo + tokens
+            cache_pct = ""
+            if meta.get("tokens_cache_read", 0) > 0 and meta.get("tokens_input", 0) > 0:
+                pct = (meta["tokens_cache_read"] / meta["tokens_input"]) * 100
+                cache_pct = f" · cache {pct:.0f}%"
+            st.caption(
+                f"R$ {custo_brl:.3f} (US$ {custo_usd:.4f}) · "
+                f"{meta.get('tokens_input', 0)} tokens entrada, "
+                f"{meta.get('tokens_output', 0)} saída{cache_pct} · "
+                f"modelo {meta.get('modelo', modelo)}"
+            )
 
             # Salva no histórico
             st.session_state.historico_perguntas.insert(0, {
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
                 "pergunta": pergunta_limpa,
-                "resposta": resultado["resposta"],
+                "resposta": resposta_completa,
                 "data_ref": data_ref,
-                "modelo": resultado["modelo"],
-                "tokens_input": resultado["tokens_input"],
-                "tokens_output": resultado["tokens_output"],
-                "tokens_cache_read": resultado["tokens_cache_read"],
+                "modelo": meta.get("modelo", modelo),
+                "tokens_input": meta.get("tokens_input", 0),
+                "tokens_output": meta.get("tokens_output", 0),
+                "tokens_cache_read": meta.get("tokens_cache_read", 0),
                 "custo_usd": custo_usd,
                 "custo_brl": custo_brl,
+                "slash_command": slash_usado,
             })
 
-            # Limpa o input pra próxima
+            # Limpa input pra próxima (mas não rerun — assim o stream fica visível)
             st.session_state["_pergunta_input"] = ""
-            st.rerun()
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# HISTÓRICO DA CONVERSA (sessão atual)
+# HISTÓRICO DA CONVERSA (sessão atual) — pula o item 0 se acabou de stream
 # ════════════════════════════════════════════════════════════════════════════
-if st.session_state.historico_perguntas:
+# Se acabou de fazer pergunta com streaming, o item 0 do histórico JÁ FOI
+# mostrado via st.write_stream acima — não duplicar. Senão, mostra tudo.
+historico_pra_exibir = st.session_state.historico_perguntas
+if perguntar_clicked and historico_pra_exibir and not historico_pra_exibir[0].get("_ja_mostrado"):
+    # marca como já mostrado pra próximo rerun não pular
+    historico_pra_exibir[0]["_ja_mostrado"] = True
+    historico_pra_exibir = historico_pra_exibir[1:]
+
+if historico_pra_exibir:
     st.divider()
-    st.header(" Conversa")
+    st.header("Conversas anteriores nesta sessão")
 
-    for i, item in enumerate(st.session_state.historico_perguntas):
+    for i, item in enumerate(historico_pra_exibir):
         # Pergunta do usuário
         st.markdown(
             f"<div class='pergunta-user'>"
@@ -302,14 +353,15 @@ if st.session_state.historico_perguntas:
             unsafe_allow_html=True,
         )
 
-    # Totais
-    total_brl = sum(item["custo_brl"] for item in st.session_state.historico_perguntas)
+    # Totais (considera TODAS as perguntas da sessão, inclui a atual que acabou de stream)
+    total_brl = sum(item.get("custo_brl", 0) for item in st.session_state.historico_perguntas)
     total_perguntas = len(st.session_state.historico_perguntas)
-    st.divider()
-    st.caption(
-        f" Total da sessão: **{total_perguntas} perguntas · ~R$ {total_brl:.2f}** "
-        f"(média ~R$ {total_brl/total_perguntas:.3f} por consulta)"
-    )
+    if total_perguntas > 0:
+        st.divider()
+        st.caption(
+            f"Total da sessão: **{total_perguntas} perguntas · ~R$ {total_brl:.2f}** "
+            f"(média ~R$ {total_brl/total_perguntas:.3f} por consulta)"
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════════

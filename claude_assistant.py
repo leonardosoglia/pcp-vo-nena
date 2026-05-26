@@ -396,6 +396,224 @@ def perguntar(pergunta: str, data_referencia: str,
         }
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# STREAMING — versão "ChatGPT-like" (resposta vai aparecendo em tempo real)
+# ════════════════════════════════════════════════════════════════════════════
+class StreamingResposta:
+    """Encapsula um stream da Claude API + metadata final.
+
+    Uso típico (Streamlit):
+        sr = StreamingResposta()
+        texto_completo = st.write_stream(sr.chunks(pergunta, data_ref, modelo, 1024))
+        # depois do stream terminar:
+        meta = sr.meta  # dict com tokens, modelo, erro
+    """
+    def __init__(self):
+        self.meta: dict = {}
+
+    def chunks(self, pergunta: str, data_referencia: str,
+               modelo: str = "claude-haiku-4-5", max_tokens: int = 1024):
+        """Generator que produz pedaços de texto. Ao final, popula self.meta."""
+        try:
+            client = _get_client()
+        except Exception as e:
+            self.meta = {"erro": str(e), "tokens_input": 0, "tokens_output": 0,
+                         "tokens_cache_read": 0, "tokens_cache_write": 0, "modelo": modelo}
+            yield f"**Erro:** {e}"
+            return
+
+        contexto = montar_contexto_folha(data_referencia)
+
+        try:
+            with client.messages.stream(
+                model=modelo,
+                max_tokens=max_tokens,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"{contexto}\n\n"
+                            f"---\n\n"
+                            f"## PERGUNTA DO USUÁRIO\n\n{pergunta}"
+                        ),
+                    }
+                ],
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+                response = stream.get_final_message()
+
+            self.meta = {
+                "tokens_input": getattr(response.usage, "input_tokens", 0),
+                "tokens_output": getattr(response.usage, "output_tokens", 0),
+                "tokens_cache_read": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+                "tokens_cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
+                "modelo": response.model,
+                "erro": None,
+            }
+        except Exception as e:
+            self.meta = {"erro": str(e), "tokens_input": 0, "tokens_output": 0,
+                         "tokens_cache_read": 0, "tokens_cache_write": 0, "modelo": modelo}
+            yield f"\n\n**Erro durante o streaming:** {e}"
+
+
+def perguntar_streaming() -> StreamingResposta:
+    """Atalho pra criar uma instância nova de StreamingResposta."""
+    return StreamingResposta()
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# SUGESTÕES CONTEXTUAIS — perguntas baseadas no estado da folha
+# ════════════════════════════════════════════════════════════════════════════
+def sugestoes_contextuais(data: str) -> list[str]:
+    """Olha a folha do dia e gera 4-6 perguntas relevantes pra mostrar como atalhos.
+
+    Heurística simples (não chama IA — é só lógica em cima dos dados):
+      - Se há sabor com déficit (param > Cortados²) → sugere pergunta de explicação
+      - Se há viração baixa → sugere pergunta sobre risco de falta nos próximos dias
+      - Se há tacho parcial → sugere pergunta sobre absorção em potes
+      - Sempre inclui: "Resume a folha" e "Compara com a semana anterior"
+    """
+    from cached_db import (
+        get_folha_cocada, get_papelzinho_joel, list_datas_folha,
+    )
+    sugestoes = []
+
+    try:
+        folha = list(get_folha_cocada(data))
+        papel = list(get_papelzinho_joel(data))
+    except Exception:
+        folha = []
+        papel = []
+
+    papel_by = {p.get("sabor"): p for p in papel}
+
+    # 1. Sabor com déficit pesado (Cortados² < param × 0.7)
+    sabor_deficit = None
+    for r in folha:
+        sabor = r.get("sabor")
+        if sabor == "ZERO":
+            continue
+        param = r.get("param_real_45g") or 0
+        if param == 0:
+            continue
+        emb = r.get("emb_45g") or 0
+        cort1 = r.get("cort1_45g") or 0
+        joel = (papel_by.get(sabor) or {}).get("joel_45g") or 0
+        c2 = emb + cort1 + joel
+        if c2 < param * 0.7:
+            sabor_deficit = sabor
+            break
+
+    if sabor_deficit:
+        sugestoes.append(
+            f"Por que faltou {sabor_deficit} 45g hoje? Como tá o estoque dos próximos dias?"
+        )
+
+    # 2. Tacho parcial detectado
+    parcial = None
+    for r in folha:
+        sabor = r.get("sabor")
+        band = r.get("ord_prod_band") or 0
+        modulo = 3 if sabor == "ZERO" else 8
+        if band > 0 and band % modulo != 0:
+            parcial = (sabor, band)
+            break
+    if parcial:
+        sugestoes.append(
+            f"Sistema sugere {parcial[1]} band de {parcial[0]}. Por que esse número? "
+            f"Como fica a sobra que vira pote?"
+        )
+
+    # 3. Viração baixa em algum sabor (joel_v ≤ 5 e estoque P/Virar tb)
+    viracao_baixa = None
+    for s, p in papel_by.items():
+        if (p.get("joel_v") or 0) <= 5 and (p.get("joel_pv") or 0) <= 5:
+            viracao_baixa = s
+            break
+    if viracao_baixa:
+        sugestoes.append(
+            f"Viração de {viracao_baixa} tá baixa. Quanto cortar nos próximos 3 dias "
+            f"vs quanto pedir pra virar hoje?"
+        )
+
+    # Genéricas (sempre incluídas)
+    sugestoes.append(
+        f"Resume a folha de {data} em 3 linhas: o que foi produzido, o que tá pendente."
+    )
+
+    # Histórico — se há folha da semana anterior no mesmo dia
+    try:
+        datas = sorted(list_datas_folha(), reverse=True)
+        from datetime import datetime, timedelta
+        d_ref = datetime.strptime(data, "%Y-%m-%d").date()
+        anterior = (d_ref - timedelta(days=7)).isoformat()
+        if anterior in datas:
+            sugestoes.append(
+                f"Compara esta folha com a do mesmo dia da semana passada ({anterior}). "
+                f"O que mudou?"
+            )
+    except Exception:
+        pass
+
+    sugestoes.append(
+        "Tem algum sabor com sinal de problema (excesso ou falta) nas últimas 5 folhas?"
+    )
+
+    return sugestoes[:6]  # cap em 6 sugestões
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# SLASH COMMANDS — atalhos de prompt
+# ════════════════════════════════════════════════════════════════════════════
+SLASH_COMMANDS = {
+    "/resumo":     "Faz um resumo executivo da folha do dia em 5 bullets curtos. "
+                   "Cobre: produção total, sabores com déficit, sabores com excesso, "
+                   "tacho parcial (se houver), e 1 alerta principal pra Gestão.",
+    "/anomalias":  "Analisa as últimas 7 folhas e me diz quais sabores ou métricas "
+                   "estão se comportando de forma estranha (variação muito acima ou "
+                   "abaixo do normal). Cita números e explica o porquê.",
+    "/comparar":   "Compara esta folha com a do mesmo dia da semana ANTERIOR. "
+                   "O que mudou em volume, distribuição de sabores e produção? "
+                   "Indica tendência (subindo, descendo, estável).",
+    "/sugerir":    "Olha o estado atual (Cortados², papelzinho, param do dia) e "
+                   "sugere 3 ações concretas que a Gestão deveria considerar HOJE "
+                   "(corte, produção, viração, embalagem). Justifica cada uma.",
+    "/faltas":     "Lista TODOS os sabores onde Cortados² < param_real do dia, "
+                   "ordenados por déficit. Inclui sugestão de quantas bandejas "
+                   "cortar pra fechar o gap.",
+    "/historico":  "Faz um panorama de 14 dias: o que mudou na fábrica nesse "
+                   "período? Cita 3 tendências principais com números.",
+}
+
+
+def expandir_slash_command(texto: str) -> str | None:
+    """Se o texto começa com /, expande pro prompt completo. Senão retorna None.
+
+    Aceita argumentos depois do comando: '/comparar 18/05' vira o prompt do
+    /comparar com '18/05' no fim.
+    """
+    texto = texto.strip()
+    if not texto.startswith("/"):
+        return None
+    partes = texto.split(maxsplit=1)
+    cmd = partes[0].lower()
+    arg = partes[1] if len(partes) > 1 else ""
+    prompt = SLASH_COMMANDS.get(cmd)
+    if prompt is None:
+        return None
+    if arg:
+        return f"{prompt}\n\n(Argumento adicional do usuário: {arg})"
+    return prompt
+
+
 def explicar_anomalia(data: str, top_features: list,
                        anomaly_score: float,
                        modelo: str = "claude-haiku-4-5",
