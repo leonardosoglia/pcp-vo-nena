@@ -190,113 +190,114 @@ def _fmt_data_pt(d_str):
         return d_str
 
 
-with st.sidebar:
-    # ── Botão "Adicionar folha" no topo ───────────────────────────────────────
-    with st.popover(" Adicionar nova folha", use_container_width=True):
-        st.caption("Escolha a data — passada, hoje ou futura.")
-        nova_data = st.date_input(
-            "Data da nova folha:",
-            value=date.today(),
-            format="DD/MM/YYYY",
-            key="nova_folha_data",
-        )
-        col_a, col_b = st.columns(2)
-        with col_a:
-            if st.button(" Abrir", use_container_width=True, type="primary", key="btn_nova"):
+# ════════════════════════════════════════════════════════════════════════════
+# NAVEGAÇÃO DE FOLHAS — barra superior na própria página (não sidebar)
+# Antes (até 26/05) ficava no sidebar e brigava com o st.navigation do app.py.
+# Movida pra dentro do conteúdo da página, em barra horizontal compacta.
+# ════════════════════════════════════════════════════════════════════════════
+with st.container(border=True):
+    col_nova, col_existentes, col_data_atual = st.columns([1.5, 2, 2])
+
+    with col_nova:
+        with st.popover("Abrir / criar folha de outra data", use_container_width=True):
+            st.caption("Escolha a data — passada, hoje ou futura.")
+            nova_data = st.date_input(
+                "Data:",
+                value=date.today(),
+                format="DD/MM/YYYY",
+                key="nova_folha_data",
+            )
+            if st.button("Abrir folha desta data", use_container_width=True, type="primary", key="btn_nova"):
                 st.session_state["data_selecionada"] = nova_data.isoformat()
                 st.rerun()
-        with col_b:
-            st.caption("Folha vazia · pronta pra preencher.")
+            st.caption("Se ainda não existir, abre vazia pra preencher.")
 
-    st.divider()
+    with col_existentes:
+        with st.popover("Folhas anteriores", use_container_width=True):
+            datas = list_datas_folha()
+            if not datas:
+                st.info("Nenhuma folha salva ainda.")
+            else:
+                st.caption(f"{len(datas)} folha(s) no histórico. Clique pra abrir.")
 
-    # ── Botão-toggle pai: " Folhas de Produção" ─────────────────────────────
-    if "mostrar_folhas" not in st.session_state:
-        st.session_state["mostrar_folhas"] = True
+                # Agrupar por (ano, mês) — mais recente primeiro
+                por_mes = defaultdict(list)
+                for d in datas:
+                    try:
+                        do = datetime.strptime(d, "%Y-%m-%d").date()
+                        por_mes[(do.year, do.month)].append(d)
+                    except ValueError:
+                        por_mes[(0, 0)].append(d)
 
-    icone = "▼" if st.session_state["mostrar_folhas"] else "▶"
-    if st.button(f"{icone}   Folhas de Produção", use_container_width=True, key="toggle_folhas"):
-        st.session_state["mostrar_folhas"] = not st.session_state["mostrar_folhas"]
-        st.rerun()
+                meses_ordenados = sorted(por_mes.keys(), reverse=True)
 
-    if st.session_state["mostrar_folhas"]:
-        datas = list_datas_folha()
-        if not datas:
-            st.info("Nenhuma folha salva ainda.")
-        else:
-            st.caption("Clique numa data pra abrir.")
-
-            # ── Agrupar por (ano, mês) — mais recente primeiro ───────────────
-            por_mes = defaultdict(list)
-            for d in datas:
-                try:
-                    do = datetime.strptime(d, "%Y-%m-%d").date()
-                    por_mes[(do.year, do.month)].append(d)
-                except ValueError:
-                    por_mes[(0, 0)].append(d)
-
-            meses_ordenados = sorted(por_mes.keys(), reverse=True)
-
-            for i, (ano, mes) in enumerate(meses_ordenados):
-                folhas_mes = por_mes[(ano, mes)]
-                nome_mes = MESES_PT.get(mes, str(mes))
-                label_mes = f" {nome_mes} / {ano}  ·  {len(folhas_mes)} folha{'s' if len(folhas_mes) > 1 else ''}"
-                # Primeiro mês (mais recente) abre por padrão
-                with st.expander(label_mes, expanded=(i == 0)):
-                    for d in folhas_mes:
-                        label = f" {_fmt_data_pt(d)}"
-                        # 2 colunas: botão folha + popover ⋮
-                        cols = st.columns([5, 1])
-                        with cols[0]:
-                            if st.button(label, key=f"goto_{d}", use_container_width=True):
-                                st.session_state["data_selecionada"] = d
-                                st.rerun()
-                        with cols[1]:
-                            with st.popover("⋮", use_container_width=True):
-                                st.caption(f"Folha de {_fmt_data_pt(d)}")
-                                if st.button("️ Abrir / Editar", key=f"act_edit_{d}", use_container_width=True):
+                for i, (ano, mes) in enumerate(meses_ordenados):
+                    folhas_mes = por_mes[(ano, mes)]
+                    nome_mes = MESES_PT.get(mes, str(mes))
+                    label_mes = f"{nome_mes} / {ano}  ·  {len(folhas_mes)} folha{'s' if len(folhas_mes) > 1 else ''}"
+                    # Primeiro mês (mais recente) abre por padrão
+                    with st.expander(label_mes, expanded=(i == 0)):
+                        for d in folhas_mes:
+                            label = _fmt_data_pt(d)
+                            cols = st.columns([5, 1])
+                            with cols[0]:
+                                if st.button(label, key=f"goto_{d}", use_container_width=True):
                                     st.session_state["data_selecionada"] = d
                                     st.rerun()
-                                # Exportar XLSX (gera sob demanda)
-                                try:
-                                    from exportar import gerar_xlsx_folha
-                                    xlsx_bytes = gerar_xlsx_folha(d)
-                                    st.download_button(
-                                        " Exportar Excel",
-                                        data=xlsx_bytes,
-                                        file_name=f"folha_pcp_vonena_{d}.xlsx",
-                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                        key=f"act_xlsx_{d}",
-                                        use_container_width=True,
-                                    )
-                                except Exception as e:
-                                    st.caption(f"Erro Excel: {e}")
-                                if st.button("️ Excluir folha", key=f"act_del_{d}", use_container_width=True):
-                                    st.session_state["confirm_excluir"] = d
-                                    st.rerun()
+                            with cols[1]:
+                                with st.popover("⋮", use_container_width=True):
+                                    st.caption(f"Folha de {_fmt_data_pt(d)}")
+                                    if st.button("Abrir / Editar", key=f"act_edit_{d}", use_container_width=True):
+                                        st.session_state["data_selecionada"] = d
+                                        st.rerun()
+                                    try:
+                                        from exportar import gerar_xlsx_folha
+                                        xlsx_bytes = gerar_xlsx_folha(d)
+                                        st.download_button(
+                                            "Exportar Excel",
+                                            data=xlsx_bytes,
+                                            file_name=f"folha_pcp_vonena_{d}.xlsx",
+                                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                            key=f"act_xlsx_{d}",
+                                            use_container_width=True,
+                                        )
+                                    except Exception as e:
+                                        st.caption(f"Erro Excel: {e}")
+                                    if st.button("Excluir folha", key=f"act_del_{d}", use_container_width=True):
+                                        st.session_state["confirm_excluir"] = d
+                                        st.rerun()
 
-    # ── Confirmação de exclusão (fora do loop, mostrado quando confirm_excluir está setado) ──
-    pendente = st.session_state.get("confirm_excluir")
-    if pendente:
-        st.divider()
-        st.warning(f"️ Excluir folha de **{_fmt_data_pt(pendente)}**? Não há undo.")
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            if st.button(" Confirmar", type="primary", use_container_width=True, key="btn_confirm_del"):
-                try:
-                    excluir_folha(pendente)
-                    db.invalidar_folha(pendente)  # força releitura no próximo rerun
-                    st.session_state.pop("confirm_excluir", None)
-                    if st.session_state.get("data_selecionada") == pendente:
-                        st.session_state.pop("data_selecionada", None)
-                    st.success(f" Folha {_fmt_data_pt(pendente)} excluída.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao excluir: {e}")
-        with cc2:
-            if st.button(" Cancelar", use_container_width=True, key="btn_cancel_del"):
+    with col_data_atual:
+        data_atual_str = st.session_state.get("data_selecionada", date.today().isoformat())
+        st.markdown(
+            f"<div style='padding-top:6px;text-align:right;'>"
+            f"<span style='color:#888;font-size:0.85em;'>Editando folha de</span><br>"
+            f"<strong style='font-size:1.1em;'>{_fmt_data_pt(data_atual_str)}</strong>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+# Confirmação de exclusão (mostrada inline na página quando confirm_excluir está setado)
+pendente = st.session_state.get("confirm_excluir")
+if pendente:
+    st.warning(f"Excluir folha de **{_fmt_data_pt(pendente)}**? Não há undo.")
+    cc1, cc2, _ = st.columns([1, 1, 4])
+    with cc1:
+        if st.button("Confirmar exclusão", type="primary", use_container_width=True, key="btn_confirm_del"):
+            try:
+                excluir_folha(pendente)
+                db.invalidar_folha(pendente)
                 st.session_state.pop("confirm_excluir", None)
+                if st.session_state.get("data_selecionada") == pendente:
+                    st.session_state.pop("data_selecionada", None)
+                st.success(f"Folha {_fmt_data_pt(pendente)} excluída.")
                 st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao excluir: {e}")
+    with cc2:
+        if st.button("Cancelar", use_container_width=True, key="btn_cancel_del"):
+            st.session_state.pop("confirm_excluir", None)
+            st.rerun()
 
     st.divider()
     st.markdown("### ℹ️ Sobre")
