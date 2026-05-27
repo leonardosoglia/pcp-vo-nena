@@ -1,6 +1,6 @@
 # Matches dos 33 insumos do PCP × Cadastro do Sigee Cloud
 
-> **Pra Mariana revisar.** Doces Vó Nena · 28/05/2026 · Leonardo (estagiário)
+> **Pra Mariana revisar.** Doces Vó Nena · 27/05/2026 · Leonardo (estagiário)
 >
 > Base: export do Sigee `Produtos_1_ate_283.xlsx` (matérias-primas com
 > `Genero = "01 – Matéria-Prima"`).

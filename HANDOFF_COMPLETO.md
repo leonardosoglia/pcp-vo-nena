@@ -1,4 +1,4 @@
-# HANDOFF COMPLETO — Encerramento sessão 27-28/05/2026
+# HANDOFF COMPLETO — Encerramento sessão 26-27/05/2026
 
 > **Pra Claude da próxima sessão:** este é o documento MASTER. Ler INTEIRO
 > antes de qualquer ação. Em seguida: `INVENTARIO_PENDENCIAS.md` (lista
@@ -46,7 +46,7 @@ Plotly + Anthropic SDK (Claude). Hospedado em Hugging Face Spaces.
 
 ---
 
-## 3. ESTADO ATUAL DO SISTEMA (28/05/2026)
+## 3. ESTADO ATUAL DO SISTEMA (27/05/2026)
 
 ### URLs
 - **App em produção:** `https://huggingface.co/spaces/leonardosoglia/pcp-vo-nena`
@@ -93,7 +93,7 @@ Tudo commitado e pushed. Último commit: `INVENTARIO_PENDENCIAS.md` criado.
 
 ---
 
-## 4. O QUE FOI FEITO NESTA SESSÃO LONGA (27-28/05/2026)
+## 4. O QUE FOI FEITO NESTA SESSÃO LONGA (26-27/05/2026)
 
 ### A — Reorganização da navegação (Frente A)
 - `app.py` novo entry com `st.navigation` — sidebar custom em grupos
@@ -288,7 +288,7 @@ E mais 45 itens em 4 categorias (importantes, nice-to-have, documentação, téc
 
 | Data | O quê |
 |---|---|
-| 28/05 (hoje) | Sessão encerrada — Sigee parcial, melhorias IA, TCC iniciado, inventário |
+| 27/05 (hoje) | Sessão encerrada — Sigee parcial, melhorias IA, TCC iniciado, inventário |
 | 29/05–04/06 | Leonardo: visita à fábrica (Mariana + Gestão). Eu: Etapa E + TCC Cap 2 |
 | **~05/06** | **Início oficial da escrita do TCC** |
 | 05/06–25/06 | Caps 1-5 + métricas reais |
@@ -316,7 +316,7 @@ E mais 45 itens em 4 categorias (importantes, nice-to-have, documentação, téc
 (Copia daqui pra baixo e cola na nova sessão.)
 
 ```
-Oi, sessão nova do PCP Vó Nena. A sessão anterior fechou em 28/05/2026.
+Oi, sessão nova do PCP Vó Nena. A sessão anterior fechou em 27/05/2026.
 
 Antes de QUALQUER ação, lê na ordem:
 
@@ -375,7 +375,7 @@ Manda ver.
 
 ---
 
-**Fim do handoff. Sessão encerrada em 28/05/2026.**
+**Fim do handoff. Sessão encerrada em 27/05/2026.**
 *Próxima sessão retoma decidindo entre: Etapa E, TCC Cap 2, Sigee completo,
 ou continuar polindo.*
 

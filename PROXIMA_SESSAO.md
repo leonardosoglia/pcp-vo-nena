@@ -1,6 +1,6 @@
 # Próxima sessão — Etapa E (Auto-baixa de Insumos)
 
-> Nota planejada em 28/05/2026. Foco da próxima sessão: implementar a
+> Nota planejada em 27/05/2026. Foco da próxima sessão: implementar a
 > baixa automática de insumos quando uma folha é salva.
 
 ---
