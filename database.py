@@ -43,6 +43,7 @@ ficam na camada de apresentação (lancamento.py / painel.py).
 import sqlite3
 import os
 import shutil
+import math
 from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "pcp_vo_nena.db")
@@ -1867,15 +1868,19 @@ def calcular_necessidades_do_dia(data: str) -> list[dict]:
             })
             necessidades[iid]["necessidade"] += linha["quantidade"] * qtd_produzir
 
-    # Cocada — a receita é por TACHO. ord_prod_band é o total de bandejas a
-    # produzir do sabor; converte pra tachos pela conversão 1 tacho = 8 band
-    # (Zero = 3, ver CLAUDE.md). Necessidade = receita_por_tacho × nº de tachos.
+    # Cocada — receita por TACHO INTEIRO. Pedidos não-múltiplos de 8 (Zero: 3)
+    # cozinham um tacho parcial: ord 18 band → ceil(18/8)=3 tachos cozidos
+    # (18 viram bandeja, 6 sobram pra potes). Logo, ingrediente consumido =
+    # ceil(band/band_por_tacho) × receita. Usar divisão simples (band/8 = 2.25)
+    # subestimava ingrediente em todo pedido não-múltiplo.
+    # Ver memória project_tachos_parciais_potes + CADERNO Bloco 2.
     for r in folha_c:
         sabor = r["sabor"]
         band = r.get("ord_prod_band") or 0
         if band > 0:
             band_por_tacho = 3 if sabor == "ZERO" else 8
-            _adicionar_necessidade(chave_produto_cocada(sabor), band / band_por_tacho)
+            tachos_cozidos = math.ceil(band / band_por_tacho)
+            _adicionar_necessidade(chave_produto_cocada(sabor), tachos_cozidos)
 
     # Palha — receita É POR BANDEJA (1 panela = 1 bandeja), confirmado 22/05/2026
     # via CADERNO 1.A. Necessidade = receita_por_bandeja × ord_prod_band (1:1).
@@ -1961,13 +1966,16 @@ def _calcular_consumo_da_folha(data: str) -> tuple[list[dict], list[dict]]:
             })
             consumos[iid]["quantidade"] += linha["quantidade"] * qtd_produzir
 
-    # Cocada — receita por TACHO. Converte band → tachos (Zero rende 3, demais 8).
+    # Cocada — receita por TACHO INTEIRO. Pedido não-múltiplo de 8 (Zero: 3)
+    # cozinha tacho parcial: ord 18 band → ceil(18/8)=3 tachos. Ingrediente
+    # consumido = ceil(band/band_por_tacho) × receita. Ver [[project_tachos_parciais_potes]].
     for r in folha_c:
         sabor = r["sabor"]
         band = r.get("ord_prod_band") or 0
         if band > 0:
             band_por_tacho = 3 if sabor == "ZERO" else 8
-            _adicionar(chave_produto_cocada(sabor), band / band_por_tacho)
+            tachos_cozidos = math.ceil(band / band_por_tacho)
+            _adicionar(chave_produto_cocada(sabor), tachos_cozidos)
 
     # Palha — receita É POR BANDEJA (1 panela = 1 bandeja, CADERNO 1.A).
     for r in folha_p:
