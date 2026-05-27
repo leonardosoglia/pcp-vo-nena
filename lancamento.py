@@ -1208,10 +1208,14 @@ if salvar_clicked:
             folha_palha_por_sabor=folha_palha_dict,
             papelzinho_por_sabor=papelzinho_dict,
             pm_balas_doces=pm_balas_doces_dict,
+            # auto_baixa=False: preview obrigatório (Etapa E). A Gestão confirma
+            # a baixa no expander que aparece após o salvamento.
         )
         db.invalidar_folha(data_str)  # força releitura no próximo rerun
         # Marca a folha como recém-salva (mostra badge ao lado do botão)
         st.session_state["folha_salva_em"] = data_str
+        # Etapa E — sinaliza pra renderizar o preview da baixa no próximo rerun
+        st.session_state["preview_baixa_pendente"] = data_str
 
         # Animação de confirmação — toast discreto no canto + mensagem inline.
         # NÃO usar st.balloons (festivo demais pra ambiente profissional).
@@ -1228,6 +1232,101 @@ if salvar_clicked:
     except Exception as e:
         st.error(f"Erro ao salvar: {type(e).__name__}: {e}")
         st.exception(e)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PREVIEW DA BAIXA DE INSUMOS (Etapa E)
+# Aparece quando a folha acabou de ser salva. A Gestão revisa o consumo e
+# confirma pra atualizar o estoque. Ficar fora do form é obrigatório porque
+# st.form bloqueia interações até o submit.
+# ══════════════════════════════════════════════════════════════════════════════
+_preview_data = st.session_state.get("preview_baixa_pendente")
+if _preview_data == data_str:
+    st.divider()
+    st.markdown("### Baixa de insumos no estoque")
+    st.caption(
+        "A folha foi salva. Veja abaixo o consumo previsto e confirme pra atualizar "
+        "o estoque de Suprimentos. Você pode pular se quiser lançar manualmente depois."
+    )
+
+    try:
+        _pv = db.consumo_previsto_da_folha(_preview_data)
+    except Exception as e:
+        st.error(f"Erro ao calcular consumo: {type(e).__name__}: {e}")
+        _pv = None
+
+    if _pv is not None:
+        if _pv["baixa_anterior"]:
+            st.warning(
+                f"Esta folha já teve baixa anterior ({_pv['movs_anteriores']} movimentos). "
+                "Confirmar vai **estornar a baixa antiga** e **refazer com os valores atuais** "
+                "da folha. O estoque fica coerente automaticamente."
+            )
+        if _pv["sem_bom"]:
+            chaves = ", ".join(s["produto_chave"] for s in _pv["sem_bom"])
+            st.info(
+                f"Produtos da folha que **não têm receita (BOM) cadastrada**: {chaves}. "
+                "Serão ignorados na baixa. Pra incluir, cadastre a receita em "
+                "Cadastros → Suprimentos → Receitas."
+            )
+
+        if not _pv["consumos"]:
+            st.info(
+                "Nenhum insumo a baixar nesta folha — não há ordens de produção, "
+                "ou os produtos lançados ainda não têm receita cadastrada."
+            )
+            if st.button("Fechar preview", key="fechar_preview_vazio"):
+                del st.session_state["preview_baixa_pendente"]
+                st.rerun()
+        else:
+            # Tabela de consumo previsto, ordenada por status (faltas primeiro).
+            ordem = {"falta": 0, "critico": 1, "ok": 2}
+            consumos_ord = sorted(_pv["consumos"], key=lambda c: (ordem[c["status"]], c["insumo_nome"]))
+            df_prev = pd.DataFrame([{
+                "Status": {"falta": "FALTA", "critico": "JUSTO", "ok": "OK"}[c["status"]],
+                "Insumo": c["insumo_nome"],
+                "Consumo": f"{c['quantidade']:.3f} {c['unidade']}",
+                "Estoque atual": f"{c['estoque_atual']:.3f} {c['unidade']}",
+                "Estoque depois": f"{c['estoque_depois']:.3f} {c['unidade']}",
+            } for c in consumos_ord])
+            st.dataframe(df_prev, use_container_width=True, hide_index=True)
+
+            _n_falta = sum(1 for c in _pv["consumos"] if c["status"] == "falta")
+            if _n_falta:
+                st.warning(
+                    f"{_n_falta} insumo(s) ficarão com estoque **negativo** após a baixa. "
+                    "Isso é esperado se o estoque atual está desatualizado (ex.: ainda "
+                    "não lançamos as compras). Você pode confirmar mesmo assim — depois "
+                    "ajusta com uma entrada de compra ou ajuste de inventário."
+                )
+
+            col_conf, col_pular = st.columns([2, 1])
+            with col_conf:
+                if st.button(
+                    "Confirmar baixa de estoque",
+                    type="primary",
+                    key="confirmar_baixa",
+                    use_container_width=True,
+                ):
+                    try:
+                        _r = db.baixar_insumos_da_folha(_preview_data)
+                        del st.session_state["preview_baixa_pendente"]
+                        db.invalidar_suprimentos()
+                        _msg = f"Baixa registrada: {len(_r['movimentos'])} insumo(s) consumido(s)"
+                        if _r["estornados"]:
+                            _msg += f" (estornou {_r['estornados']} mov. anteriores)"
+                        st.toast(_msg)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro na baixa: {type(e).__name__}: {e}")
+                        st.exception(e)
+            with col_pular:
+                if st.button("Pular baixa", key="pular_baixa", use_container_width=True):
+                    del st.session_state["preview_baixa_pendente"]
+                    st.info(
+                        "Baixa adiada. Lance os movimentos depois em "
+                        "Cadastros → Suprimentos → Movimentações."
+                    )
+                    st.rerun()
 
 # ── Rodapé ─────────────────────────────────────────────────────────────────────
 st.divider()

@@ -84,6 +84,10 @@ upsert_bom_linha = _db.upsert_bom_linha
 excluir_bom_linha = _db.excluir_bom_linha
 registrar_movimento_insumo = _db.registrar_movimento_insumo
 
+# Etapa E — Auto-baixa de insumos (escrita, sem cache)
+baixar_insumos_da_folha = _db.baixar_insumos_da_folha
+reverter_baixa_da_folha = _db.reverter_baixa_da_folha
+
 # Equipe — escrita
 criar_funcionario = _db.criar_funcionario
 atualizar_funcionario = _db.atualizar_funcionario
@@ -332,3 +336,10 @@ def calcular_necessidades_do_dia(data):
     """TTL médio (10min) — depende de folha atual + estoque atual.
     Invalida via invalidar_suprimentos() após save."""
     return _db.calcular_necessidades_do_dia(data)
+
+
+# Preview da baixa: sem cache — sempre fresco quando a Gestão abre o preview.
+# É 1 query rápida; cachear traria risco de mostrar consumo "antigo" depois
+# que a Gestão acabou de editar a folha. Custo de 1 round-trip é aceitável.
+def consumo_previsto_da_folha(data):
+    return _db.consumo_previsto_da_folha(data)

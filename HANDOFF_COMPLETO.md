@@ -191,7 +191,7 @@ Histórico verificado contra `git log`. Duas sessões longas:
 | **B** — Modelo de Suprimentos | Schema BOM + página | ✅ feito 15/05/2026 |
 | **C** — Cadastro de insumos | Povoar `insumos` via Sigee | 🟡 **15/33 atualizados HOJE no banco local.** Falta: 10 matches múltiplos (Mariana confirma), 8 cadastros faltantes, estoque atual (relatório separado do Sigee), aplicar no banco de produção. |
 | **D** — BOM cadastrada | Receitas no `bom_produto` | 🟡 **Rodou no banco LOCAL** (33 insumos + 91 linhas). **Falta clicar no botão da Admin Seed do HF** pra rodar em produção. 30 segundos. |
-| **E** — Auto-baixa por produção | Folha salva → baixa insumo | 🔴 Planejada em `PROXIMA_SESSAO.md`. Esforço estimado 5-6h. Tecnicamente independente de C estar 100%. |
+| **E** — Auto-baixa por produção | Folha salva → baixa insumo | ✅ **Implementada 27/05 (sessão 3).** `baixar_insumos_da_folha` + `reverter_baixa_da_folha` + `consumo_previsto_da_folha` em `database.py`. Hook opcional em `salvar_folha_completa(auto_baixa=False)`. UI: preview obrigatório no Lançamento, aba Movimentações ampliada (filtro de origem + top 5), card de alertas na Home, `baixar_historico.py` pra popular movimentos. Smoke test passou contra SQLite local; 245 movimentos populados no banco antigo (sa-east-1). Aguarda Etapa D rodar no banco us-east-1. |
 | **F** — Alertas + sugestão compra + Sigee | MRP completo | 🔴 Pós-Etapa E |
 | **Camada 2 palha** | Sugestão de corte/produção | ✅ MVP + conservadora calibrada (piso 60 und no 50g, validado 27/05) |
 | **Camada 2 cocada v3** | Capacidade priorizada + sobra→pote + viração | ✅ Implementada |

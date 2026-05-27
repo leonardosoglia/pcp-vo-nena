@@ -84,8 +84,8 @@ def _formatar_qtd(qtd: float, unidade: str) -> str:
 st.title("Suprimentos")
 st.caption(
     "Controle de matéria-prima, embalagens, potes, cintas e displays. "
-    "Conectado à folha de produção: quando a Etapa E for implementada, "
-    "salvar uma folha vai dar baixa automática nos insumos consumidos."
+    "Conectado à folha de produção: ao salvar uma folha no Lançamento, o sistema "
+    "mostra um preview e baixa automaticamente o consumo de insumos no estoque."
 )
 st.divider()
 
@@ -410,8 +410,8 @@ with aba_movs:
     if not insumos_disponiveis_m:
         st.warning("️ Cadastre pelo menos um insumo antes de registrar movimentações.")
     else:
-        # Filtros
-        col_fm1, col_fm2, col_fm3 = st.columns(3)
+        # Filtros (4 colunas: insumo, tipo, origem, período)
+        col_fm1, col_fm2, col_fm3, col_fm4 = st.columns([2, 1, 1.3, 1])
         with col_fm1:
             opc_ins_filtro = {"(todos)": None}
             opc_ins_filtro.update({f"{i['codigo']} — {i['nome']}": i["id"] for i in insumos_disponiveis_m})
@@ -421,6 +421,15 @@ with aba_movs:
             tipo_filtro = st.selectbox("Tipo", ["(todos)"] + TIPOS_MOVIMENTO, key="movs_tipo_filtro")
             tipo_filtro = None if tipo_filtro == "(todos)" else tipo_filtro
         with col_fm3:
+            origem_filtro = st.selectbox(
+                "Origem",
+                ["(todas)"] + ORIGENS_MOVIMENTO,
+                key="movs_origem_filtro",
+                help="'producao_auto' = baixa automática gerada ao salvar uma folha. "
+                     "'compra' = entrada de NF. 'ajuste' = correção de inventário.",
+            )
+            origem_filtro = None if origem_filtro == "(todas)" else origem_filtro
+        with col_fm4:
             dias_atras = st.number_input("Últimos N dias", min_value=1, max_value=365, value=30, step=1, key="movs_dias")
 
         data_inicio = (date.today() - timedelta(days=dias_atras)).isoformat()
@@ -428,18 +437,57 @@ with aba_movs:
             insumo_id=ins_filtro_id, data_inicio=data_inicio,
             tipo=tipo_filtro, limite=500,
         )
+        # Filtro de origem aplicado em Python (não está na assinatura de get_movimentos_insumo)
+        if origem_filtro:
+            movs = [m for m in movs if m["origem"] == origem_filtro]
 
         st.divider()
+
         if not movs:
             st.info("Nenhuma movimentação encontrada com esses filtros.")
         else:
+            # ── Resumo no topo ────────────────────────────────────────────────
+            n_entradas = sum(1 for m in movs if m["tipo"] == "entrada")
+            n_saidas = sum(1 for m in movs if m["tipo"] == "saida")
+            n_auto = sum(1 for m in movs if m["origem"] == "producao_auto")
+
+            mc1, mc2, mc3, mc4 = st.columns(4)
+            mc1.metric("Movimentos", len(movs))
+            mc2.metric("Entradas", n_entradas)
+            mc3.metric("Saídas", n_saidas)
+            mc4.metric("Baixas automáticas", n_auto, help="Geradas pelo salvamento de folhas")
+
+            # Top 5 insumos consumidos (saída) no período — em quantidade absoluta
+            consumo_por_insumo: dict[str, float] = {}
+            for m in movs:
+                if m["tipo"] == "saida":
+                    chave = f"{m['insumo_nome']} ({m['insumo_unidade']})"
+                    consumo_por_insumo[chave] = consumo_por_insumo.get(chave, 0.0) + m["quantidade"]
+            if consumo_por_insumo:
+                top5 = sorted(consumo_por_insumo.items(), key=lambda x: -x[1])[:5]
+                with st.expander(f"Top 5 insumos mais consumidos nos últimos {dias_atras} dias", expanded=False):
+                    df_top = pd.DataFrame(
+                        [{"Insumo": k, "Consumo total": f"{v:.3f}"} for k, v in top5]
+                    )
+                    st.dataframe(df_top, use_container_width=True, hide_index=True)
+
+            st.divider()
+
+            # ── Tabela de movimentos ──────────────────────────────────────────
+            def _ref_label(m):
+                """Pra movimentos automáticos da Etapa E, mostra link visual pra folha."""
+                if m["origem"] == "producao_auto" and m["referencia"].startswith("folha_"):
+                    data_folha = m["referencia"].replace("folha_", "")
+                    return f"Folha {data_folha}"
+                return m["referencia"] or "—"
+
             df_movs = pd.DataFrame([{
                 "Data": m["data"],
                 "Tipo": " Entrada" if m["tipo"] == "entrada" else " Saída",
                 "Insumo": f"{m['codigo']} — {m['insumo_nome']}",
                 "Quantidade": _formatar_qtd(m["quantidade"], m["insumo_unidade"]),
                 "Origem": m["origem"] or "—",
-                "Referência": m["referencia"] or "—",
+                "Referência": _ref_label(m),
                 "Obs": m["obs"] or "",
             } for m in movs])
             st.dataframe(df_movs, use_container_width=True, hide_index=True)

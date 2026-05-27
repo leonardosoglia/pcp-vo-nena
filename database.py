@@ -1058,11 +1058,22 @@ def salvar_folha_completa(
     folha_palha_por_sabor: dict,     # {sabor: {emb_50g, cont_band_palha, ...}}
     papelzinho_por_sabor: dict,      # {sabor: {joel_45g, ...}}
     pm_balas_doces: dict,            # {cnt_pm, cnt_balas, ...}
-):
+    auto_baixa: bool = False,
+) -> dict:
     """Salva todos os blocos da folha de uma data em UMA transação atômica.
 
     Se qualquer INSERT falhar, faz rollback de tudo (banco volta ao estado anterior).
     Usa INSERT ... ON CONFLICT DO UPDATE — operação idempotente (pode ser repetida).
+
+    auto_baixa (Etapa E):
+        Quando True, dispara `baixar_insumos_da_folha(data)` DEPOIS do commit
+        da folha. A baixa roda na sua própria transação — se falhar, a folha
+        permanece salva e a exceção é repropagada (chamador decide o que fazer).
+        Default False pra preservar comportamento legado de scripts/testes que
+        não querem mexer em estoque.
+
+    Retorna dict:
+        {'folha_salva': True, 'baixa': {...} | None}
     """
     def _build_upsert_sql(table, key_cols, data_cols):
         all_cols = ", ".join(key_cols + data_cols)
@@ -1115,12 +1126,22 @@ def salvar_folha_completa(
     finally:
         conn.close()
 
+    baixa_resultado = None
+    if auto_baixa:
+        # Conexão própria, transação separada. Se falhar, folha permanece salva.
+        baixa_resultado = baixar_insumos_da_folha(data)
 
-def excluir_folha(data: str):
+    return {"folha_salva": True, "baixa": baixa_resultado}
+
+
+def excluir_folha(data: str, reverter_baixa: bool = True):
     """Apaga TODOS os registros (cocada, palha, papelzinho, PM/balas/doces) de uma data.
 
     Operação destrutiva. Não há undo automático — o usuário deve confirmar antes na UI.
     Tabelas de referência (metas, parâmetros) não são afetadas.
+
+    reverter_baixa (Etapa E): por padrão True — se a folha excluída tinha baixa
+    automática registrada, estorna os movimentos pra manter o estoque coerente.
     """
     conn = get_conn()
     try:
@@ -1133,6 +1154,10 @@ def excluir_folha(data: str):
         raise
     finally:
         conn.close()
+
+    if reverter_baixa:
+        # Transação separada; se não houver baixa, é no-op.
+        reverter_baixa_da_folha(data)
 
 
 def duplicar_folha(data_origem: str, data_destino: str):
@@ -1884,3 +1909,304 @@ def calcular_necessidades_do_dia(data: str) -> list[dict]:
     ordem_status = {"falta": 0, "critico": 1, "ok": 2}
     resultado.sort(key=lambda x: (ordem_status[x["status"]], x["insumo_nome"]))
     return resultado
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ETAPA E — Auto-baixa de insumos por produção (lançada quando a folha é salva)
+# ════════════════════════════════════════════════════════════════════════════
+# Convenção de rastreabilidade pra movimentos automáticos gerados pelo hook:
+#   origem      = 'producao_auto'
+#   referencia  = f'folha_{data}'           ex: 'folha_2026-05-27'
+#
+# Idempotência total: rodar baixar_insumos_da_folha(d) N vezes deixa o estoque
+# no mesmo estado que rodar 1 vez, porque a função SEMPRE reverte a baixa
+# anterior do mesmo (origem, referencia) antes de criar a nova. Isso resolve
+# também o caso "folha editada" — basta chamar de novo após salvar.
+# ════════════════════════════════════════════════════════════════════════════
+
+def _calcular_consumo_da_folha(data: str) -> tuple[list[dict], list[dict]]:
+    """Versão "raw" do consumo da folha, sem comparar com estoque.
+
+    Retorna (consumos, sem_bom):
+        consumos: lista [{'insumo_id', 'insumo_nome', 'unidade', 'quantidade'}]
+                  com a quantidade EXATA que vai ser baixada.
+        sem_bom: lista [{'produto_chave', 'qtd_produzir'}] dos produtos da folha
+                 que não têm BOM cadastrada (a Gestão produziu mas não conseguimos
+                 calcular o consumo). Não bloqueia — só avisa.
+
+    Reusa a lógica de calcular_necessidades_do_dia mas isola o "quanto baixar"
+    do "compara com estoque" — separação útil pra reverter_baixa também.
+    """
+    folha_c = get_folha_cocada(data)
+    folha_p = get_folha_palha(data)
+    pmbd    = get_pm_balas_doces(data) or {}
+
+    consumos: dict[int, dict] = {}
+    sem_bom: list[dict] = []
+
+    def _adicionar(produto_chave: str, qtd_produzir: float):
+        if qtd_produzir <= 0:
+            return
+        bom = get_bom_produto(produto_chave)
+        if not bom:
+            sem_bom.append({"produto_chave": produto_chave, "qtd_produzir": qtd_produzir})
+            return
+        for linha in bom:
+            iid = linha["insumo_id"]
+            consumos.setdefault(iid, {
+                "insumo_id": iid,
+                "insumo_nome": linha["insumo_nome"],
+                "unidade": linha["insumo_unidade"],
+                "quantidade": 0.0,
+            })
+            consumos[iid]["quantidade"] += linha["quantidade"] * qtd_produzir
+
+    # Cocada — receita por TACHO. Converte band → tachos (Zero rende 3, demais 8).
+    for r in folha_c:
+        sabor = r["sabor"]
+        band = r.get("ord_prod_band") or 0
+        if band > 0:
+            band_por_tacho = 3 if sabor == "ZERO" else 8
+            _adicionar(chave_produto_cocada(sabor), band / band_por_tacho)
+
+    # Palha — receita É POR BANDEJA (1 panela = 1 bandeja, CADERNO 1.A).
+    for r in folha_p:
+        sabor = r["sabor"]
+        band = r.get("ord_prod_band") or 0
+        if band > 0:
+            _adicionar(chave_produto_palha(sabor), band)
+
+    # PM (ord_pm em bolos), Bala (ord_balas em tachos).
+    _adicionar("pm_bolo", pmbd.get("ord_pm") or 0)
+    _adicionar("bala_tacho", pmbd.get("ord_balas") or 0)
+
+    return list(consumos.values()), sem_bom
+
+
+def consumo_previsto_da_folha(data: str) -> dict:
+    """Calcula o consumo previsto pela folha do dia (sem aplicar baixa) e
+    informa se já existe baixa anterior. Usado pela UI pra mostrar o preview
+    antes da Gestão confirmar.
+
+    Retorna:
+        {
+          'consumos': [{'insumo_id','insumo_nome','unidade','quantidade',
+                        'estoque_atual','estoque_depois','status'}],
+            (status: 'falta' se depois < 0, 'critico' se < 10% do consumo, 'ok' c.c.)
+          'sem_bom': [{'produto_chave','qtd_produzir'}],
+          'baixa_anterior': bool,         # True se já houve baixa pra essa data
+          'movs_anteriores': int,         # quantos movimentos existem
+          'data': data,
+        }
+    """
+    consumos, sem_bom = _calcular_consumo_da_folha(data)
+
+    # Anexa estoque atual + projeção pós-baixa pra cada consumo.
+    if consumos:
+        conn = get_conn()
+        ids = [c["insumo_id"] for c in consumos]
+        placeholders = ", ".join("?" for _ in ids)
+        rows = conn.execute(
+            _sql(f"SELECT id, estoque_atual FROM insumos WHERE id IN ({placeholders})"),
+            tuple(ids),
+        ).fetchall()
+        conn.close()
+        estoque_map = {r["id"]: r["estoque_atual"] for r in rows}
+        for c in consumos:
+            atual = estoque_map.get(c["insumo_id"], 0.0)
+            depois = atual - c["quantidade"]
+            c["estoque_atual"] = atual
+            c["estoque_depois"] = depois
+            if depois < 0:
+                c["status"] = "falta"
+            elif depois < c["quantidade"] * 0.1:
+                c["status"] = "critico"
+            else:
+                c["status"] = "ok"
+
+    # Detecta baixa anterior pra essa data.
+    referencia = f"folha_{data}"
+    conn = get_conn()
+    row = conn.execute(
+        _sql("SELECT COUNT(*) AS n FROM movimentos_insumo "
+             "WHERE origem = ? AND referencia = ?"),
+        ("producao_auto", referencia),
+    ).fetchone()
+    conn.close()
+    movs_anteriores = row["n"] if row else 0
+
+    return {
+        "consumos": consumos,
+        "sem_bom": sem_bom,
+        "baixa_anterior": movs_anteriores > 0,
+        "movs_anteriores": movs_anteriores,
+        "data": data,
+    }
+
+
+def reverter_baixa_da_folha(data: str) -> dict:
+    """Apaga movimentos auto-gerados (origem='producao_auto', referencia='folha_<data>')
+    e re-soma as quantidades estornadas no estoque_atual dos insumos. Tudo numa
+    transação atômica.
+
+    Idempotente: se não houver baixa anterior pra essa data, retorna zeros sem fazer nada.
+
+    Retorna: {'movimentos_estornados', 'quantidade_total_estornada', 'insumos_afetados'}.
+    """
+    referencia = f"folha_{data}"
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+
+        # Pega os movimentos que serão estornados (precisa do delta pra repor no estoque).
+        rows = c.execute(
+            _sql("SELECT id, insumo_id, tipo, quantidade FROM movimentos_insumo "
+                 "WHERE origem = ? AND referencia = ?"),
+            ("producao_auto", referencia),
+        ).fetchall()
+
+        if not rows:
+            return {
+                "movimentos_estornados": 0,
+                "quantidade_total_estornada": 0.0,
+                "insumos_afetados": 0,
+            }
+
+        # Re-soma no estoque (estorno) e apaga os movimentos.
+        # Agrupa por insumo pra fazer 1 UPDATE por insumo em vez de N.
+        deltas_por_insumo: dict[int, float] = {}
+        total_qtd = 0.0
+        for r in rows:
+            # SEMPRE foi saida (producao_auto só gera saida). Estorno = +quantidade.
+            delta = r["quantidade"] if r["tipo"] == "saida" else -r["quantidade"]
+            deltas_por_insumo[r["insumo_id"]] = deltas_por_insumo.get(r["insumo_id"], 0.0) + delta
+            total_qtd += r["quantidade"]
+
+        for insumo_id, delta in deltas_por_insumo.items():
+            c.execute(
+                _sql("UPDATE insumos SET estoque_atual = estoque_atual + ?, "
+                     "atualizado_em = CURRENT_TIMESTAMP WHERE id = ?"),
+                (delta, insumo_id),
+            )
+
+        c.execute(
+            _sql("DELETE FROM movimentos_insumo WHERE origem = ? AND referencia = ?"),
+            ("producao_auto", referencia),
+        )
+
+        conn.commit()
+        return {
+            "movimentos_estornados": len(rows),
+            "quantidade_total_estornada": total_qtd,
+            "insumos_afetados": len(deltas_por_insumo),
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def baixar_insumos_da_folha(data: str) -> dict:
+    """Hook da Etapa E. Cruza folha × BOM × estoque e baixa o consumo automático
+    pra cada insumo. Idempotente — reverte qualquer baixa anterior pra essa data
+    antes de criar a nova (essencial pra suportar folha EDITADA).
+
+    Não bloqueia se algum produto não tem BOM cadastrada — só lista em `sem_bom`.
+    Não bloqueia se algum insumo vai ficar com estoque negativo — registra e
+    lista em `alertas_negativos` pra UI mostrar. Decisão de pausar a baixa é
+    do humano (Gestão), não do sistema.
+
+    Tudo em transação atômica: se qualquer INSERT/UPDATE falhar, rollback total
+    e levanta exceção.
+
+    Retorna: dict com
+        - 'data': str (ecoada)
+        - 'estornados': int (quantos movs da baixa anterior foram apagados)
+        - 'movimentos': [{'insumo_id','insumo_nome','unidade','quantidade',
+                          'estoque_antes','estoque_depois'}]
+        - 'sem_bom': [{'produto_chave','qtd_produzir'}] (produtos sem receita)
+        - 'alertas_negativos': [insumo_id, ...] (insumos cujo estoque ficou <0)
+    """
+    referencia = f"folha_{data}"
+
+    # 1) Estorno (transação própria, deixa o banco consistente antes da nova baixa).
+    estorno = reverter_baixa_da_folha(data)
+
+    # 2) Calcula consumo da folha atual.
+    consumos, sem_bom = _calcular_consumo_da_folha(data)
+
+    # Sem consumos pra baixar — só retorna info do estorno (folha pode ter ord_prod=0).
+    if not consumos:
+        return {
+            "data": data,
+            "estornados": estorno["movimentos_estornados"],
+            "movimentos": [],
+            "sem_bom": sem_bom,
+            "alertas_negativos": [],
+        }
+
+    # 3) Registra movimentos saida + atualiza estoque, tudo em UMA transação.
+    movimentos_resultado: list[dict] = []
+    alertas_negativos: list[int] = []
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+
+        # Pega estoque atual de todos os insumos envolvidos numa só query.
+        ids_envolvidos = [c_["insumo_id"] for c_ in consumos]
+        placeholders = ", ".join("?" for _ in ids_envolvidos)
+        rows = c.execute(
+            _sql(f"SELECT id, estoque_atual FROM insumos WHERE id IN ({placeholders})"),
+            tuple(ids_envolvidos),
+        ).fetchall()
+        estoque_antes = {r["id"]: r["estoque_atual"] for r in rows}
+
+        for consumo in consumos:
+            iid = consumo["insumo_id"]
+            qtd = consumo["quantidade"]
+
+            # Insere movimento saida.
+            c.execute(
+                _sql("INSERT INTO movimentos_insumo "
+                     "(data, insumo_id, tipo, quantidade, origem, referencia, obs) "
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)"),
+                (data, iid, "saida", qtd, "producao_auto", referencia,
+                 "Baixa automática (folha salva)"),
+            )
+            # Decrementa estoque.
+            c.execute(
+                _sql("UPDATE insumos SET estoque_atual = estoque_atual - ?, "
+                     "atualizado_em = CURRENT_TIMESTAMP WHERE id = ?"),
+                (qtd, iid),
+            )
+
+            antes = estoque_antes.get(iid, 0.0)
+            depois = antes - qtd
+            if depois < 0:
+                alertas_negativos.append(iid)
+
+            movimentos_resultado.append({
+                "insumo_id": iid,
+                "insumo_nome": consumo["insumo_nome"],
+                "unidade": consumo["unidade"],
+                "quantidade": qtd,
+                "estoque_antes": antes,
+                "estoque_depois": depois,
+            })
+
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+    return {
+        "data": data,
+        "estornados": estorno["movimentos_estornados"],
+        "movimentos": movimentos_resultado,
+        "sem_bom": sem_bom,
+        "alertas_negativos": alertas_negativos,
+    }

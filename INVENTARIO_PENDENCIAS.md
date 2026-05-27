@@ -21,7 +21,7 @@
 | 2 | **Etapa C completa — Sigee** | HANDOFF_SIGEE | 🟡 Em andamento. Hoje atualizamos 15 de 33 insumos no banco LOCAL. Faltam: 10 matches Mariana + 8 cadastros novos + estoque atual. | Etapa E |
 | 3 | **`secrets.toml` local aponta pro banco antigo** (sa-east-1) | memória `project_migracao_hf_spaces.md` | ⚠ Pendente. Tudo que eu cadastro localmente fica no banco ANTIGO, não na produção. | Validações locais |
 | 4 | **Embalagem — última peça das receitas (BOM completa)** | HANDOFF seção 6 🥈 | 🔴 Não feito. Gestão precisa passar consumo de plástico/cinta/pote/display por produto. É a última tabela do questionário `02_suprimentos.docx`. | BOM 100% completa |
-| 5 | **Etapa E — Auto-baixa de insumos** | HANDOFF roadmap, PROXIMA_SESSAO | 🔴 Planejada, não iniciada. Hooks no `salvar_folha_completa`. Esforço 5-6h. | MRP completo |
+| 5 | **Etapa E — Auto-baixa de insumos** | HANDOFF roadmap, PROXIMA_SESSAO | ✅ **Implementada 27/05 (sessão 3).** Backend + UI + script de histórico + smoke test passou. Aguarda Etapa D rodar no banco de produção (pendência #1) pra valer lá. | MRP completo |
 
 ---
 

@@ -81,6 +81,61 @@ with col3:
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# Alertas de estoque (Etapa E)
+# ════════════════════════════════════════════════════════════════════════════
+try:
+    insumos_todos = cached_db.get_insumos(somente_ativos=True)
+except Exception:
+    insumos_todos = []
+
+if insumos_todos:
+    negativos = [i for i in insumos_todos if (i.get("estoque_atual") or 0) < 0]
+    abaixo_min = [
+        i for i in insumos_todos
+        if (i.get("estoque_minimo") or 0) > 0
+        and (i.get("estoque_atual") or 0) >= 0
+        and (i.get("estoque_atual") or 0) < (i.get("estoque_minimo") or 0)
+    ]
+    minimos_cadastrados = sum(1 for i in insumos_todos if (i.get("estoque_minimo") or 0) > 0)
+
+    if negativos or abaixo_min:
+        st.divider()
+        st.subheader("Alertas de estoque")
+        n_card, lista_card = st.columns([1, 3])
+        with n_card:
+            if negativos:
+                st.metric(
+                    "Estoque negativo",
+                    len(negativos),
+                    help="Consumido mais do que o cadastrado. Lançar entrada de compra ou ajuste.",
+                )
+            st.metric("Abaixo do mínimo", len(abaixo_min))
+        with lista_card:
+            piores = sorted(
+                negativos + abaixo_min,
+                key=lambda i: (i.get("estoque_atual") or 0) - (i.get("estoque_minimo") or 0),
+            )[:8]
+            linhas = []
+            for i in piores:
+                atual = i.get("estoque_atual") or 0
+                minimo = i.get("estoque_minimo") or 0
+                unid = i.get("unidade") or ""
+                if atual < 0:
+                    rotulo = f"**{i['nome']}** — estoque {atual:.2f} {unid} (NEGATIVO)"
+                else:
+                    rotulo = f"**{i['nome']}** — {atual:.2f} {unid} (mínimo {minimo:.2f})"
+                linhas.append(f"- {rotulo}")
+            st.markdown("\n".join(linhas))
+            st.caption("Ver tudo em **Cadastros → Suprimentos**.")
+    elif minimos_cadastrados == 0:
+        # Ninguém tem mínimo configurado — aviso discreto pra ativar a feature
+        st.info(
+            "Dica: configure **estoque mínimo** em Cadastros → Suprimentos pra ativar "
+            "alertas automáticos aqui na Home."
+        )
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Atalhos principais
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
