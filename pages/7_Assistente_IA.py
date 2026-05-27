@@ -162,12 +162,23 @@ with col_data:
     )
 
 with col_modelo:
+    MODELOS_DISPONIVEIS = {
+        "claude-haiku-4-5":  "Haiku 4.5 — rápido (~R$0,03)",
+        "claude-sonnet-4-6": "Sonnet 4.6 — equilibrado (~R$0,10)",
+        "claude-opus-4":     "Opus 4 — análise profunda (~R$0,30)",
+    }
     modelo = st.selectbox(
-        " Modelo",
-        options=["claude-haiku-4-5", "claude-sonnet-4-6"],
+        "Modelo",
+        options=list(MODELOS_DISPONIVEIS.keys()),
+        format_func=lambda m: MODELOS_DISPONIVEIS[m],
         index=0,
-        help="Haiku 4.5 é mais barato e rápido (~R$0,03/consulta). "
-             "Sonnet 4.6 é mais sofisticado (~R$0,10/consulta).",
+        help=(
+            "**Haiku 4.5** — default. Perguntas comuns, rápido (~3-5s). "
+            "**Sonnet 4.6** — comparações e análise de tendência (~5-10s). "
+            "**Opus 4** — raciocínio multi-camada, análise estratégica, "
+            "decisões de longo prazo. Mais lento (~10-20s) e ~10× mais caro "
+            "que Haiku. Use só pra perguntas pesadas — não pra dia a dia."
+        ),
     )
 
 

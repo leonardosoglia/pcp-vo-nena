@@ -729,23 +729,28 @@ def explicar_anomalia(data: str, top_features: list,
 def estimar_custo(tokens_input: int, tokens_output: int,
                   tokens_cache_read: int = 0,
                   modelo: str = "claude-haiku-4-5") -> float:
-    """Estima custo em USD da consulta com base no pricing público.
+    """Estima custo em USD da consulta com base no pricing público vigente.
 
-    Claude Haiku 4.5 (publicado):
-        Input: $1.00 / 1M tokens
-        Output: $5.00 / 1M tokens
-        Cache read: $0.10 / 1M tokens (10% do input)
-        Cache write: $1.25 / 1M tokens (25% mais caro que input — só na 1ª vez)
+    Pricing (USD por 1M tokens):
+                       Input    Output   Cache Read  Cache Write
+        Haiku 4.5      $1.00    $5.00    $0.10       $1.25
+        Sonnet 4.6     $3.00    $15.00   $0.30       $3.75
+        Opus 4         $15.00   $75.00   $1.50       $18.75
+
+    Cache write é cobrado só na 1ª vez (25% mais caro que input cheio).
+    Cache read é cobrado em todas as consultas que reaproveitam (90% off).
     """
-    if "haiku" in modelo.lower():
-        custo_in = (tokens_input - tokens_cache_read) * 1.00 / 1_000_000
-        custo_cache = tokens_cache_read * 0.10 / 1_000_000
-        custo_out = tokens_output * 5.00 / 1_000_000
-        return custo_in + custo_cache + custo_out
-    # Sonnet (caso usem)
-    custo_in = (tokens_input - tokens_cache_read) * 3.00 / 1_000_000
-    custo_cache = tokens_cache_read * 0.30 / 1_000_000
-    custo_out = tokens_output * 15.00 / 1_000_000
+    m = modelo.lower()
+    if "opus" in m:
+        in_rate, cache_rate, out_rate = 15.00, 1.50, 75.00
+    elif "sonnet" in m:
+        in_rate, cache_rate, out_rate = 3.00, 0.30, 15.00
+    else:  # haiku ou desconhecido (fallback no mais barato)
+        in_rate, cache_rate, out_rate = 1.00, 0.10, 5.00
+
+    custo_in = max(0, tokens_input - tokens_cache_read) * in_rate / 1_000_000
+    custo_cache = tokens_cache_read * cache_rate / 1_000_000
+    custo_out = tokens_output * out_rate / 1_000_000
     return custo_in + custo_cache + custo_out
 
 
