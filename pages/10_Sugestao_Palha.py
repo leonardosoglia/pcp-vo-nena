@@ -213,7 +213,7 @@ df = pd.DataFrame({
     "Sobra após corte": [r["sobra"][s] for s in SABORES],
     "Produção sugerida (band)": [r["producao"][s] for s in SABORES],
 })
-st.dataframe(df, use_container_width=True, hide_index=True)
+st.dataframe(df, width='stretch', hide_index=True)
 
 # Sumário em uma linha
 def _resumo(d):
@@ -255,7 +255,7 @@ df_c = pd.DataFrame({
 })
 st.dataframe(
     df_c.style.set_properties(**{"background-color": "#fffacd"}),
-    use_container_width=True, hide_index=True,
+    width='stretch', hide_index=True,
 )
 
 total_corte_c = sum(r_conserv["corte_total"].values())

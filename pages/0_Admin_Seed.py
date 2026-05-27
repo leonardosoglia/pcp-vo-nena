@@ -71,13 +71,13 @@ with st.expander(f"Insumos ({len(INSUMOS)} itens)", expanded=False):
     df_ins = pd.DataFrame(
         INSUMOS, columns=["código", "nome", "categoria", "unidade", "obs"]
     )
-    st.dataframe(df_ins, use_container_width=True, hide_index=True)
+    st.dataframe(df_ins, width='stretch', hide_index=True)
 
 with st.expander(f"Receitas (BOM) — {len(RECEITAS)} produtos", expanded=False):
     for produto_chave, linhas in RECEITAS.items():
         st.markdown(f"**{produto_chave}** — {len(linhas)} insumos:")
         df = pd.DataFrame(linhas, columns=["insumo", "quantidade", "unidade"])
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
 
 
 # ── Botão de ação ──────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ st.caption(
 if "seed_exec" not in st.session_state:
     st.session_state.seed_exec = None
 
-if st.button("Cadastrar BOM completa", type="primary", use_container_width=True):
+if st.button("Cadastrar BOM completa", type="primary", width='stretch'):
     logs = []
     def _log(msg):
         logs.append(msg)

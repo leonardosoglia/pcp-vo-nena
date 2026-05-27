@@ -304,7 +304,7 @@ fig.update_layout(
 
 fig.update_xaxes(fixedrange=True)
 fig.update_yaxes(fixedrange=True)
-st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -320,7 +320,7 @@ df_tab["pct_acumulado"] = (df_abc["pct_acumulado"] * 100).apply(lambda v: f"{v:.
 df_tab = df_tab[["produto_completo", "classe", "volume_band", "pct", "pct_acumulado"]]
 df_tab.columns = ["Produto", "Classe", "Bandejas cortadas", "% do total", "% acumulado"]
 
-st.dataframe(df_tab, use_container_width=True, hide_index=True)
+st.dataframe(df_tab, width='stretch', hide_index=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════

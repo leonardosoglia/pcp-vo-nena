@@ -171,7 +171,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
     )
     fig.update_xaxes(fixedrange=True)
     fig.update_yaxes(fixedrange=True)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsive": True})
 
     # Métrica auxiliar — total agregado por dia
     total_por_dia = df_plot.groupby("data")["valor"].sum()
@@ -230,7 +230,7 @@ def _render_dia_semana(df_cocada, sabores_cocada):
     )
     fig.update_xaxes(fixedrange=True)
     fig.update_yaxes(fixedrange=True)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsive": True})
 
     # Mostrar destaque: dia com maior média
     if not df_grouped.empty:
@@ -284,7 +284,7 @@ def _render_heatmap(df_cocada, sabores_cocada):
     )
     fig.update_xaxes(fixedrange=True)
     fig.update_yaxes(fixedrange=True)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -335,14 +335,14 @@ def _render_ajustes_eraldo(df_cocada, sabores_cocada):
                            else ""),
                 subset=["Ajuste"],
             ),
-            use_container_width=True, hide_index=True,
+            width='stretch', hide_index=True,
         )
 
     # Sumário por sabor
     st.markdown("**Sumário por sabor:**")
     agg = df.groupby("sabor")["ajuste_45g"].agg(["sum", "mean", "count"])
     agg.columns = ["Soma ajustes", "Média ajustes", "Folhas no período"]
-    st.dataframe(agg, use_container_width=True)
+    st.dataframe(agg, width='stretch')
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -404,7 +404,7 @@ def _render_anomalias(df_cocada, df_palha):
         st.warning(f"⚠️ {len(alertas)} anomalia(s) detectada(s):")
         df_al = pd.DataFrame(alertas)
         df_al.columns = ["Tipo", "Data", "Descrição"]
-        st.dataframe(df_al, use_container_width=True, hide_index=True)
+        st.dataframe(df_al, width='stretch', hide_index=True)
 
     st.divider()
     st.caption(

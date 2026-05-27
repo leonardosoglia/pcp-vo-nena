@@ -378,7 +378,7 @@ fig.update_layout(
 )
 fig.update_xaxes(fixedrange=True)
 fig.update_yaxes(fixedrange=True)
-st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -445,7 +445,7 @@ else:
             btn_label = " Explicar via IA"
             btn_key = f"explicar_{data_iso}_{i}"
             btn_clicked = st.button(
-                btn_label, key=btn_key, use_container_width=True,
+                btn_label, key=btn_key, width='stretch',
                 disabled=not api_key_disponivel,
                 help=(
                     "Pede ao Claude (IA) pra explicar essa anomalia em PT-BR. "
@@ -519,7 +519,7 @@ with st.expander(" Ver todas as folhas com score (não só anomalias)", expanded
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
     df_tab.columns = ["Data", "Status", "Score de estranheza"]
-    st.dataframe(df_tab, use_container_width=True, hide_index=True)
+    st.dataframe(df_tab, width='stretch', hide_index=True)
 
 
 st.divider()

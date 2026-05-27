@@ -152,7 +152,7 @@ def modal_estoque_critico(df_alertas: pd.DataFrame):
             else "",
             subset=["Em Estoque"],
         ),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
     st.caption(f"Total de produtos em alerta: **{len(df_alertas)}**")
@@ -167,7 +167,7 @@ with col_titulo:
     st.title("🍬 Painel PCP — Doces Vó Nena")
 with col_refresh:
     st.write("")  # espaçamento vertical
-    if st.button("🔄 Atualizar", type="primary", use_container_width=True):
+    if st.button("🔄 Atualizar", type="primary", width='stretch'):
         st.cache_data.clear()
         st.rerun()
 
@@ -220,7 +220,7 @@ with st.sidebar:
                 f"⚠️ **Atenção:** {len(df_alertas)} produto(s) precisam de produção!"
             )
             # Botão que abre o modal pop-up com a lista completa
-            if st.button("📋 Ver Produtos em Falta", use_container_width=True):
+            if st.button("📋 Ver Produtos em Falta", width='stretch'):
                 modal_estoque_critico(df_alertas)
 
     st.markdown("---")
@@ -258,7 +258,7 @@ with aba_eraldo:
                 "Quinta":       [6800, 3400, 1700, 1700, 1700],
                 "Sexta":        [5600, 2800, 1400, 1400, 1400],
             })
-            st.dataframe(df_semanal, use_container_width=True, hide_index=True)
+            st.dataframe(df_semanal, width='stretch', hide_index=True)
 
         # --- Metas Fixas Diárias (Mini e Pet) ---
         with sub_diario:
@@ -269,7 +269,7 @@ with aba_eraldo:
                 "Mini (und)":   [500, 500, 300, 300, 300, "= Leite Cond. 45g do dia"],
                 "Pet (und)":    [220, 180,  90,  90,  90, 300],
             })
-            st.dataframe(df_mini_pet, use_container_width=True, hide_index=True)
+            st.dataframe(df_mini_pet, width='stretch', hide_index=True)
 
             st.markdown("---")
             st.markdown("##### Potes e Referência de Produção (Bandejas/dia)")
@@ -279,7 +279,7 @@ with aba_eraldo:
                 "Potes 605g":         [20, 20, 10, 10, 10, 20],
                 "Ref. Bandejas/dia":  [70, 35, 22, 22, 22, 18],
             })
-            st.dataframe(df_potes, use_container_width=True, hide_index=True)
+            st.dataframe(df_potes, width='stretch', hide_index=True)
 
         # --- Tabela de Conversões / Rendimentos ---
         with sub_conversao:
@@ -288,7 +288,7 @@ with aba_eraldo:
                 "Unidade":      ["1 Tacho", "1 Bandeja 45g", "1 Bandeja Mini", "1 Bandeja Pet Normal", "1 Bandeja Pet ZERO (Diet)"],
                 "Rende":        ["8 Bandejas", "100 unidades", "150 unidades", "30 unidades", "60 unidades"],
             })
-            st.dataframe(df_conv, use_container_width=True, hide_index=True)
+            st.dataframe(df_conv, width='stretch', hide_index=True)
 
     # ---- 8.2.2 SALDOS E PROJEÇÕES DE BANDEJAS (QUADRO_ERALDO) ----
     st.subheader("📦 Saldos e Projeções de Bandejas")
@@ -298,7 +298,7 @@ with aba_eraldo:
         cols_num_eraldo = ["Bandejas_PV", "Bandejas_V", "Corte_Gil", "Saldo_Amanha"]
         st.dataframe(
             estilizar_df(df_eraldo, destacar_positivos_azul, colunas_excluir=["Produto"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 
@@ -319,7 +319,7 @@ with aba_eraldo:
             df_joel_tabela = df_joel[colunas_joel_tabela]
             st.dataframe(
                 estilizar_df(df_joel_tabela, destacar_positivos_azul, colunas_excluir=["Sabor"]),
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
             )
 
@@ -349,7 +349,7 @@ with aba_gil:
     else:
         st.dataframe(
             estilizar_df(df_gil, destacar_positivos_verde, colunas_excluir=["Produto"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 
@@ -373,7 +373,7 @@ with aba_leonice:
     else:
         st.dataframe(
             estilizar_df(df_leonice, destacar_positivos_vermelho, colunas_excluir=["Produto"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 

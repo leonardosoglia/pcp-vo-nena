@@ -212,7 +212,7 @@ df_estoque_default = pd.DataFrame({
 })
 df_estoque = st.data_editor(
     df_estoque_default,
-    use_container_width=True,
+    width='stretch',
     hide_index=True,
     disabled=["Sabor"],
     key=f"estoque_{ks}",
@@ -233,7 +233,7 @@ df_param_default = pd.DataFrame({
 })
 df_param = st.data_editor(
     df_param_default,
-    use_container_width=True,
+    width='stretch',
     hide_index=True,
     disabled=["Sabor"],
     key=f"param_{ks}",
@@ -293,7 +293,7 @@ df_sug = pd.DataFrame({
     "Produção (band)": [r['producao_band'][s] for s in SABORES],
     "Produção (tachos)": [r['producao_tachos'][s] for s in SABORES],
 })
-st.dataframe(df_sug, use_container_width=True, hide_index=True)
+st.dataframe(df_sug, width='stretch', hide_index=True)
 
 # Mostrar o que foi reduzido pela capacidade priorizada
 if r['sabores_reduzidos']:
@@ -331,7 +331,7 @@ df_pote = pd.DataFrame({
     "605g da sobra": [r['pote_605g_da_sobra'][s] for s in SABORES],
     "605g TOTAL": [r['producao_pote_605g'][s] for s in SABORES],
 })
-st.dataframe(df_pote, use_container_width=True, hide_index=True)
+st.dataframe(df_pote, width='stretch', hide_index=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -348,7 +348,7 @@ df_vira = pd.DataFrame({
     "Corte hoje (band)": [r['corte_total'][s] for s in SABORES],
     "Virada sugerida (band)": [r['virada_sugerida'][s] for s in SABORES],
 })
-st.dataframe(df_vira, use_container_width=True, hide_index=True)
+st.dataframe(df_vira, width='stretch', hide_index=True)
 
 
 # Sumário
@@ -484,7 +484,7 @@ if data_sel is not None:
         })
         st.dataframe(
             df_hist.style.set_properties(**{"background-color": "#e6f3ff"}),
-            use_container_width=True, hide_index=True,
+            width='stretch', hide_index=True,
         )
 
         # Sumário
@@ -509,7 +509,7 @@ if data_sel is not None:
                 "Pote 260g": [_fmt_range(epp260[s]) for s in SABORES],
                 "Pote 605g": [_fmt_range(epp605[s]) for s in SABORES],
             })
-            st.dataframe(df_range, use_container_width=True, hide_index=True)
+            st.dataframe(df_range, width='stretch', hide_index=True)
             st.caption(
                 "Mostra o range (mín–máx) observado nas folhas usadas. `—` = nunca "
                 "cortou/produziu nesses dias. Útil pra entender quão estável é a 'mão' da Gestão."
@@ -569,7 +569,7 @@ if _inputs_iguais_11_05():
         "Produção real": [ESPERADO_11_05['producao'][s] for s in SABORES],
     })
     st.markdown("**Corte e produção (bandejas):**")
-    st.dataframe(df_val_band, use_container_width=True, hide_index=True)
+    st.dataframe(df_val_band, width='stretch', hide_index=True)
 
     df_val_pote = pd.DataFrame({
         "Sabor": SABORES,
@@ -579,7 +579,7 @@ if _inputs_iguais_11_05():
         "Pote 605g real": [ESPERADO_11_05['pote_605g'][s] for s in SABORES],
     })
     st.markdown("**Potes (unidades):**")
-    st.dataframe(df_val_pote, use_container_width=True, hide_index=True)
+    st.dataframe(df_val_pote, width='stretch', hide_index=True)
 
     d_45g = sum(abs(r['corte_45g'][s] - ESPERADO_11_05['corte_45g'][s]) for s in SABORES)
     d_pet = sum(abs(r['corte_pet'][s] - ESPERADO_11_05['corte_pet'][s]) for s in SABORES)

@@ -171,7 +171,7 @@ with aba_insumos:
                 "Lead time": f"{i['lead_time_dias']}d" if i["lead_time_dias"] else "—",
             })
         df_ins = pd.DataFrame(rows)
-        st.dataframe(df_ins, use_container_width=True, hide_index=True)
+        st.dataframe(df_ins, width='stretch', hide_index=True)
 
         # Seletor pra editar/excluir
         st.markdown("##### ️ Editar / ️ Excluir insumo")
@@ -250,7 +250,7 @@ with aba_insumos:
 
             col_save, col_cancel = st.columns(2)
             with col_save:
-                if st.button(" Salvar", type="primary", use_container_width=True, key="btn_save_ins"):
+                if st.button(" Salvar", type="primary", width='stretch', key="btn_save_ins"):
                     dados = {
                         "codigo": codigo.strip(),
                         "nome": nome.strip(),
@@ -277,7 +277,7 @@ with aba_insumos:
                     except Exception as e:
                         st.error(f" Erro: {type(e).__name__}: {e}")
             with col_cancel:
-                if st.button(" Cancelar", use_container_width=True, key="btn_cancel_ins"):
+                if st.button(" Cancelar", width='stretch', key="btn_cancel_ins"):
                     st.session_state.pop("form_insumo", None)
                     st.rerun()
 
@@ -292,14 +292,14 @@ with aba_insumos:
             )
             c1, c2 = st.columns(2)
             with c1:
-                if st.button(" Confirmar desativação", type="primary", use_container_width=True, key="btn_conf_del_ins"):
+                if st.button(" Confirmar desativação", type="primary", width='stretch', key="btn_conf_del_ins"):
                     excluir_insumo(ins_id)
                     invalidar_suprimentos()
                     st.session_state.pop("confirm_del_insumo", None)
                     st.success(" Desativado.")
                     st.rerun()
             with c2:
-                if st.button(" Cancelar", use_container_width=True, key="btn_cancel_del_ins"):
+                if st.button(" Cancelar", width='stretch', key="btn_cancel_del_ins"):
                     st.session_state.pop("confirm_del_insumo", None)
                     st.rerun()
 
@@ -351,7 +351,7 @@ with aba_bom:
                 "Em estoque": _formatar_qtd(l["estoque_atual"], l["insumo_unidade"]),
                 "Obs": l["obs"],
             } for l in bom])
-            st.dataframe(df_bom, use_container_width=True, hide_index=True)
+            st.dataframe(df_bom, width='stretch', hide_index=True)
 
             # Excluir linha
             st.markdown("###### ️ Remover linha da receita")
@@ -381,7 +381,7 @@ with aba_bom:
                 help=f"Ex: pra 1 tacho consumir 8 kg de {ins_obj['nome']}, digite 8",
             )
             obs_bom = st.text_input("Observação (opcional)", value="")
-            submitted = st.form_submit_button(" Salvar linha", type="primary", use_container_width=True)
+            submitted = st.form_submit_button(" Salvar linha", type="primary", width='stretch')
             if submitted:
                 if qtd <= 0:
                     st.error("Quantidade deve ser maior que zero.")
@@ -469,7 +469,7 @@ with aba_movs:
                     df_top = pd.DataFrame(
                         [{"Insumo": k, "Consumo total": f"{v:.3f}"} for k, v in top5]
                     )
-                    st.dataframe(df_top, use_container_width=True, hide_index=True)
+                    st.dataframe(df_top, width='stretch', hide_index=True)
 
             st.divider()
 
@@ -490,7 +490,7 @@ with aba_movs:
                 "Referência": _ref_label(m),
                 "Obs": m["obs"] or "",
             } for m in movs])
-            st.dataframe(df_movs, use_container_width=True, hide_index=True)
+            st.dataframe(df_movs, width='stretch', hide_index=True)
             st.caption(f" {len(movs)} movimentações nos últimos {dias_atras} dias")
 
         st.divider()
@@ -518,7 +518,7 @@ with aba_movs:
                 referencia = st.text_input("Referência (NF, doc, etc)", value="")
 
             obs_mov = st.text_area("Observações", value="", height=70)
-            submitted_mov = st.form_submit_button(" Registrar", type="primary", use_container_width=True)
+            submitted_mov = st.form_submit_button(" Registrar", type="primary", width='stretch')
             if submitted_mov:
                 if qtd_mov <= 0:
                     st.error("Quantidade deve ser maior que zero.")
@@ -593,7 +593,7 @@ with aba_necessidades:
                 "Estoque atual": _formatar_qtd(n["estoque_atual"], n["unidade"]),
                 "Saldo": _formatar_qtd(n["saldo"], n["unidade"]),
             })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
 
         # Alertas detalhados pra faltas
         faltas = [n for n in necess if n["status"] == "falta"]

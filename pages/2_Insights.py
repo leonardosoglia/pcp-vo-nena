@@ -279,7 +279,7 @@ fig_h2.update_layout(
     plot_bgcolor="white",
 )
 fig_h2.add_vline(x=0, line_width=2, line_color="#1a1a1a")
-st.plotly_chart(fig_h2, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig_h2, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 # Tabela com soma + média + n
 df_h2_tab = df_h2.copy()
@@ -288,7 +288,7 @@ df_h2_tab["media"] = df_h2_tab["media"].apply(lambda v: f"{v:+,.0f}")
 df_h2_tab.columns = ["Sabor", "Tamanho", "Total acumulado (und)", "Média por dia (und)", "Folhas medidas"]
 
 with st.expander(" Ver tabela completa", expanded=False):
-    st.dataframe(df_h2_tab, use_container_width=True, hide_index=True)
+    st.dataframe(df_h2_tab, width='stretch', hide_index=True)
 
 # Caixa "Como ler os números"
 st.markdown(
@@ -322,7 +322,7 @@ if h1["parciais"]:
     df_h1 = pd.DataFrame(h1["parciais"])
     df_h1["data"] = pd.to_datetime(df_h1["data"]).dt.strftime("%d/%m/%Y")
     df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cozidos", "Bandejas de massa → potes"]
-    st.dataframe(df_h1, use_container_width=True, hide_index=True)
+    st.dataframe(df_h1, width='stretch', hide_index=True)
 
 st.markdown(
     "<div class='insight-card-good'>"
@@ -353,7 +353,7 @@ if h5["anomalias"]:
     df_h5["data"] = pd.to_datetime(df_h5["data"]).dt.strftime("%d/%m/%Y")
     df_h5["razao"] = df_h5["razao"].apply(lambda v: f"{v:.2f}x")
     df_h5.columns = ["Data", "Tradicional (band)", "Leite em Pó (band)", "Razão L/T"]
-    st.dataframe(df_h5, use_container_width=True, hide_index=True)
+    st.dataframe(df_h5, width='stretch', hide_index=True)
 else:
     st.markdown(
         "<div class='insight-card-good'>"
@@ -401,7 +401,7 @@ if sobrecarga_dinamica:
     df_h4 = df_h4[["data", "emb_45g", "emb_mini", "total", "acima"]]
     df_h4["acima"] = df_h4["acima"].apply(lambda v: f"+{v:,}")
     df_h4.columns = ["Data", "45g (und)", "Mini (und)", "Total", "Acima do limite assumido"]
-    st.dataframe(df_h4, use_container_width=True, hide_index=True)
+    st.dataframe(df_h4, width='stretch', hide_index=True)
 else:
     st.markdown(
         "<div class='insight-card-good'>"
@@ -439,7 +439,7 @@ fig_h4.update_layout(
 )
 fig_h4.update_xaxes(fixedrange=True)
 fig_h4.update_yaxes(fixedrange=True)
-st.plotly_chart(fig_h4, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig_h4, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 st.divider()
 
@@ -491,7 +491,7 @@ if not df_h6_valid.empty:
     )
     fig_h6.update_xaxes(fixedrange=True)
     fig_h6.update_yaxes(fixedrange=True)
-    st.plotly_chart(fig_h6, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+    st.plotly_chart(fig_h6, width='stretch', config={"displayModeBar": False, "responsive": True})
 
     # Estatísticas
     media_tl = df_h6_valid["T/L"].mean()

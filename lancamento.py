@@ -199,7 +199,7 @@ with st.container(border=True):
     col_nova, col_existentes, col_data_atual = st.columns([1.5, 2, 2])
 
     with col_nova:
-        with st.popover("Abrir / criar folha de outra data", use_container_width=True):
+        with st.popover("Abrir / criar folha de outra data", width='stretch'):
             st.caption("Escolha a data — passada, hoje ou futura.")
             nova_data = st.date_input(
                 "Data:",
@@ -207,13 +207,13 @@ with st.container(border=True):
                 format="DD/MM/YYYY",
                 key="nova_folha_data",
             )
-            if st.button("Abrir folha desta data", use_container_width=True, type="primary", key="btn_nova"):
+            if st.button("Abrir folha desta data", width='stretch', type="primary", key="btn_nova"):
                 st.session_state["data_selecionada"] = nova_data.isoformat()
                 st.rerun()
             st.caption("Se ainda não existir, abre vazia pra preencher.")
 
     with col_existentes:
-        with st.popover("Folhas anteriores", use_container_width=True):
+        with st.popover("Folhas anteriores", width='stretch'):
             datas = list_datas_folha()
             if not datas:
                 st.info("Nenhuma folha salva ainda.")
@@ -241,13 +241,13 @@ with st.container(border=True):
                             label = _fmt_data_pt(d)
                             cols = st.columns([5, 1])
                             with cols[0]:
-                                if st.button(label, key=f"goto_{d}", use_container_width=True):
+                                if st.button(label, key=f"goto_{d}", width='stretch'):
                                     st.session_state["data_selecionada"] = d
                                     st.rerun()
                             with cols[1]:
-                                with st.popover("⋮", use_container_width=True):
+                                with st.popover("⋮", width='stretch'):
                                     st.caption(f"Folha de {_fmt_data_pt(d)}")
-                                    if st.button("Abrir / Editar", key=f"act_edit_{d}", use_container_width=True):
+                                    if st.button("Abrir / Editar", key=f"act_edit_{d}", width='stretch'):
                                         st.session_state["data_selecionada"] = d
                                         st.rerun()
                                     try:
@@ -259,11 +259,11 @@ with st.container(border=True):
                                             file_name=f"folha_pcp_vonena_{d}.xlsx",
                                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                             key=f"act_xlsx_{d}",
-                                            use_container_width=True,
+                                            width='stretch',
                                         )
                                     except Exception as e:
                                         st.caption(f"Erro Excel: {e}")
-                                    if st.button("Excluir folha", key=f"act_del_{d}", use_container_width=True):
+                                    if st.button("Excluir folha", key=f"act_del_{d}", width='stretch'):
                                         st.session_state["confirm_excluir"] = d
                                         st.rerun()
 
@@ -283,7 +283,7 @@ if pendente:
     st.warning(f"Excluir folha de **{_fmt_data_pt(pendente)}**? Não há undo.")
     cc1, cc2, _ = st.columns([1, 1, 4])
     with cc1:
-        if st.button("Confirmar exclusão", type="primary", use_container_width=True, key="btn_confirm_del"):
+        if st.button("Confirmar exclusão", type="primary", width='stretch', key="btn_confirm_del"):
             try:
                 excluir_folha(pendente)
                 db.invalidar_folha(pendente)
@@ -295,7 +295,7 @@ if pendente:
             except Exception as e:
                 st.error(f"Erro ao excluir: {e}")
     with cc2:
-        if st.button("Cancelar", use_container_width=True, key="btn_cancel_del"):
+        if st.button("Cancelar", width='stretch', key="btn_cancel_del"):
             st.session_state.pop("confirm_excluir", None)
             st.rerun()
 
@@ -793,7 +793,7 @@ with st.form("folha_completa", border=False):
             df_calc = pd.DataFrame(rows_calc).convert_dtypes()
             st.dataframe(
                 df_calc.style.map(estilo_dif, subset=["③ 45g", "③ Mini", "③ Pet"]),
-                use_container_width=True, hide_index=True,
+                width='stretch', hide_index=True,
                 column_config={
                     "Sabor":  st.column_config.TextColumn(width=92),
                     "② 45g":  st.column_config.NumberColumn(width=44),
@@ -826,7 +826,7 @@ with st.form("folha_completa", border=False):
             df_vir = pd.DataFrame(rows_vir)
             st.dataframe(
                 df_vir.style.map(estilo_dif, subset=["② Pós-corte"]),
-                use_container_width=True, hide_index=True,
+                width='stretch', hide_index=True,
                 column_config={
                     "Sabor":         st.column_config.TextColumn(width=112),
                     "① do Joel (V)": st.column_config.NumberColumn(width=92),
@@ -860,7 +860,7 @@ with st.form("folha_completa", border=False):
             df_pv = pd.DataFrame(rows_pv)
             st.dataframe(
                 df_pv.style.map(estilo_dif, subset=["② = ① + Vir②", "Dif vs Meta"]),
-                use_container_width=True, hide_index=True,
+                width='stretch', hide_index=True,
                 column_config={
                     "Sabor":          st.column_config.TextColumn(width=100),
                     "① do Joel (PV)": st.column_config.NumberColumn(width=92),
@@ -1140,7 +1140,7 @@ with st.form("folha_completa", border=False):
         salvar_clicked = st.form_submit_button(
             " Salvar folha completo",
             type="primary",
-            use_container_width=True,
+            width='stretch',
         )
     with col_badge:
         # Badge " Salvo" só aparece após o clique em salvar (mesma sessão, mesma data)
@@ -1288,7 +1288,7 @@ if _preview_data == data_str:
                 "Estoque atual": f"{c['estoque_atual']:.3f} {c['unidade']}",
                 "Estoque depois": f"{c['estoque_depois']:.3f} {c['unidade']}",
             } for c in consumos_ord])
-            st.dataframe(df_prev, use_container_width=True, hide_index=True)
+            st.dataframe(df_prev, width='stretch', hide_index=True)
 
             _n_falta = sum(1 for c in _pv["consumos"] if c["status"] == "falta")
             if _n_falta:
@@ -1305,7 +1305,7 @@ if _preview_data == data_str:
                     "Confirmar baixa de estoque",
                     type="primary",
                     key="confirmar_baixa",
-                    use_container_width=True,
+                    width='stretch',
                 ):
                     try:
                         _r = db.baixar_insumos_da_folha(_preview_data)
@@ -1320,7 +1320,7 @@ if _preview_data == data_str:
                         st.error(f"Erro na baixa: {type(e).__name__}: {e}")
                         st.exception(e)
             with col_pular:
-                if st.button("Pular baixa", key="pular_baixa", use_container_width=True):
+                if st.button("Pular baixa", key="pular_baixa", width='stretch'):
                     del st.session_state["preview_baixa_pendente"]
                     st.info(
                         "Baixa adiada. Lance os movimentos depois em "

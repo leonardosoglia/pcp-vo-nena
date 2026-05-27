@@ -192,7 +192,7 @@ for i, sug in enumerate(sugestoes):
     with col:
         # Mostra os primeiros ~70 chars como label do botão; tooltip mostra completo
         label = sug if len(sug) <= 70 else sug[:67] + "..."
-        if st.button(label, key=f"sug_{i}", use_container_width=True, help=sug):
+        if st.button(label, key=f"sug_{i}", width='stretch', help=sug):
             st.session_state["_pergunta_input"] = sug
 
 # Slash commands disponíveis (expander pra não poluir)
@@ -217,9 +217,9 @@ pergunta = st.text_area(
 
 col_btn1, col_btn2, col_btn3, col_btn4 = st.columns([1, 1, 2, 2])
 with col_btn1:
-    perguntar_clicked = st.button("Perguntar", type="primary", use_container_width=True)
+    perguntar_clicked = st.button("Perguntar", type="primary", width='stretch')
 with col_btn2:
-    limpar = st.button("Limpar histórico", use_container_width=True)
+    limpar = st.button("Limpar histórico", width='stretch')
 with col_btn4:
     modo_profundo = st.toggle(
         "Modo profundo (tools)",

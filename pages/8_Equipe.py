@@ -188,13 +188,13 @@ with tab_func:
                     )
                 with col_acoes:
                     if ativo:
-                        if st.button("️ Inativar", key=f"del_{f['id']}", use_container_width=True):
+                        if st.button("️ Inativar", key=f"del_{f['id']}", width='stretch'):
                             excluir_funcionario(f["id"])
                             invalidar_equipe()
                             st.success(f" {f['nome']} inativado.")
                             st.rerun()
                     else:
-                        if st.button("️ Reativar", key=f"act_{f['id']}", use_container_width=True):
+                        if st.button("️ Reativar", key=f"act_{f['id']}", width='stretch'):
                             atualizar_funcionario(f["id"], ativo=1)
                             invalidar_equipe()
                             st.success(f" {f['nome']} reativado.")
@@ -286,7 +286,7 @@ with tab_cap:
                               "unidade", "observacao", "id"]].copy()
             df_cap.columns = ["Atividade", "Normal", "Mín", "Máx", "Unidade", "Obs", "ID"]
             st.dataframe(df_cap.drop(columns=["ID"]),
-                          use_container_width=True, hide_index=True)
+                          width='stretch', hide_index=True)
 
             # Botões de remoção individual
             st.caption("**Remover capacidade:**")
@@ -295,7 +295,7 @@ with tab_cap:
                 with cols_del[i % 4]:
                     if st.button(f"️ {cap['atividade']}",
                                   key=f"delcap_{cap['id']}",
-                                  use_container_width=True):
+                                  width='stretch'):
                         excluir_capacidade(cap["id"])
                         invalidar_equipe()
                         st.success(f" Removida: {cap['atividade']}")
@@ -342,14 +342,14 @@ with tab_pres:
     # Botões em massa
     col_mass_a, col_mass_b, col_mass_c = st.columns(3)
     with col_mass_a:
-        if st.button(" Marcar TODOS como presentes", use_container_width=True):
+        if st.button(" Marcar TODOS como presentes", width='stretch'):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=True)
             invalidar_equipe()
             st.success(" Todos marcados como presentes.")
             st.rerun()
     with col_mass_b:
-        if st.button(" Marcar TODOS como ausentes", use_container_width=True):
+        if st.button(" Marcar TODOS como ausentes", width='stretch'):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=False)
             invalidar_equipe()

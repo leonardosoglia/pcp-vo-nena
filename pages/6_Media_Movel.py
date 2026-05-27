@@ -299,7 +299,7 @@ df_display = df_display.assign(_ord=df_tab["severidade"].map(ord_sev)).sort_valu
     ["_ord", "Sabor", "Dia da semana"]
 ).drop(columns="_ord")
 
-st.dataframe(df_display, use_container_width=True, hide_index=True)
+st.dataframe(df_display, width='stretch', hide_index=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -361,7 +361,7 @@ fig_heat.update_layout(
 )
 fig_heat.update_xaxes(fixedrange=True)
 fig_heat.update_yaxes(fixedrange=True)
-st.plotly_chart(fig_heat, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig_heat, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -443,7 +443,7 @@ fig_lin.update_layout(
 )
 fig_lin.update_xaxes(fixedrange=True)
 fig_lin.update_yaxes(fixedrange=True)
-st.plotly_chart(fig_lin, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+st.plotly_chart(fig_lin, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -471,7 +471,7 @@ else:
         }
         for _, row in recalibrar.iterrows()
     ])
-    st.dataframe(df_sug, use_container_width=True, hide_index=True)
+    st.dataframe(df_sug, width='stretch', hide_index=True)
     st.caption(
         "_A Gestão decide se atualiza as metas. Sistema apenas sugere baseado "
         "na média recente — pode ser sazonalidade ou pedido pontual._"
