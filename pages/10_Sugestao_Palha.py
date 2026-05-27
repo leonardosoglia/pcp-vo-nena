@@ -231,12 +231,15 @@ st.markdown(
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown(
     """<div style="background:#fffacd; padding: 14px 18px; border-radius: 8px; border-left: 6px solid #f0c020; margin-top: 8px;">
-    <h3 style="margin: 0 0 6px 0;">Sugestão (conservadora — puxa pra menos no Pet)</h3>
+    <h3 style="margin: 0 0 6px 0;">Sugestão (conservadora — evita corte com sobra grande)</h3>
     <p style="margin: 0; font-size: 0.92em; color: #555;">
+    No <strong>50g</strong>: se a necessidade líquida &lt; <strong>60 unidades</strong>, NÃO corta
+    nenhuma bandeja (evita cortar 1 band só pra cobrir 50 palhas com sobra de 30).
+    Acima disso, arredondamento clássico.<br>
     No <strong>Pet</strong>: se a fração decimal &lt; 0.81, arredonda pra baixo
-    (ex: 1.80 → 1, 1.67 → 1). Acima disso, segue a regra normal (1.83 → 2).
-    No <strong>50g</strong> e na <strong>produção</strong>: segue o arredondamento clássico.
-    Calibrado com a folha real de 25/05/2026 — bate com a decisão da Gestão.
+    (ex: 1.80 → 1, 1.67 → 1). Acima disso, segue a regra normal (1.83 → 2).<br>
+    Na <strong>produção</strong>: segue o arredondamento clássico.
+    Calibrado com folhas reais de 25/05/2026 (Pet) e 27/05/2026 (50g).
     </p>
     </div>""",
     unsafe_allow_html=True,

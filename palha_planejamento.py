@@ -24,6 +24,23 @@ import math
 
 THRESHOLD_PET_CONSERVADOR = 0.81
 
+# Piso mínimo de UNIDADES líquidas pra cortar 1 bandeja de 50g no modo conservador.
+# Regra calibrada 27/05/2026: se a necessidade líquida do 50g < 60 und, a Gestão
+# prefere NÃO cortar (evita bandeja desnecessária com sobra). Acima disso, segue
+# arredondamento clássico.
+# Origem: folha de 27/05/2026 — T 50g líquido = 644 - 588 = 56 und. A Gestão
+# decidiu 0 bandejas (round normal teria arredondado 0.70 → 1).
+PISO_LIQUIDO_50G_CONSERVADOR = 60
+
+
+def _arredondar_50g_conservador(liquido_unidades: float, rendimento: int,
+                                 piso: int = PISO_LIQUIDO_50G_CONSERVADOR) -> int:
+    """50g conservador: se a necessidade líquida em UNIDADES < piso, devolve 0.
+    Acima disso, arredondamento clássico (round)."""
+    if liquido_unidades < piso:
+        return 0
+    return round(liquido_unidades / rendimento)
+
 
 def _arredondar_conservador(valor, threshold=THRESHOLD_PET_CONSERVADOR):
     """Threshold-based round: decimal < threshold → floor; senão round normal."""
@@ -85,24 +102,38 @@ def sugerir_palha(
         composicao_display = dict(COMPOSICAO_DISPLAY)
 
     # Escolhe funções de arredondamento POR FORMATO.
-    # 50g: sempre round normal (Gestão raramente puxa pra menos).
-    # Pet: round normal OU threshold conservador (calibrado com 25/05).
-    # 'floor' permanece como modo agressivo (debug).
+    # 50g:
+    #   - 'round' = round clássico
+    #   - 'conservador' = piso de 60 und líquidas (calibrado 27/05)
+    #   - 'floor' = sempre puxa pra menos (debug)
+    # Pet:
+    #   - 'round' = round clássico
+    #   - 'conservador' = threshold 0.81 (calibrado 25/05)
+    #   - 'floor' = floor sempre
     if regra_arredondamento == 'floor':
         arredondar_50g = math.floor
         arredondar_pet = math.floor
+        usar_50g_piso = False
     elif regra_arredondamento == 'conservador':
-        arredondar_50g = round
+        arredondar_50g = round  # fallback caso piso não dispare
         arredondar_pet = _arredondar_conservador
+        usar_50g_piso = True
     else:  # 'round'
         arredondar_50g = round
         arredondar_pet = round
+        usar_50g_piso = False
 
     # 1. Corte 50g
     displays_necessarios = max(0, ideal_displays_semana - estoque_displays)
     unidades_50g_necessarias = {s: displays_necessarios * composicao_display[s] for s in SABORES_50G}
     liquido_50g = {s: max(0, unidades_50g_necessarias[s] - estoque_50g.get(s, 0)) for s in SABORES_50G}
-    corte_50g = {s: arredondar_50g(liquido_50g[s] / rend_50g) for s in SABORES_50G}
+    if usar_50g_piso:
+        corte_50g = {
+            s: _arredondar_50g_conservador(liquido_50g[s], rend_50g)
+            for s in SABORES_50G
+        }
+    else:
+        corte_50g = {s: arredondar_50g(liquido_50g[s] / rend_50g) for s in SABORES_50G}
     frac_50g = {s: liquido_50g[s] / rend_50g for s in SABORES_50G}
     # Sabores sem 50g (CK, LIM) → 0
     for s in SABORES:
