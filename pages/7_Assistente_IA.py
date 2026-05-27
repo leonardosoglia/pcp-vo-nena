@@ -122,6 +122,7 @@ try:
         perguntar, estimar_custo, usd_para_brl,
         perguntar_streaming, sugestoes_contextuais,
         expandir_slash_command, SLASH_COMMANDS,
+        perguntar_com_tools,
     )
 except ImportError as e:
     st.markdown(
@@ -214,11 +215,24 @@ pergunta = st.text_area(
                 "ou um comando como /resumo, /anomalias, /comparar 18/05",
 )
 
-col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 4])
+col_btn1, col_btn2, col_btn3, col_btn4 = st.columns([1, 1, 2, 2])
 with col_btn1:
     perguntar_clicked = st.button("Perguntar", type="primary", use_container_width=True)
 with col_btn2:
     limpar = st.button("Limpar histórico", use_container_width=True)
+with col_btn4:
+    modo_profundo = st.toggle(
+        "Modo profundo (tools)",
+        value=False,
+        help=(
+            "Quando ligado, o Claude pode CONSULTAR O BANCO direto via funções "
+            "(buscar folha de qualquer data, agregar métricas, comparar dias "
+            "da semana, etc). Resposta mais precisa pra perguntas que envolvem "
+            "muitos dados ou períodos longos, mas SEM streaming (mostra spinner) "
+            "e custa um pouco mais. Desligado: streaming rápido só com contexto "
+            "pré-enviado (folha + 7 dias)."
+        ),
+    )
 
 if limpar:
     st.session_state.historico_perguntas = []
@@ -250,16 +264,51 @@ if perguntar_clicked:
         label_pergunta = f"**{ts_now} · folha {data_ref}**"
         if slash_usado:
             label_pergunta += f" · comando `{slash_usado}`"
+        if modo_profundo:
+            label_pergunta += " · modo profundo (tools)"
         st.markdown(label_pergunta)
         st.markdown(f"> {pergunta_limpa}")
 
-        # Streaming da resposta
-        sr = perguntar_streaming()
-        with st.chat_message("assistant"):
-            resposta_completa = st.write_stream(
-                sr.chunks(pergunta_efetiva, data_ref, modelo, 1024)
-            )
-        meta = sr.meta
+        # Dispatch: modo profundo (tools) ou streaming simples
+        resposta_completa = ""
+        tools_chamadas = []
+        if modo_profundo:
+            with st.chat_message("assistant"):
+                with st.spinner("Claude está consultando o banco e raciocinando..."):
+                    resultado = perguntar_com_tools(
+                        pergunta_efetiva, data_ref, modelo, max_tokens=2048
+                    )
+                resposta_completa = resultado.get("resposta", "")
+                tools_chamadas = resultado.get("tools_chamadas", [])
+                if resposta_completa:
+                    st.markdown(resposta_completa)
+                # Mostra as tools chamadas
+                if tools_chamadas:
+                    with st.expander(
+                        f"Ferramentas usadas ({len(tools_chamadas)}) — clique pra ver",
+                        expanded=False,
+                    ):
+                        for i, tc in enumerate(tools_chamadas, 1):
+                            st.markdown(f"**{i}. `{tc['name']}`**")
+                            st.json(tc["input"], expanded=False)
+                            st.caption(f"Resultado (preview): `{tc['result_preview']}`")
+            meta = {
+                "tokens_input": resultado.get("tokens_input", 0),
+                "tokens_output": resultado.get("tokens_output", 0),
+                "tokens_cache_read": resultado.get("tokens_cache_read", 0),
+                "tokens_cache_write": resultado.get("tokens_cache_write", 0),
+                "modelo": resultado.get("modelo", modelo),
+                "iteracoes": resultado.get("iteracoes", 0),
+                "erro": resultado.get("erro"),
+            }
+        else:
+            # Streaming da resposta
+            sr = perguntar_streaming()
+            with st.chat_message("assistant"):
+                resposta_completa = st.write_stream(
+                    sr.chunks(pergunta_efetiva, data_ref, modelo, 1024)
+                )
+            meta = sr.meta
 
         # Erro?
         if meta.get("erro"):

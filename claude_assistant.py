@@ -470,6 +470,177 @@ def perguntar_streaming() -> StreamingResposta:
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# TOOL USE — Claude consulta o banco direto via SQL/queries estruturadas
+# ════════════════════════════════════════════════════════════════════════════
+def perguntar_com_tools(
+    pergunta: str,
+    data_referencia: str,
+    modelo: str = "claude-haiku-4-5",
+    max_tokens: int = 2048,
+    max_iteracoes: int = 8,
+) -> dict:
+    """Pergunta com tool use ativo — Claude pode chamar funções pra consultar
+    o banco DIRETO em vez de só usar o contexto pré-enviado.
+
+    Loop agentic manual (não streaming): cada iteração faz uma chamada ao
+    Claude. Se ele responde com tool_use, executa as tools e devolve os
+    resultados na próxima iteração. Continua até stop_reason='end_turn' ou
+    estourar max_iteracoes.
+
+    Retorna dict com:
+      - 'resposta' (str): texto final do Claude
+      - 'tools_chamadas' (list): histórico de quais tools foram usadas
+      - 'tokens_input', 'tokens_output', 'tokens_cache_read' (int): totais somados
+      - 'modelo' (str)
+      - 'iteracoes' (int)
+      - 'erro' (str ou None)
+    """
+    try:
+        client = _get_client()
+    except Exception as e:
+        return {
+            "resposta": "", "tools_chamadas": [],
+            "tokens_input": 0, "tokens_output": 0, "tokens_cache_read": 0,
+            "tokens_cache_write": 0, "modelo": modelo, "iteracoes": 0,
+            "erro": str(e),
+        }
+
+    # Importa tools lazy (evita dependência circular)
+    from assistant_tools import TOOLS, executar_tool
+    import json as _json
+
+    # Contexto inicial enxuto — o resto o Claude busca via tools
+    contexto = montar_contexto_folha(data_referencia, n_dias_historico=3)
+
+    messages = [
+        {
+            "role": "user",
+            "content": (
+                f"{contexto}\n\n---\n\n"
+                f"## INSTRUÇÕES\n\n"
+                f"Você tem acesso a FERRAMENTAS pra consultar o banco direto. "
+                f"USE essas ferramentas quando precisar de dados que não estão no "
+                f"contexto acima. Pode chamar várias seguidas. Quando tiver dados "
+                f"suficientes, responda em PT-BR direto.\n\n"
+                f"## PERGUNTA DO USUÁRIO\n\n{pergunta}"
+            ),
+        }
+    ]
+
+    tools_chamadas = []
+    total_in = 0
+    total_out = 0
+    total_cache_read = 0
+    total_cache_write = 0
+    iter_count = 0
+
+    try:
+        while iter_count < max_iteracoes:
+            iter_count += 1
+            response = client.messages.create(
+                model=modelo,
+                max_tokens=max_tokens,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                tools=TOOLS,
+                messages=messages,
+            )
+
+            # Acumula tokens
+            total_in += getattr(response.usage, "input_tokens", 0)
+            total_out += getattr(response.usage, "output_tokens", 0)
+            total_cache_read += getattr(response.usage, "cache_read_input_tokens", 0) or 0
+            total_cache_write += getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+
+            # End turn — temos a resposta final
+            if response.stop_reason == "end_turn":
+                texto = "".join(
+                    b.text for b in response.content if hasattr(b, "text")
+                )
+                return {
+                    "resposta": texto,
+                    "tools_chamadas": tools_chamadas,
+                    "tokens_input": total_in,
+                    "tokens_output": total_out,
+                    "tokens_cache_read": total_cache_read,
+                    "tokens_cache_write": total_cache_write,
+                    "modelo": response.model,
+                    "iteracoes": iter_count,
+                    "erro": None,
+                }
+
+            # Tool use — executa as ferramentas requisitadas
+            if response.stop_reason == "tool_use":
+                tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
+
+                # Append da resposta do assistant (mantém tool_use blocks)
+                messages.append({"role": "assistant", "content": response.content})
+
+                # Executa cada tool e coleta resultados
+                tool_results = []
+                for tu in tool_use_blocks:
+                    resultado = executar_tool(tu.name, dict(tu.input))
+                    tools_chamadas.append({
+                        "name": tu.name,
+                        "input": dict(tu.input),
+                        "result_preview": _json.dumps(resultado, default=str)[:500],
+                    })
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": tu.id,
+                        "content": _json.dumps(resultado, default=str, ensure_ascii=False),
+                    })
+
+                messages.append({"role": "user", "content": tool_results})
+                continue
+
+            # Refusal ou outro stop_reason
+            texto = "".join(b.text for b in response.content if hasattr(b, "text"))
+            return {
+                "resposta": texto or "(resposta interrompida)",
+                "tools_chamadas": tools_chamadas,
+                "tokens_input": total_in,
+                "tokens_output": total_out,
+                "tokens_cache_read": total_cache_read,
+                "tokens_cache_write": total_cache_write,
+                "modelo": response.model,
+                "iteracoes": iter_count,
+                "erro": f"stop_reason inesperado: {response.stop_reason}",
+            }
+
+        # Loop estourou max_iteracoes
+        return {
+            "resposta": "(loop de tool use excedeu o limite de iterações sem resposta final — o modelo está pedindo muitas ferramentas seguidas)",
+            "tools_chamadas": tools_chamadas,
+            "tokens_input": total_in,
+            "tokens_output": total_out,
+            "tokens_cache_read": total_cache_read,
+            "tokens_cache_write": total_cache_write,
+            "modelo": modelo,
+            "iteracoes": iter_count,
+            "erro": "max_iteracoes excedido",
+        }
+
+    except Exception as e:
+        return {
+            "resposta": "",
+            "tools_chamadas": tools_chamadas,
+            "tokens_input": total_in,
+            "tokens_output": total_out,
+            "tokens_cache_read": total_cache_read,
+            "tokens_cache_write": total_cache_write,
+            "modelo": modelo,
+            "iteracoes": iter_count,
+            "erro": str(e),
+        }
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # SUGESTÕES CONTEXTUAIS — perguntas baseadas no estado da folha
 # ════════════════════════════════════════════════════════════════════════════
 def sugestoes_contextuais(data: str) -> list[str]:
