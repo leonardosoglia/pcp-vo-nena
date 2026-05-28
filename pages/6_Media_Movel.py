@@ -434,7 +434,7 @@ if meta_sabor:
 fig_lin.update_layout(
     title=f"Cortados² 45g (emb + cort sala + papelzinho) — {labels_sabor.get(sabor_sel, sabor_sel)}",
     xaxis_title="Data",
-    yaxis_title="Unidades pedidas pra embalar",
+    yaxis_title="Cortados² — unidades de 45g",
     height=400,
     margin=dict(l=20, r=20, t=60, b=40),
     plot_bgcolor="white",
