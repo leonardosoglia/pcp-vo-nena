@@ -170,11 +170,50 @@ horizonte_producao = col3.slider(
     help="Em quantos dias a produção fecha o gap de P/Virar e de potes. Padrão 5.",
 )
 
+# Ponte com o módulo Equipe (gap 3 da Camada 2 — CADERNO 1.B): a capacidade da
+# Produção do dia = soma de tachos/dia de quem está PRESENTE hoje. Pré-preenche
+# o teto, a Gestão ajusta. Responde a pergunta real dela: "a Produção dá conta?".
+# Sem presença cadastrada, cai no comportamento antigo (0 = sem teto).
+_cap_sugerida = 0
+_cap_info = None
+if data_sel is not None:
+    try:
+        _cap_info = cached_db.get_capacidade_efetiva_dia(data_sel.isoformat(), "producao_cocada")
+        _cap_sugerida = int(round(_cap_info.get("total_normal") or 0))
+    except Exception:
+        _cap_info = None
+
 capacidade = st.number_input(
     "Capacidade da Produção hoje (tachos) — opcional. 0 = sem teto.",
-    min_value=0, max_value=30, value=0, step=1,
+    min_value=0, max_value=30, value=_cap_sugerida, step=1,
+    help=(
+        "Teto de tachos que a Produção dá conta hoje. Quando há presença lançada "
+        "na página Equipe, vem pré-preenchido com a soma de quem está presente. "
+        "Você pode ajustar à vontade. 0 = sem teto (sistema espalha em todos os sabores)."
+    ),
 )
 capacidade_tachos = capacidade if capacidade > 0 else None
+
+# Transparência da origem da capacidade — SEM nomes próprios (regra dos
+# departamentos): mostra só a contagem de presentes e a banda min-max.
+if _cap_info is not None and _cap_sugerida > 0:
+    _n_pres = len(_cap_info.get("funcionarios_presentes", []))
+    _n_aus = len(_cap_info.get("funcionarios_ausentes", []))
+    _tmin = int(round(_cap_info.get("total_min") or 0))
+    _tmax = int(round(_cap_info.get("total_max") or 0))
+    _banda = f" (banda {_tmin}–{_tmax})" if (_tmax and _tmax != _cap_sugerida) else ""
+    _aus_txt = f" · {_n_aus} ausente(s)" if _n_aus else ""
+    st.caption(
+        f"Capacidade pré-preenchida pela **Equipe presente** hoje: "
+        f"{_cap_sugerida} tachos{_banda} · {_n_pres} pessoa(s) da Produção presente(s)"
+        f"{_aus_txt}. Ajuste acima se precisar."
+    )
+elif data_sel is not None:
+    st.caption(
+        "Sem capacidade calculada — ninguém com a atividade *produção de cocada* "
+        "está marcado como presente hoje. Cadastre capacidades e presença na página "
+        "**Equipe** pra esse teto vir preenchido sozinho."
+    )
 st.divider()
 
 
