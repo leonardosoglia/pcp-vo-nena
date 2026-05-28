@@ -137,6 +137,16 @@ ATIVIDADES_CAPACIDADE = [
     "contagem_estoque",      # operações completas/dia (Leonardo, 1 normalmente)
 ]
 
+# Tipos de evento/observação da semana (gap 2 da Camada 2 cocada).
+# Cada tipo ganha um rótulo amigável na UI. 'observacao' é o default genérico.
+TIPOS_EVENTO = [
+    "equipe_reduzida",   # menos gente que o normal num dia
+    "feriado",           # fábrica fechada ou meia-jornada
+    "pedido_grande",     # encomenda fora da curva
+    "manutencao",        # equipamento/limpeza pesada
+    "observacao",        # anotação livre genérica
+]
+
 
 def chave_produto_cocada(sabor: str) -> str:
     """Chave canônica do produto cocada na tabela bom_produto.
@@ -770,6 +780,21 @@ def _ensure_v2_schema(c):
             presente INTEGER DEFAULT 1,
             observacao TEXT DEFAULT '',
             UNIQUE(data, funcionario_id)
+        )
+    """)
+
+    # Eventos / observações da semana (gap 2 da Camada 2 cocada — CADERNO 1.B).
+    # Contexto que a Gestão conhece mas o sistema não deriva da folha: dia de
+    # equipe reduzida, feriado, pedido grande, manutenção. Faz a Gestão adiantar
+    # ou segurar corte/produção. Captura livre — a leitura é humana (e, no futuro,
+    # entra como contexto pro assistente IA). Não dispara cálculo automático.
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS eventos_semana (
+            id {pk},
+            data TEXT NOT NULL,
+            tipo TEXT DEFAULT 'observacao',
+            descricao TEXT NOT NULL,
+            criado_em TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -2218,3 +2243,69 @@ def baixar_insumos_da_folha(data: str) -> dict:
         "sem_bom": sem_bom,
         "alertas_negativos": alertas_negativos,
     }
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# EVENTOS / OBSERVAÇÕES DA SEMANA (gap 2 da Camada 2 cocada — CADERNO 1.B)
+# Captura livre de contexto que a Gestão conhece mas o sistema não deriva da
+# folha. Leitura humana; futuramente entra como contexto pro assistente IA.
+# ════════════════════════════════════════════════════════════════════════════
+def criar_evento_semana(data: str, descricao: str, tipo: str = "observacao") -> int:
+    """Registra um evento/observação. Retorna o id criado.
+    `data` = dia que o evento afeta (YYYY-MM-DD). `descricao` obrigatória."""
+    if not descricao or not descricao.strip():
+        raise ValueError("Descrição do evento não pode ser vazia.")
+    descricao = descricao.strip()
+    if tipo not in TIPOS_EVENTO:
+        tipo = "observacao"
+
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        if IS_POSTGRES:
+            row = c.execute(
+                _sql("INSERT INTO eventos_semana (data, tipo, descricao) "
+                     "VALUES (?, ?, ?) RETURNING id"),
+                (data, tipo, descricao),
+            ).fetchone()
+            new_id = row["id"]
+        else:
+            c.execute(
+                "INSERT INTO eventos_semana (data, tipo, descricao) VALUES (?, ?, ?)",
+                (data, tipo, descricao),
+            )
+            new_id = c.lastrowid
+        conn.commit()
+        return new_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def get_eventos_periodo(data_inicio: str, data_fim: str) -> list[dict]:
+    """Eventos com data no intervalo [data_inicio, data_fim], ordenados por data.
+    Genérico — qualquer página (cocada, palha, home) pode consumir."""
+    conn = get_conn()
+    rows = conn.execute(
+        _sql("SELECT id, data, tipo, descricao, criado_em FROM eventos_semana "
+             "WHERE data >= ? AND data <= ? ORDER BY data, id"),
+        (data_inicio, data_fim),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def excluir_evento_semana(evento_id: int):
+    """Remove um evento por id."""
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(_sql("DELETE FROM eventos_semana WHERE id = ?"), (evento_id,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()

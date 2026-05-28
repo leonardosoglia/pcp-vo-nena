@@ -575,7 +575,11 @@ Após o Leonardo testar a v3 com a folha real de 25/05, vieram 4 observações i
 
 **1. Cortados (sala da Embalagem) — ✅ resolvido nesta sessão.** A folha de produção tem coluna "CORTADOS" (45g, Mini, Pet) que é o estoque "quase-pronto" entre Corte e Embalagem. Antes da v3.1, o sistema só olhava `emb_*` (embalado), ignorando cortado. Agora aparece como input na seção "Estoque do dia" e entra na fórmula: `need = param_real − emb − cortado`. Se já há cortado suficiente, sistema sugere cortar menos hoje.
 
-**2. Eventos da semana — pendente.** Quando a Gestão sabe que a equipe vai estar parcialmente fora num dia (ex: pintar rua sex/sáb), ela **adianta** corte e produção nos dias normais. O sistema não tem como saber sobre esses eventos. *Caminho proposto:* campo livre de "evento da semana / observação" no input. Médio prazo: tabela `eventos_semana` no banco (data, tipo, impacto). Longo prazo: botão "Pergunte ao Claude" pra contextualizar em PT-BR.
+**2. Eventos da semana — FEITO (28/05/2026).** Quando a Gestão sabe que a equipe vai estar parcialmente fora num dia (ex: pintar rua sex/sáb), ela **adianta** corte e produção nos dias normais. O sistema não tinha como saber.
+
+*Feito:* tabela `eventos_semana` (data, tipo, descricao) + CRUD em `database.py` (`criar_evento_semana`, `get_eventos_periodo`, `excluir_evento_semana`) + 5 tipos (`equipe_reduzida`, `feriado`, `pedido_grande`, `manutencao`, `observacao`). UI na página Sugestão de Cocada: lista eventos da janela (−2 a +7 dias da data escolhida) como avisos + expander pra registrar/remover. **Captura livre — só LEMBRA, não dispara cálculo automático** (a Gestão decide). Validado CRUD via Python + end-to-end na UI.
+
+*Próximo (longo prazo):* o `get_eventos_periodo` é genérico — dá pra mostrar os mesmos eventos na Home, na Sugestão de Palha e como **contexto pro assistente IA** ("essa semana tem evento X, considere ao sugerir"). E uma página dedicada de Calendário Operacional (gap 4) consolidaria o cadastro.
 
 **3. Não-acomodação — PARCIAL (ponte de capacidade ligada 28/05/2026).** Observação do Leonardo: *"tanto no corte como na produção e até na embalagem ele não se acomoda caso os números do dia já tenham sido batidos, ele pede para fazer mais e mais para a equipe não ficar ociosa"*. Significa que o **alvo real é dinâmico** — cresce conforme a equipe disponível, não é só função da demanda.
 

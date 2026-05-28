@@ -100,6 +100,11 @@ upsert_presenca = _db.upsert_presenca
 DEPARTAMENTOS_FUNCIONARIO = _db.DEPARTAMENTOS_FUNCIONARIO
 ATIVIDADES_CAPACIDADE = _db.ATIVIDADES_CAPACIDADE
 
+# Eventos da semana — escrita + catálogo
+criar_evento_semana = _db.criar_evento_semana
+excluir_evento_semana = _db.excluir_evento_semana
+TIPOS_EVENTO = _db.TIPOS_EVENTO
+
 # Suprimentos — constantes e helpers de domínio (sem cache, em memória)
 CATEGORIAS_INSUMO = _db.CATEGORIAS_INSUMO
 UNIDADES_INSUMO = _db.UNIDADES_INSUMO
@@ -343,3 +348,15 @@ def calcular_necessidades_do_dia(data):
 # que a Gestão acabou de editar a folha. Custo de 1 round-trip é aceitável.
 def consumo_previsto_da_folha(data):
     return _db.consumo_previsto_da_folha(data)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_eventos_periodo(data_inicio, data_fim):
+    """Eventos da semana num intervalo. TTL curto (5min) — mudam quando a Gestão
+    registra algo. Invalida via invalidar_eventos() após criar/excluir."""
+    return _db.get_eventos_periodo(data_inicio, data_fim)
+
+
+def invalidar_eventos():
+    """Limpa o cache de eventos. Chamar após criar/excluir evento."""
+    get_eventos_periodo.clear()

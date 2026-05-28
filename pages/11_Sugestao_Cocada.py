@@ -148,6 +148,75 @@ st.divider()
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# Eventos / observações da semana (gap 2 da Camada 2 — CADERNO 1.B)
+# Contexto que a Gestão conhece e o sistema não vê pela folha: dia de equipe
+# reduzida, feriado, encomenda grande. Faz a Gestão adiantar/segurar a produção.
+# Aqui só LEMBRA (não dispara cálculo automático) — a Gestão decide.
+# ════════════════════════════════════════════════════════════════════════════
+TIPO_EVENTO_LABEL = {
+    "equipe_reduzida": "Equipe reduzida",
+    "feriado": "Feriado",
+    "pedido_grande": "Pedido grande",
+    "manutencao": "Manutenção",
+    "observacao": "Observação",
+}
+_ref_date = data_sel if data_sel is not None else date.today()
+_ev_ini = (_ref_date - timedelta(days=2)).isoformat()
+_ev_fim = (_ref_date + timedelta(days=7)).isoformat()
+try:
+    _eventos = cached_db.get_eventos_periodo(_ev_ini, _ev_fim)
+except Exception:
+    _eventos = []
+
+if _eventos:
+    st.markdown("##### Eventos da semana (podem mudar a decisão do dia)")
+    for _e in _eventos:
+        _lbl = TIPO_EVENTO_LABEL.get(_e["tipo"], _e["tipo"])
+        try:
+            _d = date.fromisoformat(_e["data"]).strftime("%d/%m")
+        except Exception:
+            _d = _e["data"]
+        st.warning(f"**{_d} · {_lbl}** — {_e['descricao']}")
+
+with st.expander("Registrar / remover evento da semana", expanded=False):
+    st.caption(
+        "Anote o que a Gestão sabe e o sistema não enxerga pela folha: dia de "
+        "equipe reduzida, feriado, encomenda grande, manutenção. Vira lembrete na "
+        "hora de decidir corte e produção (janela: 2 dias antes a 7 dias depois "
+        "da data escolhida)."
+    )
+    with st.form("form_evento_semana", clear_on_submit=True):
+        _fe1, _fe2 = st.columns([1, 1])
+        _ev_data = _fe1.date_input("Data do evento", value=_ref_date, format="DD/MM/YYYY")
+        _ev_tipo = _fe2.selectbox(
+            "Tipo", cached_db.TIPOS_EVENTO,
+            format_func=lambda t: TIPO_EVENTO_LABEL.get(t, t),
+        )
+        _ev_desc = st.text_input(
+            "Descrição",
+            placeholder="ex: sexta equipe reduzida (pintura), adiantar corte de T e L",
+        )
+        if st.form_submit_button("Adicionar evento", type="primary"):
+            if _ev_desc.strip():
+                cached_db.criar_evento_semana(_ev_data.isoformat(), _ev_desc, _ev_tipo)
+                cached_db.invalidar_eventos()
+                st.success("Evento registrado.")
+                st.rerun()
+            else:
+                st.error("Escreva uma descrição pro evento.")
+
+    if _eventos:
+        _opc = {f"{_e['data']} · {_e['descricao'][:40]}": _e["id"] for _e in _eventos}
+        _sel = st.selectbox("Remover evento", ["—"] + list(_opc.keys()), key="rm_evento_sel")
+        if _sel != "—" and st.button("Remover selecionado", key="btn_rm_evento"):
+            cached_db.excluir_evento_semana(_opc[_sel])
+            cached_db.invalidar_eventos()
+            st.rerun()
+
+st.divider()
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Configuração
 # ════════════════════════════════════════════════════════════════════════════
 st.header("Configuração")
