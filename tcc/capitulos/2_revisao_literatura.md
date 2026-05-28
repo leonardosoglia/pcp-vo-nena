@@ -11,9 +11,11 @@
 > 4. Garantir a regra de ouro: toda obra citada aqui tem que aparecer nas
 >    Referências, e vice-versa.
 >
-> As referências da web identificadas estão em `referencias_externas/`. Os
-> clássicos (Orlicky, Forrester, Liu et al., Brown et al., Tubino, Slack) são
-> consolidados; ainda assim, **verifique a edição** que você vai citar.
+> As referências da web identificadas estão em `referencias_externas/` — a lista
+> consolidada e verificada (dados ABNT + correções de citação) está em
+> `referencias_externas/05_referencias_ABNT_cap2.md`. Os clássicos (Orlicky,
+> Forrester, Liu et al., Brown et al., Tubino, Makridakis et al.) já estão
+> confirmados; ainda assim, **verifique a edição** que você vai citar.
 
 ---
 
@@ -25,7 +27,7 @@ estratégicas da empresa em ordens executáveis no chão de fábrica (TUBINO, 20
 A literatura clássica organiza essa função em três horizontes hierárquicos: o
 **estratégico** (longo prazo, capacidade instalada), o **tático** (médio prazo,
 plano agregado de produção) e o **operacional** (curto prazo, programação e
-sequenciamento diário) — distinção desenvolvida por Slack, Chambers e Johnston
+sequenciamento diário) — distinção desenvolvida por Slack, Brandon-Jones e Johnston
 (2018) e por Corrêa e Corrêa (2017).
 
 Entre as atribuições operacionais do PCP, três são centrais para este trabalho:
@@ -59,8 +61,8 @@ de licença, complexidade de implantação e baixa aderência ao processo real d
 empresa (LAUDON; LAUDON, 2020). A literatura brasileira recente registra diversas
 experiências de estruturação do PCP em pequenas empresas, inclusive do setor
 alimentício: estudos de caso em empresas alimentícias de pequeno porte
-(RODRIGUES *et al.*, Revista Gestão Industrial, UTFPR) e modelos estruturados de
-melhoria de PCP para PMEs baseados em DMAIC (dissertação, USP, 2019) mostram que
+(RODRIGUES; FERONI, 2020) e modelos estruturados de
+melhoria de PCP para PMEs baseados em DMAIC (tese de doutorado, USP, 2019) mostram que
 ganhos relevantes são possíveis **sem** adoção de ERP completo, por meio de
 formalização de processos e ferramentas simples.
 
@@ -70,9 +72,10 @@ contexto com o caso aqui estudado. A revisão desses trabalhos posiciona a
 contribuição deste TCC: em vez de adaptar um ERP genérico, **constrói-se um
 sistema sob medida** que espelha a folha de papel existente e evolui em camadas.
 
-`[conferir: dados ABNT completos de RODRIGUES et al., da dissertação USP/DMAIC e
-de BERALDO et al.; buscar estatística SEBRAE/IBGE de MPI alimentícias para
-dimensionar o setor]`
+`[conferir: páginas de RODRIGUES; FERONI (2020) e nome do autor da tese USP/DMAIC
+(2019) — dados parciais em referencias_externas/05_referencias_ABNT_cap2.md;
+confirmar se BERALDO (doces) é artigo publicado ou TCC; buscar estatística
+SEBRAE/IBGE de MPI alimentícias para dimensionar o setor]`
 
 ## 2.3 MRP e Lista de Materiais (BOM)
 
@@ -163,7 +166,7 @@ método em ambientes ruidosos e de alta dimensionalidade (ex.: detecção de
 anomalias em aperto de parafusos industriais, MDPI *Computers*, 2022).
 
 Para o ajuste contínuo de parâmetros de produção, **médias móveis** e métodos
-clássicos de previsão (WHEELWRIGHT; HYNDMAN, 1998) oferecem uma base simples e
+clássicos de previsão (MAKRIDAKIS; WHEELWRIGHT; HYNDMAN, 1998) oferecem uma base simples e
 interpretável: comparar o realizado recente com a meta-base permite sinalizar
 desvios sistemáticos e recalibrar parâmetros sem sobre-ajuste.
 
@@ -173,7 +176,8 @@ sugerir recalibração das metas por sabor e dia da semana. O princípio de
 estoque/fluxo (2.5) é respeitado na engenharia de atributos — os modelos operam
 sobre variáveis de fluxo, não sobre snapshots de estoque.
 
-`[conferir: LIU, TING & ZHOU (2008, ICDM); WHEELWRIGHT & HYNDMAN (1998); fechar a
+`[conferir: LIU, TING & ZHOU (2008, ICDM) e MAKRIDAKIS, WHEELWRIGHT & HYNDMAN (1998)
+já confirmados em referencias_externas/05_referencias_ABNT_cap2.md; falta fechar a
 referência industrial de Isolation Forest que será efetivamente citada]`
 
 ## 2.7 Modelos de Linguagem de Grande Porte (LLM) em ambientes industriais
