@@ -1,13 +1,40 @@
-# HANDOFF COMPLETO — Estado do projeto em 27/05/2026
+# HANDOFF COMPLETO — Estado do projeto em 28/05/2026
 
-> **Pra Claude da próxima sessão:** este é o documento MASTER, atualizado em
-> **27/05/2026 às 15h47**. Ler INTEIRO antes de qualquer ação. Em seguida:
-> `INVENTARIO_PENDENCIAS.md` (50 pendências), `CLAUDE.md` (regras),
-> `CADERNO.md` (diário), `PROXIMA_SESSAO.md` (plano da Etapa E) e memórias
-> em `~/.claude/.../memory/MEMORY.md` (índice).
+> **Pra Claude da próxima sessão:** este é o documento MASTER, atualizado ao
+> fim da **sessão 4 (27-28/05/2026)**. Ler INTEIRO antes de qualquer ação. Em
+> seguida: `INVENTARIO_PENDENCIAS.md`, `CLAUDE.md` (regras), `CADERNO.md`
+> (diário), `PROXIMA_SESSAO.md` e memórias em `~/.claude/.../memory/MEMORY.md`.
 >
 > **TODOS os números, datas e nomes de arquivos abaixo foram conferidos
-> contra o sistema real em 27/05/2026.**
+> contra o sistema real.**
+
+---
+
+## ⭐ ATUALIZAÇÃO DA SESSÃO 4 (27-28/05/2026)
+
+**Etapa E (Auto-baixa de insumos) entregue e no ar.** Mais: bug crítico de MRP
+corrigido, limpeza de deprecation, e a integração SIGE avançou muito (API
+descoberta + cliente HTTP + upload de planilha como plano B).
+
+**6 commits, todos no ar (origin + hf):**
+1. `2b5a745` feat(etapa-e): auto-baixa de insumos
+2. `ecbe3ee` fix(mrp): ceil(band/8) em tachos parciais (subestimava ingrediente)
+3. `182f06c` chore(ui): use_container_width → width='stretch' (105 ocorrências)
+4. `d0096eb` docs(sige): API REST confirmada + decisão de arquitetura
+5. `9240c2a` feat(sige): cliente HTTP read-only (sige_cloud_api.py)
+6. `ca44155` feat(sige): aba "Importar do SIGE" (upload de planilha, plano B)
+
+**Decisão grande:** SIGE Cloud TEM API REST (a Gestão não sabia). Mas a
+integração vai ser **read-only** (modelo B — SIGE = verdade contábil, PCP =
+operacional). Detalhes e justificativa DDD no CADERNO Bloco 6. O plano B sem
+API (upload de planilha na aba Suprimentos) já está pronto e funcionando.
+
+**Pra você (Leonardo) destravar o que ficou:**
+- Apertar o botão "Cadastrar BOM completa" na Admin Seed do HF (banco us-east-1)
+  → liga a Etapa E em produção. 30 segundos.
+- Pedir as credenciais da API SIGE ao suporte (texto pronto em
+  `suprimentos_sigee/03_solicitar_credenciais_api.md`) — só se quiser a
+  sincronização automática. O upload de planilha já funciona sem isso.
 
 ---
 
@@ -256,7 +283,15 @@ Histórico verificado contra `git log`. Duas sessões longas:
 | `claude_assistant.py` | 930 | LLM helper (streaming + tools + slash + prompt caching) |
 | `assistant_tools.py` | 419 | 7 ferramentas que o Claude pode chamar |
 | `seed_bom_completa.py` | 317 | Cadastra 33 insumos + 91 linhas BOM |
-| `importar_csv_sigee.py` | 274 | Import Sigee → tabela insumos |
+| `importar_csv_sigee.py` | ~330 | Import Sigee → insumos. Refatorado: `filtrar_materias_primas` + `processar_export` reusados pela UI |
+| `sige_cloud_api.py` | ~300 | **NOVO (sessão 4):** cliente HTTP da API SIGE. Leitura habilitada, escrita travada (modelo B). Sem credenciais ainda — testar com `testar_conexao()` quando chegarem |
+| `baixar_historico.py` | ~150 | **NOVO (sessão 4):** aplica auto-baixa retroativa nas folhas. `--dry-run`, `--secrets`, `--desde/--ate` |
+
+### Funções-chave da Etapa E (em `database.py`)
+- `baixar_insumos_da_folha(data)` — idempotente (estorna+refaz); usa `ceil(band/8)` p/ tachos
+- `reverter_baixa_da_folha(data)` · `consumo_previsto_da_folha(data)` (preview)
+- `salvar_folha_completa(..., auto_baixa=False)` — hook opcional
+- Rastreabilidade: `origem='producao_auto'`, `referencia='folha_<data>'`
 
 ### Páginas Streamlit (12 ao todo)
 ```
@@ -322,11 +357,15 @@ suprimentos_sigee/
 
 | # | Pendência | Bloqueia |
 |---|---|---|
-| 1 | Etapa D no banco de produção (botão Admin Seed HF) | Etapa E em produção |
-| 2 | Etapa C — Sigee completar (10 matches Mariana + 8 cadastros + estoque atual) | Etapa E útil |
+| 1 | Etapa D no banco de produção (botão Admin Seed HF) | Etapa E **em produção** (código já no ar; falta o clique) |
+| 2 | Etapa C — Sigee completar (10 matches Suprimentos + 8 cadastros + estoque atual) | Baixa mais precisa |
 | 3 | `.streamlit/secrets.toml` aponta pro banco antigo (sa-east-1) | Validações locais batem com produção |
 | 4 | Embalagem — última peça das receitas (BOM) | BOM 100% |
-| 5 | Etapa E — Auto-baixa | MRP completo |
+| 5 | ~~Etapa E — Auto-baixa~~ ✅ **FEITA na sessão 4 (27-28/05).** Código no ar. | — |
+
+**Novidades da sessão 4 que viraram pendência leve:**
+- SIGE: pedir credenciais da API ao suporte (texto pronto em `suprimentos_sigee/03_solicitar_credenciais_api.md`). Opcional — upload de planilha já cobre.
+- Quando a API conectar: criar `importar_sige_api.py` (espelho do CSV via API) + botão "Sincronizar agora".
 
 Mais 45 pendências em 4 outras categorias (importantes, nice-to-have, documentação, técnicas) — ver `INVENTARIO_PENDENCIAS.md`.
 

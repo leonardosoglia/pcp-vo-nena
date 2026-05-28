@@ -1,4 +1,10 @@
-# Inventário Completo de Pendências (27/05/2026)
+# Inventário Completo de Pendências (atualizado 28/05/2026)
+
+> **Sessão 4 (27-28/05) fechou:** Etapa E (#5 ✅), bug ceil tachos parciais,
+> limpeza use_container_width, API SIGE confirmada (#27 ✅), cliente HTTP +
+> aba de upload de planilha. Detalhes no HANDOFF_COMPLETO seção "ATUALIZAÇÃO
+> DA SESSÃO 4".
+
 
 > Varredura sistemática dos handoffs (HANDOFF_COMPLETO, HANDOFF_SIGEE,
 > PROXIMA_SESSAO) + CADERNO.md + memórias persistentes.

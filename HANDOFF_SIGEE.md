@@ -1,5 +1,15 @@
 # Handoff — Integração com o SIGE Cloud
 
+> **⚠ PARCIALMENTE SUPERADO (28/05/2026).** A fonte atual da integração SIGE é:
+> - `CADERNO.md` Bloco 6 — API confirmada, endpoints, decisão de arquitetura (modelo B).
+> - `sige_cloud_api.py` — cliente HTTP read-only já implementado.
+> - `suprimentos_sigee/03_solicitar_credenciais_api.md` — como pedir credenciais.
+> - Aba "Importar do SIGE" em `pages/3_Suprimentos.py` — upload de planilha (plano B sem API).
+>
+> Este arquivo mantém o histórico da exploração de 21/05 (ainda útil pra entender
+> o catálogo do SIGE e as categorias). O que mudou: a API EXISTE (era "não sei se
+> existe" aqui) e a decisão é read-only.
+
 > Documento de apoio. Ler depois do `HANDOFF_COMPLETO.md`.
 > Atualizado em 21/05/2026 com a exploração real do SIGE Cloud.
 
