@@ -54,7 +54,7 @@ st.caption(
     "em ~3-5s com explicação humana baseada nos dados reais."
 )
 
-with st.expander("ℹ️ Como funciona (clica pra entender)", expanded=False):
+with st.expander("Como funciona (clica pra entender)", expanded=False):
     st.markdown("""
 **O sistema funciona em 4 passos automáticos:**
 
@@ -98,7 +98,7 @@ api_key_configurada = bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
 if not api_key_configurada:
     st.markdown(
         "<div class='erro-card'>"
-        "<b>️ ANTHROPIC_API_KEY não configurada.</b><br><br>"
+        "<b>ANTHROPIC_API_KEY não configurada.</b><br><br>"
         "Pra ativar essa página, configure a secret <code>ANTHROPIC_API_KEY</code> "
         "no Hugging Face Spaces:<br>"
         "1. Vai em <code>Settings &gt; Variables and secrets</code><br>"
@@ -153,10 +153,10 @@ col_data, col_modelo = st.columns([2, 1])
 with col_data:
     datas_disponiveis = sorted(list_datas_folha(), reverse=True)
     if not datas_disponiveis:
-        st.warning("️ Nenhuma folha registrada no banco. Cadastra alguma em Lançamento antes.")
+        st.warning("Nenhuma folha registrada no banco. Cadastra alguma em Lançamento antes.")
         st.stop()
     data_ref = st.selectbox(
-        " Data de referência (qual folha consultar)",
+        "Data de referência (qual folha consultar)",
         options=datas_disponiveis,
         index=0,
         help="O Claude vai analisar essa folha + as 7 anteriores como contexto.",

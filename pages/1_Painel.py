@@ -93,7 +93,7 @@ def mask_zero_45g(df, col_45g_name="45g", sabor_col="Sabor"):
     return df
 
 # ── Modal alertas ──────────────────────────────────────────────────────────────
-@st.dialog("️ Produtos com Estoque Crítico", width="large")
+@st.dialog("Produtos com Estoque Crítico", width="large")
 def modal_alertas(df):
     st.markdown("Produtos **abaixo do estoque de segurança:**")
     st.dataframe(df, width='stretch', hide_index=True)
@@ -133,16 +133,16 @@ st.divider()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("###  Vó Nena")
+    st.markdown("### Vó Nena")
     st.markdown("**Sistema PCP** — v1.2")
     st.divider()
-    st.markdown("####  Estoque Crítico")
+    st.markdown("#### Estoque Crítico")
     alertas = [e for e in get_estoque() if "GERAR" in e.get("alerta","")]
     if not alertas:
-        st.success(" Tudo controlado!")
+        st.success("Tudo controlado!")
     else:
         st.warning(f"**{len(alertas)} produtos** precisam de produção!")
-        if st.button(" Ver lista completa", width='stretch'):
+        if st.button("Ver lista completa", width='stretch'):
             df_al = pd.DataFrame(alertas)[["id_produto","stock_real","stock_seguranca"]]
             df_al.columns = ["Produto","Em Estoque","Meta"]
             modal_alertas(df_al)
@@ -151,12 +151,12 @@ with st.sidebar:
 
 # ── Abas ───────────────────────────────────────────────────────────────────────
 aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = st.tabs([
-    " Gestão — Planejamento",
-    "‍ Produção",
-    " Corte",
-    " Embalagem",
-    " Estoque",
-    " Análise",
+    "Gestão — Planejamento",
+    "Produção",
+    "Corte",
+    "Embalagem",
+    "Estoque",
+    "Análise",
 ])
 
 # ══════════════════════════════════════════════════════════════════
@@ -164,10 +164,10 @@ aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = s
 # ══════════════════════════════════════════════════════════════════
 with aba_gestao:
 
-    with st.expander(" Parâmetros e Metas Ideais — clique para consultar", expanded=False):
-        s1,s2,s3,s4 = st.tabs([" 45g (semanal)"," Mini e Pet"," Potes","️ Conversões"])
+    with st.expander("Parâmetros e Metas Ideais — clique para consultar", expanded=False):
+        s1,s2,s3,s4 = st.tabs(["45g (semanal)","Mini e Pet","Potes","Conversões"])
         with s1:
-            st.caption("️ Semanas com feriado: adiantar produção no dia anterior.")
+            st.caption("Semanas com feriado: adiantar produção no dia anterior.")
             df_m = pd.DataFrame(get_metas_45g())
             df_m.columns = ["Sabor","Segunda","Terça","Quarta","Quinta","Sexta"]
             st.dataframe(df_styled(df_m, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
@@ -183,9 +183,9 @@ with aba_gestao:
             df_cv = pd.DataFrame(get_conversoes())[["descricao","rende"]]
             df_cv.columns = ["Unidade","Rende"]
             st.dataframe(df_cv, width='stretch', hide_index=True)
-            st.info(" **Regra de ouro:** 1 Tacho = 8 Bandejas. Coluna Produção (Joel): sempre múltiplo de 8 (exceto ZERO).")
+            st.info("**Regra de ouro:** 1 Tacho = 8 Bandejas. Coluna Produção (Joel): sempre múltiplo de 8 (exceto ZERO).")
 
-    st.subheader(" Visão Geral do Dia")
+    st.subheader("Visão Geral do Dia")
     if not df_cocada.empty:
         c1,c2,c3,c4,c5 = st.columns(5)
         c1.metric("Embalados 45g",   f"{df_cocada['emb_45g'].sum():,}")
@@ -195,21 +195,21 @@ with aba_gestao:
         c5.metric("Cortados ① 45g",  f"{df_cocada['cort1_45g'].sum():,}")
     st.divider()
 
-    st.subheader(" Embalados — Cocada")
+    st.subheader("Embalados — Cocada")
     if not df_cocada.empty:
         df_e = reord_cocada(df_cocada)[["sabor","emb_45g","emb_mini","emb_pet","emb_potes_260g","emb_potes_605g"]]
         df_e.columns = ["Sabor","45g","Mini","Pet","Potes 260g","Potes 605g"]
         df_e = mask_zero_45g(df_e)
         st.dataframe(df_styled(df_e, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
 
-    st.subheader(" Embalados — Palha")
+    st.subheader("Embalados — Palha")
     if not df_palha.empty:
         df_ep = reord_palha(df_palha)[["sabor","emb_50g","emb_pet"]]
         df_ep.columns = ["Sabor","50g","Pet"]
         st.dataframe(df_styled(df_ep, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
     st.divider()
 
-    st.subheader("️ Cortados — Cocada")
+    st.subheader("Cortados — Cocada")
     st.caption("① cortados hoje (lado embalagem) · ② = ① + Embalados + Joel · ③ = ② − Parâmetro Real (45g)")
     cort_data = calcular_cortados(hoje)
     if cort_data and not df_cocada.empty:
@@ -218,7 +218,7 @@ with aba_gestao:
         st.dataframe(df_styled(df_c, estilo_verde, ["Sabor"]), width='stretch', hide_index=True)
     st.divider()
 
-    st.subheader(" Viradas e P/Virar")
+    st.subheader("Viradas e P/Virar")
     col_v, col_pv = st.columns(2)
     vp = calcular_viradas_pvirar(hoje)
     with col_v:
@@ -242,7 +242,7 @@ with aba_gestao:
             st.dataframe(df_styled(df_pv, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
     st.divider()
 
-    st.subheader(" PM · Balas · Doces")
+    st.subheader("PM · Balas · Doces")
     if pbd:
         col_pm, col_b, col_d_col = st.columns(3)
         with col_pm:
@@ -258,14 +258,14 @@ with aba_gestao:
         with col_d_col:
             st.markdown("** Doces**")
             st.metric("Unidades", pbd.get("cnt_doces_displays", 0))
-        if pbd.get("ord_amanha_obs"): st.info(f" Amanhã: {pbd['ord_amanha_obs']}")
-        if pbd.get("obs"): st.info(f" {pbd['obs']}")
+        if pbd.get("ord_amanha_obs"): st.info(f"Amanhã: {pbd['ord_amanha_obs']}")
+        if pbd.get("obs"): st.info(f"{pbd['obs']}")
 
 # ══════════════════════════════════════════════════════════════════
 # ABA SR. JOEL
 # ══════════════════════════════════════════════════════════════════
 with aba_producao:
-    st.subheader("‍ Quadro de Produção")
+    st.subheader("Quadro de Produção")
     if not df_cocada.empty:
         col_j, col_l = st.columns([3,1])
         with col_j:
@@ -285,7 +285,7 @@ with aba_producao:
                 for _, row in lem.iterrows(): st.info(f"**{row['sabor']}:** {row['amanha_obs']}")
 
     st.divider()
-    st.subheader(" Produção Palha")
+    st.subheader("Produção Palha")
     if not df_palha.empty:
         df_pp = reord_palha(df_palha)[["sabor","ord_prod_band"]]
         df_pp.columns = ["Sabor","Bandejas"]
@@ -294,27 +294,27 @@ with aba_producao:
         else: st.dataframe(df_styled(df_pp_f, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
 
     st.divider()
-    st.subheader(" PM · Balas · Doces")
+    st.subheader("PM · Balas · Doces")
     if pbd:
         df_pbd = pd.DataFrame([{
-            " PM (cnt)":         pbd.get("cnt_pm",0),
-            " PM (ordem)":       pbd.get("ord_pm",0),
-            " Balas (tachos)":   pbd.get("ord_balas",0),
-            " Doces (und)": pbd.get("cnt_doces_displays",0),
+            "PM (cnt)":         pbd.get("cnt_pm",0),
+            "PM (ordem)":       pbd.get("ord_pm",0),
+            "Balas (tachos)":   pbd.get("ord_balas",0),
+            "Doces (und)": pbd.get("cnt_doces_displays",0),
         }])
         st.dataframe(df_pbd, width='stretch', hide_index=True)
         if pbd.get("ord_amanha_obs"):
-            st.info(f" Amanhã: {pbd['ord_amanha_obs']}")
+            st.info(f"Amanhã: {pbd['ord_amanha_obs']}")
 
 # ══════════════════════════════════════════════════════════════════
 # ABA GIL
 # ══════════════════════════════════════════════════════════════════
 with aba_corte:
-    st.subheader(" Quadro de Corte — Gil")
+    st.subheader("Quadro de Corte — Gil")
     st.caption("Ordens de corte do dia (em bandejas). O realizado vira CORTADOS① no dia seguinte.")
 
     if not df_cocada.empty:
-        st.markdown("#####  Corte de Cocada")
+        st.markdown("##### Corte de Cocada")
         df_cc = reord_cocada(df_cocada)[["sabor","ord_corte_45g","ord_corte_mini","ord_corte_pet"]].copy()
         df_cc.columns = ["Sabor","Ordem 45g","Ordem Mini","Ordem Pet"]
         df_cc = mask_zero_45g(df_cc, col_45g_name="Ordem 45g")
@@ -329,7 +329,7 @@ with aba_corte:
             st.info("**Rendimento:**\n\n• 1 band. 45g → 100 und\n• 1 band. Mini → 150 und\n• 1 band. Pet → 30 und (Z=60)")
 
         st.divider()
-        st.markdown("#####  Corte de Palha")
+        st.markdown("##### Corte de Palha")
         if not df_palha.empty:
             df_cp = reord_palha(df_palha)[["sabor","ord_corte_50g","ord_corte_pet"]].copy()
             df_cp.columns = ["Sabor","Ordem 50g","Ordem Pet"]
@@ -346,11 +346,11 @@ with aba_corte:
 # ABA LEONÍLIA
 # ══════════════════════════════════════════════════════════════════
 with aba_embalagem:
-    st.subheader(" Quadro de Embalagem")
+    st.subheader("Quadro de Embalagem")
     st.caption("Unidades a embalar (valores já em unidades, conforme ordem da Gestão).")
 
     if not df_cocada.empty:
-        st.markdown("#####  Embalagem — Cocada")
+        st.markdown("##### Embalagem — Cocada")
         df_emb = reord_cocada(df_cocada)[["sabor","ord_emb_45g","ord_emb_mini"]].copy()
         df_emb.columns = ["Sabor","45g (und.)","Mini (und.)"]
         df_emb = mask_zero_45g(df_emb, col_45g_name="45g (und.)")
@@ -363,12 +363,12 @@ with aba_embalagem:
             c2.metric("Pendente Mini (und.)", f"{int(df_cocada['ord_emb_mini'].sum()):,}")
         with col_ref2:
             total = int(df_cocada["ord_emb_45g"].sum() + df_cocada["ord_emb_mini"].sum())
-            if total == 0: st.success(" Embalagem em dia!")
+            if total == 0: st.success("Embalagem em dia!")
             else: st.warning(f"**{total:,} unidades** pendentes")
-            st.caption(" Ref:\n\n1 band. 45g = 100 und\n\n1 band. Mini = 150 und")
+            st.caption("Ref:\n\n1 band. 45g = 100 und\n\n1 band. Mini = 150 und")
 
         st.divider()
-        st.markdown("#####  Embalagem — Palha")
+        st.markdown("##### Embalagem — Palha")
         if not df_palha.empty:
             df_ep = reord_palha(df_palha)[["sabor","emb_50g","emb_pet"]]
             df_ep.columns = ["Sabor","50g","Pet"]
@@ -382,12 +382,12 @@ with aba_embalagem:
 # ABA ESTOQUE
 # ══════════════════════════════════════════════════════════════════
 with aba_estoque:
-    st.subheader(" Estoque Geral")
+    st.subheader("Estoque Geral")
     if df_est.empty:
         st.info("Sem dados de estoque.")
     else:
         col_f1, col_f2 = st.columns([2,1])
-        with col_f1: filtro = st.text_input(" Filtrar produto", placeholder="Ex: TRAD, COC, PAL, MINI...")
+        with col_f1: filtro = st.text_input("Filtrar produto", placeholder="Ex: TRAD, COC, PAL, MINI...")
         with col_f2: so_alertas = st.checkbox("Mostrar apenas em alerta", value=False)
 
         df_show = df_est.copy()
@@ -403,8 +403,8 @@ with aba_estoque:
         st.dataframe(df_show.style.map(estilo_status, subset=["Status"]), width='stretch', hide_index=True)
 
         c1,c2 = st.columns(2)
-        c1.metric(" Produtos OK",       len(df_show[df_show["Status"].str.contains("OK",na=False)]))
-        c2.metric("️ Precisam produção", len(df_show[df_show["Status"].str.contains("GERAR",na=False)]))
+        c1.metric("Produtos OK",       len(df_show[df_show["Status"].str.contains("OK",na=False)]))
+        c2.metric("Precisam produção", len(df_show[df_show["Status"].str.contains("GERAR",na=False)]))
 
 # ══════════════════════════════════════════════════════════════════
 # ABA ANÁLISE (Camada 1 — visualização de tendências)
@@ -414,4 +414,4 @@ with aba_analise:
     analise.render()
 
 st.divider()
-st.caption(f" PCP Doces Vó Nena — v1.2 · {datetime.today().strftime('%d/%m/%Y %H:%M')} · Python + Streamlit + Postgres")
+st.caption(f"PCP Doces Vó Nena — v1.2 · {datetime.today().strftime('%d/%m/%Y %H:%M')} · Python + Streamlit + Postgres")

@@ -4,7 +4,7 @@ pages/2_Insights.py — Diagnóstico operacional automático
 Página que mostra SINAIS detectados pelo sistema ao analisar todas as folhas
 registradas. Linguagem do chão de fábrica, sem jargão técnico.
 
-️ Após questionário 15/05/2026 com a Gestão, vários sinais foram recalibrados:
+Após questionário 15/05/2026 com a Gestão, vários sinais foram recalibrados:
    - Insight Master: NÃO é desbalanceamento confirmado — pode ser viés de amostra
      + reflexo dos ajustes antecipados de pedido embutidos no param_real.
    - H1 Tachos parciais: NÃO é desperdício — sobra do tacho vira pote 260g/605g.
@@ -174,7 +174,7 @@ def _calc_proporcao_45g(datas, folhas_cocada):
 # ════════════════════════════════════════════════════════════════════════════
 # ORQUESTRADOR — carrega dados + chama todas as análises
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=60, show_spinner=" Recalculando insights...")
+@st.cache_data(ttl=60, show_spinner="Recalculando insights...")
 def calcular_todos_insights():
     """Carrega tudo do banco UMA vez, roda as 6 análises, retorna dict."""
     datas = sorted(list_datas_folha())
@@ -205,32 +205,32 @@ st.title("Insights & Diagnóstico")
 st.caption(
     "Sinais que o sistema detectou ao analisar todas as folhas registradas. "
     "Atualiza sozinho quando novas folhas entram. "
-    "️ **Importante:** sinais ≠ diagnósticos confirmados. "
+    "**Importante:** sinais ≠ diagnósticos confirmados. "
     "Cada achado é uma pista pra investigar com a Gestão — não conclusão fechada."
 )
 
 dados = calcular_todos_insights()
 
 if dados is None:
-    st.warning("️ Ainda não há folhas no banco. Cadastre algumas em Lançamento antes.")
+    st.warning("Ainda não há folhas no banco. Cadastre algumas em Lançamento antes.")
     st.stop()
 
 # Cabeçalho com período analisado
 col_a, col_b, col_c, col_d = st.columns(4)
-col_a.metric(" Folhas analisadas", dados["n_folhas"])
-col_b.metric(" Primeira", datetime.strptime(dados["primeira"], "%Y-%m-%d").strftime("%d/%m/%Y"))
-col_c.metric(" Última", datetime.strptime(dados["ultima"], "%Y-%m-%d").strftime("%d/%m/%Y"))
+col_a.metric("Folhas analisadas", dados["n_folhas"])
+col_b.metric("Primeira", datetime.strptime(dados["primeira"], "%Y-%m-%d").strftime("%d/%m/%Y"))
+col_c.metric("Última", datetime.strptime(dados["ultima"], "%Y-%m-%d").strftime("%d/%m/%Y"))
 # Conta sabores com ③ médio significativo
 flat_h2 = dados["h2"]["flat"]
 n_alertas = sum(1 for r in flat_h2 if abs(r["media"]) > 100)
-col_d.metric(" Sabores com sinal forte", n_alertas, help="③ médio acima de ±100 und/dia — pista pra investigar, não diagnóstico confirmado")
+col_d.metric("Sabores com sinal forte", n_alertas, help="③ médio acima de ±100 und/dia — pista pra investigar, não diagnóstico confirmado")
 
 st.divider()
 
 # ════════════════════════════════════════════════════════════════════════════
 # 1. INSIGHT MASTER — Sinal detectado (validar com mais dados)
 # ════════════════════════════════════════════════════════════════════════════
-st.header(" Padrão detectado — possível viés por sabor (a validar)")
+st.header("Padrão detectado — possível viés por sabor (a validar)")
 
 st.markdown(
     f"<div class='insight-card-master'>"
@@ -238,7 +238,7 @@ st.markdown(
     f"Alguns sabores aparecem com Cortados ③ médio <b>persistentemente negativo</b> (produção abaixo do parâmetro real), "
     f"outros com ③ médio <b>persistentemente positivo</b> (produção acima do parâmetro real). "
     f"<br><br>"
-    f"<b>️ Importante:</b> é só uma pista — não um diagnóstico fechado. "
+    f"<b>Importante:</b> é só uma pista — não um diagnóstico fechado. "
     f"Esse sinal pode ser:<br>"
     f"&nbsp;&nbsp;• <b>Viés de amostra pequena</b> (só {dados['n_folhas']} folhas — precisa de 60-90 pra estabilizar)<br>"
     f"&nbsp;&nbsp;• <b>Reflexo dos ajustes antecipados</b> da Gestão: o <code>param_real</code> do dia já embute pedidos da semana seguinte, então a produção 'atrasa' em relação ao parâmetro inflado.<br><br>"
@@ -287,7 +287,7 @@ df_h2_tab["soma"] = df_h2_tab["soma"].apply(lambda v: f"{v:+,.0f}")
 df_h2_tab["media"] = df_h2_tab["media"].apply(lambda v: f"{v:+,.0f}")
 df_h2_tab.columns = ["Sabor", "Tamanho", "Total acumulado (und)", "Média por dia (und)", "Folhas medidas"]
 
-with st.expander(" Ver tabela completa", expanded=False):
+with st.expander("Ver tabela completa", expanded=False):
     st.dataframe(df_h2_tab, width='stretch', hide_index=True)
 
 # Caixa "Como ler os números"
@@ -307,7 +307,7 @@ st.divider()
 # 2. TACHOS PARCIAIS
 # ════════════════════════════════════════════════════════════════════════════
 h1 = dados["h1"]
-st.header(f" Tachos parciais — conversão para potes ({h1['pct']:.0f}% das ordens)")
+st.header(f"Tachos parciais — conversão para potes ({h1['pct']:.0f}% das ordens)")
 
 st.markdown(
     f"<div class='insight-card-info'>"
@@ -338,7 +338,7 @@ st.divider()
 # 3. ANOMALIAS PALHA
 # ════════════════════════════════════════════════════════════════════════════
 h5 = dados["h5"]
-st.header(f" Palha — {len(h5['anomalias'])} dia(s) com Leite em Pó dominando")
+st.header(f"Palha — {len(h5['anomalias'])} dia(s) com Leite em Pó dominando")
 
 if h5["anomalias"]:
     st.markdown(
@@ -368,7 +368,7 @@ st.divider()
 # 4. SOBRECARGA EMBALAGEM
 # ════════════════════════════════════════════════════════════════════════════
 h4 = dados["h4"]
-st.header(" Embalagem — capacidade VARIÁVEL (ajustar conforme equipe do dia)")
+st.header("Embalagem — capacidade VARIÁVEL (ajustar conforme equipe do dia)")
 
 # Capacidade configurável — a Gestão confirmou (15/05/2026) que não é fixa: varia
 # com quantas pessoas estão embalando e a velocidade individual de cada uma.
@@ -446,7 +446,7 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 # 5. PROPORÇÃO 45g AO LONGO DO TEMPO (visualizar H6 graficamente)
 # ════════════════════════════════════════════════════════════════════════════
-st.header(" Proporção Tradicional / Leite Condensado ao longo do tempo")
+st.header("Proporção Tradicional / Leite Condensado ao longo do tempo")
 
 st.caption(
     "A regra base da Gestão prescreve **T/L = 2.0** (T = 2× L em 45g). "
@@ -511,7 +511,7 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 # 6. LEAD TIME — INCONCLUSIVO POR ENQUANTO
 # ════════════════════════════════════════════════════════════════════════════
-st.header("⏱️ Lead time da cocada (P/Virar → Cortados)")
+st.header("Lead time da cocada (P/Virar → Cortados)")
 
 # Conta pares de 3 dias
 datas = dados["datas"]
@@ -553,7 +553,7 @@ st.divider()
 # RODAPÉ
 # ════════════════════════════════════════════════════════════════════════════
 st.caption(
-    f" Análise gerada automaticamente em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f"Análise gerada automaticamente em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     f"baseada em {dados['n_folhas']} folhas registradas · "
     f"atualizada a cada 60 segundos ou quando nova folha é salva."
 )

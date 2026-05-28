@@ -300,7 +300,7 @@ if pendente:
             st.rerun()
 
     st.divider()
-    st.markdown("### ℹ️ Sobre")
+    st.markdown("### Sobre")
     st.caption(
         "Folha de produção digital. Espelha o papel físico campo por campo.\n\n"
         "Cada quadro abre quando você clica nele.\n\n"
@@ -315,7 +315,7 @@ with col_t:
 with col_d:
     st.markdown(
         "<div style='margin-top:24px;text-align:right;color:#C05621;font-weight:700;font-size:15px;'>"
-        " PCP Vó Nena · v2.1</div>",
+        "PCP Vó Nena · v2.1</div>",
         unsafe_allow_html=True,
     )
 
@@ -332,7 +332,7 @@ else:
 col_dp, col_st = st.columns([2, 5])
 with col_dp:
     data_sel = st.date_input(
-        " Data da folha",
+        "Data da folha",
         value=default_dt,
         format="DD/MM/YYYY",
         help="Escolha qualquer data — passada, hoje ou futura.",
@@ -352,7 +352,7 @@ with col_st:
         if data_sel == date.today():
             box = "novo"; icon = ""; tag = "Nova folha de hoje"
         elif data_sel < date.today():
-            box = "novo"; icon = "️"; tag = "Nova folha (preenchimento retroativo)"
+            box = "novo"; icon = ""; tag = "Nova folha (preenchimento retroativo)"
         else:
             box = "edit"; icon = ""; tag = "Folha futura"
         st.markdown(
@@ -393,9 +393,9 @@ with st.form("folha_completa", border=False):
     # ║ Renderizado primeiro pra alimentar derivados em tempo real               ║
     # ╚══════════════════════════════════════════════════════════════════════════╝
     with col_papel:
-        st.markdown("###  Papelzinho do Joel & Orientações")
+        st.markdown("### Papelzinho do Joel & Orientações")
 
-        with st.expander(" Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
+        with st.expander("Papelzinho do Joel — 5 colunas × 6 sabores", expanded=False):
             st.caption(
                 "Contagem matinal da Produção · **45g, 30g (=Mini)** em unidades · "
                 "**P (Pet), PV, V** em **bandejas** · Z não tem 45g. "
@@ -432,7 +432,7 @@ with st.form("folha_completa", border=False):
                 "no lado esquerdo em tempo real."
             )
 
-        with st.expander(" Orientações do dia", expanded=False):
+        with st.expander("Orientações do dia", expanded=False):
             st.caption(
                 "Avisos da Gestão para a equipe. Pode mencionar quem é o destinatário no próprio texto "
                 "(ex: \"Corte: cortar cumbucas após 14h · Embalagem: até 16h e depois sobe pra cortar bala\")."
@@ -448,7 +448,7 @@ with st.form("folha_completa", border=False):
                                      + f"[{legado_label}]: {extra}")
 
             obs_geral = st.text_area(
-                " Orientações",
+                "Orientações",
                 value=valor_inicial,
                 height=180, key=f"obs_geral_{data_str}",
                 placeholder=(
@@ -465,13 +465,13 @@ with st.form("folha_completa", border=False):
             obs_leonilia_v = ""
 
         # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
-        with st.expander(" Bala de Doce de Leite — papelzinho do Joel", expanded=False):
+        with st.expander("Bala de Doce de Leite — papelzinho do Joel", expanded=False):
             st.caption(
                 "Contagem do papelzinho separado da Produção. Total = P/cortar + Cortadas (automático)."
             )
             cols_bdl = st.columns([1, 1, 1])
             with cols_bdl[0]:
-                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>️ P/ cortar</div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>P/ cortar</div>", unsafe_allow_html=True)
                 bala_p_cortar = st.number_input(
                     label="bala_p_cortar", min_value=0,
                     value=int(pbd_atual.get("bala_p_cortar") or 0),
@@ -493,7 +493,7 @@ with st.form("folha_completa", border=False):
                 )
 
         # ── Pão de Mel inacabado + Bolos + Cocada Assada ─────────────────────────
-        with st.expander(" Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
+        with st.expander("Pão de Mel (inacabado + bolos) · Cocada Assada", expanded=False):
             st.caption(
                 " **PM inacabado** em unidades · **Bolos** (1 bolo = 70 und de PM). "
                 "**ASS / Cocada Assada** é outro produto independente, em unidades."
@@ -534,10 +534,10 @@ with st.form("folha_completa", border=False):
     # ║ LADO ESQUERDO: folha de produção oficial                                 ║
     # ╚══════════════════════════════════════════════════════════════════════════╝
     with col_folha:
-        st.markdown("###  Folha de Produção Oficial")
+        st.markdown("### Folha de Produção Oficial")
 
         # ── 1. EMBALADOS — Cocada ────────────────────────────────────────────────
-        with st.expander(" Embalados — Cocada", expanded=False):
+        with st.expander("Embalados — Cocada", expanded=False):
             st.caption("Estoque embalado · **45g, Mini, Pet, Potes** em unidades. Z não tem 45g.")
             cols_h = st.columns([2.0, 1, 1, 1, 1, 1])
             for col, lbl in zip(cols_h, ["Sabor", "45g (und)", "Mini (und)", "Pet (und)", "Potes 260g", "Potes 605g"]):
@@ -561,7 +561,7 @@ with st.form("folha_completa", border=False):
                 }
 
         # ── 2. CORTADOS ① — Cocada ───────────────────────────────────────────────
-        with st.expander("️ Cortados ① — Cocada (em unidades)", expanded=False):
+        with st.expander("Cortados ① — Cocada (em unidades)", expanded=False):
             st.caption(
                 "**①** = cortados hoje (lado embalagem) em **unidades** · "
                 "**②** = ① + Embalados + Joel · **③** = ② − Parâmetro Real."
@@ -583,7 +583,7 @@ with st.form("folha_completa", border=False):
                 cort_v[sabor] = {"cort1_45g": c1_45, "cort1_mini": c1_mi, "cort1_pet": c1_pt}
 
         # ── 3. CORTE DE COCADA — Ordens ──────────────────────────────────────────
-        with st.expander(" Corte de Cocada — Ordens (bandejas)", expanded=False):
+        with st.expander("Corte de Cocada — Ordens (bandejas)", expanded=False):
             st.caption(
                 "Em **bandejas** · conversão para unidades em cinza ao lado. "
                 "1 band 45g=100 · Mini=150 · Pet=30 (Z=60)."
@@ -622,7 +622,7 @@ with st.form("folha_completa", border=False):
                 }
 
         # ── 4. PARÂMETRO REAL DO DIA (45g + Mini + Pet) ──────────────────────────
-        with st.expander("️ Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
+        with st.expander("Parâmetro Real do dia — Ajuste da Gestão (45g · Mini · Pet)", expanded=False):
             st.caption(
                 "**Base** vem da tabela de referência · **Ajuste** = +/- da Gestão (passos de 100) · "
                 "**Real** alimenta a coluna ③ do Cortados acima."
@@ -745,14 +745,14 @@ with st.form("folha_completa", border=False):
                     param_real_v["pet"][sabor] = real
 
         # ── 5. CORTADOS ②③ — derivado (read-only) ────────────────────────────────
-        with st.expander(" Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
+        with st.expander("Cortados ② ③ — Cálculos derivados (read-only)", expanded=False):
             st.caption(
                 "Atualiza em tempo real conforme você edita Embalados, Cortados① e Papelzinho do Joel."
             )
             st.markdown(
                 "<div style='background:#F3F4F6;border-left:5px solid #6B7280;"
                 "padding:8px 14px;border-radius:6px;color:#374151;font-size:10px;margin:6px 0;'>"
-                "ℹ️ <b>Nota — caso eventual de duplicação:</b> em alguns dias, uma célula de "
+                "<b>Nota — caso eventual de duplicação:</b> em alguns dias, uma célula de "
                 "<b>Mini (30g)</b> ou <b>P (Pet)</b> do Papelzinho do Joel pode já ter sido enviada "
                 "pra sala de embalagem antes da folha ser fechada — nesse caso, o valor aparece "
                 "duplicado no Cortados ②. No papel, essas células levam um asterisco <code>*</code>. "
@@ -806,7 +806,7 @@ with st.form("folha_completa", border=False):
             )
 
         # ── 6. VIRADAS — derivado ────────────────────────────────────────────────
-        with st.expander(" Viradas — Cocada (derivado, read-only)", expanded=False):
+        with st.expander("Viradas — Cocada (derivado, read-only)", expanded=False):
             st.caption(
                 "① puxa do papelzinho · ② = ① − (corte 45g + Mini + Pet)."
             )
@@ -836,7 +836,7 @@ with st.form("folha_completa", border=False):
             )
 
         # ── 7. P/VIRAR — derivado ────────────────────────────────────────────────
-        with st.expander(" P/Virar — Cocada (derivado, read-only)", expanded=False):
+        with st.expander("P/Virar — Cocada (derivado, read-only)", expanded=False):
             st.caption(
                 "① puxa do papelzinho · ② = ① + Viradas② · Meta = referência fixa por sabor."
             )
@@ -871,7 +871,7 @@ with st.form("folha_completa", border=False):
             )
 
         # ── 8. PRODUÇÃO — Cocada (Ordens) ────────────────────────────────────────
-        with st.expander(" Produção — Cocada (Ordens)", expanded=False):
+        with st.expander("Produção — Cocada (Ordens)", expanded=False):
             st.caption(
                 "Bandejas em múltiplo de 8 (Z: múltiplo de 3) · Virada · Potes em **unidades**."
             )
@@ -909,7 +909,7 @@ with st.form("folha_completa", border=False):
                 )
 
         # ── 9. EMBALAGEM — Cocada (Ordens) ───────────────────────────────────────
-        with st.expander(" Embalagem — Cocada (Ordens, em unidades)", expanded=False):
+        with st.expander("Embalagem — Cocada (Ordens, em unidades)", expanded=False):
             st.caption("Unidades a embalar hoje. Z não tem 45g.")
             cols_h6 = st.columns([1.6, 1, 1])
             for col, lbl in zip(cols_h6, ["Sabor", "45g (und)", "Mini (und)"]):
@@ -928,10 +928,10 @@ with st.form("folha_completa", border=False):
             t45 = sum(ord_emb_v[s]["ord_emb_45g"] for s in SABORES_COCADA)
             tmi = sum(ord_emb_v[s]["ord_emb_mini"] for s in SABORES_COCADA)
             if t45 + tmi > 0:
-                st.caption(f" **Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
+                st.caption(f"**Total a embalar:** {t45:,} und 45g + {tmi:,} und Mini = **{t45 + tmi:,} unidades**")
 
         # ── 10. EMBALADOS — Palha ────────────────────────────────────────────────
-        with st.expander(" Embalados — Palha", expanded=False):
+        with st.expander("Embalados — Palha", expanded=False):
             st.caption("**50g** apenas em T, L, CH · **Pet 160g** em todos · em **unidades**.")
             cols_hpe = st.columns([1.4, 1, 1])
             for col, lbl in zip(cols_hpe, ["Sabor", "50g (und)", "Pet 160g (und)"]):
@@ -953,7 +953,7 @@ with st.form("folha_completa", border=False):
                 emb_palha_v[sabor] = {"emb_50g": v50, "emb_pet": vpt}
 
         # ── 10b. DISPLAYS DE PALHA 50g — contagem manual ─────────────────────────
-        with st.expander(" Displays de Palha 50g", expanded=False):
+        with st.expander("Displays de Palha 50g", expanded=False):
             st.caption(
                 "Quantos displays você tem hoje em estoque. "
                 "Cada display contém **10 palhas** (4 Tradicional + 4 Leite em pó + 2 Churros)."
@@ -972,7 +972,7 @@ with st.form("folha_completa", border=False):
                 if meta_dia > 0:
                     st.markdown(
                         f"<div style='font-size:10px;color:#7B341E;padding-top:6px;'>"
-                        f" Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
+                        f"Meta de <b>{nome_dia}</b>: <b>{meta_dia}</b> displays</div>",
                         unsafe_allow_html=True,
                     )
                 else:
@@ -983,7 +983,7 @@ with st.form("folha_completa", border=False):
                     )
 
         # ── 11. PRODUÇÃO PALHA ───────────────────────────────────────────────────
-        with st.expander(" Produção Palha — Ordens", expanded=False):
+        with st.expander("Produção Palha — Ordens", expanded=False):
             st.caption("Bandejas a produzir de palha (não se produz palha todo dia).")
             cols_hpp = st.columns([1.4, 1])
             for col, lbl in zip(cols_hpp, ["Sabor", "Bandejas"]):
@@ -1001,11 +1001,11 @@ with st.form("folha_completa", border=False):
                 prod_palha_v[sabor] = {"ord_prod_band": pb}
             tot_pp = sum(prod_palha_v[s]["ord_prod_band"] for s in SABORES_PALHA)
             if tot_pp > 0:
-                st.caption(f" **Total produção palha:** {tot_pp} bandejas")
+                st.caption(f"**Total produção palha:** {tot_pp} bandejas")
 
         # ── 12. CORTE PALHA — Ordens (renderizado ANTES da Coluna PALHA porque
         #       seus valores alimentam o cálculo de "Pós-corte" do quadro Coluna PALHA)
-        with st.expander(" Corte Palha — Ordens (bandejas)", expanded=False):
+        with st.expander("Corte Palha — Ordens (bandejas)", expanded=False):
             st.caption("**50g** apenas em T, L, CH · **Pet** em todos.")
             cols_hcp = st.columns([1.4, 1, 1])
             for col, lbl in zip(cols_hcp, ["Sabor", "50g (band)", "Pet (band)"]):
@@ -1028,7 +1028,7 @@ with st.form("folha_completa", border=False):
 
         # ── 13. COLUNA PALHA — Bandejas (Leonardo) ─────────────────────────────
         # Bandejas = input · Pós-corte = DERIVADO (Bandejas − Corte 50g − Corte Pet)
-        with st.expander(" Coluna PALHA — Bandejas (Leonardo)", expanded=False):
+        with st.expander("Coluna PALHA — Bandejas (Leonardo)", expanded=False):
             st.caption(
                 "**Bandejas (band)** = você conta a quantidade total de bandejas de palha por sabor. "
                 "**Pós-corte (band)** = calculado automaticamente subtraindo o que foi definido em "
@@ -1059,7 +1059,7 @@ with st.form("folha_completa", border=False):
                 cont_palha_v[sabor] = {"cont_band_palha": cb, "cont_band_pos_corte": pos_corte}
 
         # ── 14.  PÃO DE MEL — caixa unificada ──────────────────────────────────
-        with st.expander(" Pão de Mel", expanded=False):
+        with st.expander("Pão de Mel", expanded=False):
             st.caption(
                 "Tudo sobre Pão de Mel num só lugar: quantidade atual + ordem do dia + "
                 "lembrete pro próximo dia útil. Produzido pela Produção + uma auxiliar."
@@ -1093,7 +1093,7 @@ with st.form("folha_completa", border=False):
             )
 
         # ── 15.  BALAS — caixa unificada ───────────────────────────────────────
-        with st.expander(" Balas", expanded=False):
+        with st.expander("Balas", expanded=False):
             st.caption(
                 "Balas de doce de leite (produto distinto do PM). Produzidas pela Produção e "
                 "cortadas pelo Popô. **Ordem em TACHOS** (1 tacho = 30 balas)."
@@ -1119,7 +1119,7 @@ with st.form("folha_completa", border=False):
                     )
 
         # ── 16.  DOCES — caixa unificada ───────────────────────────────────────
-        with st.expander(" Doces", expanded=False):
+        with st.expander("Doces", expanded=False):
             st.caption(
                 "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
                 "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
@@ -1138,7 +1138,7 @@ with st.form("folha_completa", border=False):
     col_btn, col_badge, col_info = st.columns([2, 1.2, 4])
     with col_btn:
         salvar_clicked = st.form_submit_button(
-            " Salvar folha completo",
+            "Salvar folha completo",
             type="primary",
             width='stretch',
         )

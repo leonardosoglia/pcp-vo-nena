@@ -8,7 +8,7 @@ necessidade de compra.
 4 abas internas:
      Insumos        — catálogo (CRUD + alertas de estoque mínimo)
      Receitas (BOM) — pra cada produto, quanto consome de cada insumo
-    ↕️ Movimentações  — entradas (compras) e saídas (perdas/ajustes/produção)
+    Movimentações  — entradas (compras) e saídas (perdas/ajustes/produção)
      Necessidades   — cruzamento com folha do dia → o que vai faltar/sobrar
 
 Conecta com a folha de produção: quando a Etapa E for implementada (22-29/05),
@@ -98,10 +98,10 @@ st.divider()
 
 # ── Abas ──────────────────────────────────────────────────────────────────────
 aba_insumos, aba_bom, aba_movs, aba_necessidades, aba_importar = st.tabs([
-    " Insumos",
-    " Receitas (BOM)",
-    "↕️ Movimentações",
-    " Necessidades do dia",
+    "Insumos",
+    "Receitas (BOM)",
+    "Movimentações",
+    "Necessidades do dia",
     "Importar do SIGE",
 ])
 
@@ -110,7 +110,7 @@ aba_insumos, aba_bom, aba_movs, aba_necessidades, aba_importar = st.tabs([
 # ABA 1 — INSUMOS (catálogo + CRUD)
 # ════════════════════════════════════════════════════════════════════════════
 with aba_insumos:
-    st.subheader(" Catálogo de insumos")
+    st.subheader("Catálogo de insumos")
 
     # Filtros
     col_f1, col_f2, col_f3 = st.columns([2, 2, 1])
@@ -122,7 +122,7 @@ with aba_insumos:
         )
     with col_f2:
         filtro_busca = st.text_input(
-            " Buscar por nome ou código",
+            "Buscar por nome ou código",
             placeholder="ex: coco, plástico, 45g...",
             key="ins_filtro_busca",
         )
@@ -156,7 +156,7 @@ with aba_insumos:
     st.divider()
 
     # Botão de adicionar
-    if st.button(" Adicionar insumo", type="primary", key="btn_add_insumo"):
+    if st.button("Adicionar insumo", type="primary", key="btn_add_insumo"):
         st.session_state["form_insumo"] = {"modo": "criar", "id": None}
 
     # Tabela de insumos
@@ -181,7 +181,7 @@ with aba_insumos:
         st.dataframe(df_ins, width='stretch', hide_index=True)
 
         # Seletor pra editar/excluir
-        st.markdown("##### ️ Editar / ️ Excluir insumo")
+        st.markdown("##### Editar / Excluir insumo")
         col_sel, col_btn1, col_btn2 = st.columns([3, 1, 1])
         with col_sel:
             opcoes_sel = {f"{i['codigo']} — {i['nome']}": i["id"] for i in insumos}
@@ -193,17 +193,17 @@ with aba_insumos:
             )
             sel_id = opcoes_sel.get(sel_label)
         with col_btn1:
-            if st.button("️ Editar", key="btn_edit_ins"):
+            if st.button("Editar", key="btn_edit_ins"):
                 st.session_state["form_insumo"] = {"modo": "editar", "id": sel_id}
         with col_btn2:
-            if st.button("️ Excluir", key="btn_del_ins"):
+            if st.button("Excluir", key="btn_del_ins"):
                 st.session_state["confirm_del_insumo"] = sel_id
 
     # Modal-like: formulário de criar/editar
     if "form_insumo" in st.session_state:
         modo = st.session_state["form_insumo"]["modo"]
         ins_id = st.session_state["form_insumo"]["id"]
-        with st.expander(f"{' Novo' if modo == 'criar' else '️ Editar'} insumo", expanded=True):
+        with st.expander(f"{'Novo' if modo == 'criar' else 'Editar'} insumo", expanded=True):
             atual = get_insumo(ins_id) if modo == "editar" and ins_id else {}
 
             f1, f2 = st.columns(2)
@@ -230,7 +230,7 @@ with aba_insumos:
                     value=float(atual.get("estoque_atual") or 0),
                     min_value=0.0, step=0.5,
                     disabled=(modo == "editar"),
-                    help="Pra mudar estoque depois, usar a aba ↕️ Movimentações.",
+                    help="Pra mudar estoque depois, usar a aba Movimentações.",
                 )
                 estoque_minimo = st.number_input(
                     "Estoque mínimo (alerta)", value=float(atual.get("estoque_minimo") or 0),
@@ -257,7 +257,7 @@ with aba_insumos:
 
             col_save, col_cancel = st.columns(2)
             with col_save:
-                if st.button(" Salvar", type="primary", width='stretch', key="btn_save_ins"):
+                if st.button("Salvar", type="primary", width='stretch', key="btn_save_ins"):
                     dados = {
                         "codigo": codigo.strip(),
                         "nome": nome.strip(),
@@ -274,17 +274,17 @@ with aba_insumos:
                         if modo == "criar":
                             dados["estoque_atual"] = estoque_atual_val
                             criar_insumo(dados)
-                            st.success(f" Insumo **{codigo}** cadastrado!")
+                            st.success(f"Insumo **{codigo}** cadastrado!")
                         else:
                             atualizar_insumo(ins_id, dados)
-                            st.success(f" Insumo **{codigo}** atualizado!")
+                            st.success(f"Insumo **{codigo}** atualizado!")
                         invalidar_suprimentos()
                         st.session_state.pop("form_insumo", None)
                         st.rerun()
                     except Exception as e:
-                        st.error(f" Erro: {type(e).__name__}: {e}")
+                        st.error(f"Erro: {type(e).__name__}: {e}")
             with col_cancel:
-                if st.button(" Cancelar", width='stretch', key="btn_cancel_ins"):
+                if st.button("Cancelar", width='stretch', key="btn_cancel_ins"):
                     st.session_state.pop("form_insumo", None)
                     st.rerun()
 
@@ -294,19 +294,19 @@ with aba_insumos:
         ins = get_insumo(ins_id)
         if ins:
             st.warning(
-                f"️ Desativar insumo **{ins['codigo']} — {ins['nome']}**? "
+                f"Desativar insumo **{ins['codigo']} — {ins['nome']}**? "
                 "Não é apagado (movimentações antigas são preservadas), só fica oculto."
             )
             c1, c2 = st.columns(2)
             with c1:
-                if st.button(" Confirmar desativação", type="primary", width='stretch', key="btn_conf_del_ins"):
+                if st.button("Confirmar desativação", type="primary", width='stretch', key="btn_conf_del_ins"):
                     excluir_insumo(ins_id)
                     invalidar_suprimentos()
                     st.session_state.pop("confirm_del_insumo", None)
-                    st.success(" Desativado.")
+                    st.success("Desativado.")
                     st.rerun()
             with c2:
-                if st.button(" Cancelar", width='stretch', key="btn_cancel_del_ins"):
+                if st.button("Cancelar", width='stretch', key="btn_cancel_del_ins"):
                     st.session_state.pop("confirm_del_insumo", None)
                     st.rerun()
 
@@ -315,7 +315,7 @@ with aba_insumos:
 # ABA 2 — RECEITAS (BOM)
 # ════════════════════════════════════════════════════════════════════════════
 with aba_bom:
-    st.subheader(" Receitas (Bill of Materials)")
+    st.subheader("Receitas (Bill of Materials)")
     st.caption(
         "Pra cada produto, a lista de insumos que ele consome **por tacho** "
         "(cocada e palha) ou por unidade de produção (1 bolo de Pão de Mel, 1 tacho "
@@ -327,7 +327,7 @@ with aba_bom:
     insumos_disponiveis = get_insumos(somente_ativos=True)
     if not insumos_disponiveis:
         st.warning(
-            "️ Cadastre pelo menos um **insumo** na aba  Insumos antes de definir receitas."
+            "Cadastre pelo menos um **insumo** na aba Insumos antes de definir receitas."
         )
     else:
         produtos = listar_produtos_possiveis()
@@ -361,7 +361,7 @@ with aba_bom:
             st.dataframe(df_bom, width='stretch', hide_index=True)
 
             # Excluir linha
-            st.markdown("###### ️ Remover linha da receita")
+            st.markdown("###### Remover linha da receita")
             col_rm, col_rm_btn = st.columns([3, 1])
             with col_rm:
                 opc_rm = {f"{l['codigo']} — {l['insumo_nome']} ({_formatar_qtd(l['quantidade'], l['unidade'])})": l["id"] for l in bom}
@@ -370,14 +370,14 @@ with aba_bom:
                     key="bom_rm_sel", label_visibility="collapsed",
                 )
             with col_rm_btn:
-                if st.button("️ Remover", key="btn_rm_bom"):
+                if st.button("Remover", key="btn_rm_bom"):
                     excluir_bom_linha(opc_rm[rm_label])
                     invalidar_suprimentos()
-                    st.success(" Linha removida.")
+                    st.success("Linha removida.")
                     st.rerun()
 
         st.divider()
-        st.markdown("#####  Adicionar / atualizar linha")
+        st.markdown("##### Adicionar / atualizar linha")
         with st.form("form_bom", clear_on_submit=True):
             opc_ins = {f"{i['codigo']} — {i['nome']} ({i['unidade']})": i for i in insumos_disponiveis}
             ins_label = st.selectbox("Insumo", options=list(opc_ins.keys()))
@@ -388,7 +388,7 @@ with aba_bom:
                 help=f"Ex: pra 1 tacho consumir 8 kg de {ins_obj['nome']}, digite 8",
             )
             obs_bom = st.text_input("Observação (opcional)", value="")
-            submitted = st.form_submit_button(" Salvar linha", type="primary", width='stretch')
+            submitted = st.form_submit_button("Salvar linha", type="primary", width='stretch')
             if submitted:
                 if qtd <= 0:
                     st.error("Quantidade deve ser maior que zero.")
@@ -396,17 +396,17 @@ with aba_bom:
                     try:
                         upsert_bom_linha(produto_chave, ins_obj["id"], qtd, ins_obj["unidade"], obs_bom)
                         invalidar_suprimentos()
-                        st.success(f" Receita atualizada — {ins_obj['nome']}: {qtd} {ins_obj['unidade']}")
+                        st.success(f"Receita atualizada — {ins_obj['nome']}: {qtd} {ins_obj['unidade']}")
                         st.rerun()
                     except Exception as e:
-                        st.error(f" Erro: {type(e).__name__}: {e}")
+                        st.error(f"Erro: {type(e).__name__}: {e}")
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # ABA 3 — MOVIMENTAÇÕES (entradas/saídas)
 # ════════════════════════════════════════════════════════════════════════════
 with aba_movs:
-    st.subheader("↕️ Movimentações de estoque")
+    st.subheader("Movimentações de estoque")
     st.caption(
         "Histórico de todas as entradas (compras, contagem inicial) e saídas (perdas, "
         "ajustes, produção) de cada insumo. Cada movimento atualiza o estoque atual "
@@ -415,7 +415,7 @@ with aba_movs:
 
     insumos_disponiveis_m = get_insumos(somente_ativos=True)
     if not insumos_disponiveis_m:
-        st.warning("️ Cadastre pelo menos um insumo antes de registrar movimentações.")
+        st.warning("Cadastre pelo menos um insumo antes de registrar movimentações.")
     else:
         # Filtros (4 colunas: insumo, tipo, origem, período)
         col_fm1, col_fm2, col_fm3, col_fm4 = st.columns([2, 1, 1.3, 1])
@@ -490,7 +490,7 @@ with aba_movs:
 
             df_movs = pd.DataFrame([{
                 "Data": m["data"],
-                "Tipo": " Entrada" if m["tipo"] == "entrada" else " Saída",
+                "Tipo": "Entrada" if m["tipo"] == "entrada" else "Saída",
                 "Insumo": f"{m['codigo']} — {m['insumo_nome']}",
                 "Quantidade": _formatar_qtd(m["quantidade"], m["insumo_unidade"]),
                 "Origem": m["origem"] or "—",
@@ -498,10 +498,10 @@ with aba_movs:
                 "Obs": m["obs"] or "",
             } for m in movs])
             st.dataframe(df_movs, width='stretch', hide_index=True)
-            st.caption(f" {len(movs)} movimentações nos últimos {dias_atras} dias")
+            st.caption(f"{len(movs)} movimentações nos últimos {dias_atras} dias")
 
         st.divider()
-        st.markdown("#####  Registrar nova movimentação")
+        st.markdown("##### Registrar nova movimentação")
         with st.form("form_mov", clear_on_submit=True):
             mc1, mc2, mc3 = st.columns(3)
             with mc1:
@@ -509,7 +509,7 @@ with aba_movs:
                 ins_mov_label = st.selectbox("Insumo *", options=list(opc_ins_mov.keys()))
                 ins_mov_obj = opc_ins_mov[ins_mov_label]
                 tipo_mov = st.radio("Tipo *", TIPOS_MOVIMENTO, horizontal=True,
-                                     format_func=lambda t: " Entrada" if t == "entrada" else " Saída")
+                                     format_func=lambda t: "Entrada" if t == "entrada" else "Saída")
             with mc2:
                 qtd_mov = st.number_input(
                     f"Quantidade ({ins_mov_obj['unidade']}) *",
@@ -525,7 +525,7 @@ with aba_movs:
                 referencia = st.text_input("Referência (NF, doc, etc)", value="")
 
             obs_mov = st.text_area("Observações", value="", height=70)
-            submitted_mov = st.form_submit_button(" Registrar", type="primary", width='stretch')
+            submitted_mov = st.form_submit_button("Registrar", type="primary", width='stretch')
             if submitted_mov:
                 if qtd_mov <= 0:
                     st.error("Quantidade deve ser maior que zero.")
@@ -547,14 +547,14 @@ with aba_movs:
                         )
                         st.rerun()
                     except Exception as e:
-                        st.error(f" Erro: {type(e).__name__}: {e}")
+                        st.error(f"Erro: {type(e).__name__}: {e}")
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # ABA 4 — NECESSIDADES DO DIA (MRP simplificado)
 # ════════════════════════════════════════════════════════════════════════════
 with aba_necessidades:
-    st.subheader(" Necessidades de insumos pra produção do dia")
+    st.subheader("Necessidades de insumos pra produção do dia")
     st.caption(
         "Cruza a **folha do dia** (ordens de produção da Gestão) com as **receitas (BOM)** "
         "e com o **estoque atual** de insumos. Mostra o que vai faltar e quanto comprar."
@@ -574,7 +574,7 @@ with aba_necessidades:
             "Nenhuma necessidade calculada. Possíveis razões:\n"
             "- Folha do dia não tem ordens de produção (`ord_prod_band` zerado)\n"
             "- Receitas (BOM) não cadastradas para os produtos da folha\n\n"
-            "**Solução:** vá em  Receitas e cadastre o consumo de insumos por produto."
+            "**Solução:** vá em Receitas e cadastre o consumo de insumos por produto."
         )
     else:
         # Contagem por status
@@ -583,9 +583,9 @@ with aba_necessidades:
         n_ok    = sum(1 for n in necess if n["status"] == "ok")
 
         c1, c2, c3 = st.columns(3)
-        c1.metric(" Vai faltar", n_falta)
-        c2.metric(" Pouca folga", n_crit)
-        c3.metric(" Suficiente", n_ok)
+        c1.metric("Vai faltar", n_falta)
+        c2.metric("Pouca folga", n_crit)
+        c3.metric("Suficiente", n_ok)
 
         st.divider()
 
@@ -605,7 +605,7 @@ with aba_necessidades:
         # Alertas detalhados pra faltas
         faltas = [n for n in necess if n["status"] == "falta"]
         if faltas:
-            st.markdown("##### ️ Faltas que precisam de compra urgente")
+            st.markdown("##### Faltas que precisam de compra urgente")
             for n in faltas:
                 deficit = -n["saldo"]  # quantidade a comprar
                 st.markdown(
@@ -622,7 +622,7 @@ with aba_necessidades:
     st.caption(
         "A **baixa automática** de insumos (Etapa E) já está ativa: ao salvar uma "
         "folha de produção no Lançamento, o sistema mostra o preview do consumo e "
-        "desconta do estoque. As saídas aparecem na aba ↕️ Movimentações com origem "
+        "desconta do estoque. As saídas aparecem na aba Movimentações com origem "
         "`producao_auto`."
     )
 

@@ -165,7 +165,7 @@ def _features_de_folha(d):
     return feat
 
 
-@st.cache_data(ttl=1800, show_spinner=" Treinando modelo de detecção de anomalias...")
+@st.cache_data(ttl=1800, show_spinner="Treinando modelo de detecção de anomalias...")
 def detectar_anomalias(contamination=0.1):
     """Roda Isolation Forest sobre todas as folhas + retorna DataFrame com score.
 
@@ -286,7 +286,7 @@ with col_slider:
 with col_info:
     n_estimado = int(round(contamination * 100))
     st.caption(
-        f"️ Critério atual: **{n_estimado}%** das folhas mais diferentes serão "
+        f"Critério atual: **{n_estimado}%** das folhas mais diferentes serão "
         f"marcadas como atípicas. _Mais baixo = mais restrito._"
     )
 
@@ -295,7 +295,7 @@ df_result, status = detectar_anomalias(contamination=contamination)
 
 if status == "amostra_insuficiente":
     st.warning(
-        "️ Precisa de pelo menos **5 folhas** no banco pra treinar o modelo. "
+        "Precisa de pelo menos **5 folhas** no banco pra treinar o modelo. "
         "Cadastra mais folhas em Lançamento e volta aqui."
     )
     st.stop()
@@ -306,7 +306,7 @@ n_anomalias = int((df_result["is_anomaly"] == -1).sum())
 # Aviso conciso sobre tamanho da amostra (detalhes na página Ajuda)
 if n_folhas < 30:
     st.caption(
-        f"ℹ️ Amostra atual: **{n_folhas} folhas**. Precisão limitada com menos de 30 — "
+        f"Amostra atual: **{n_folhas} folhas**. Precisão limitada com menos de 30 — "
         f"trate como pista pra investigar, não diagnóstico fechado."
     )
 
@@ -318,20 +318,20 @@ st.divider()
 
 col_a, col_b, col_c, col_d = st.columns(4)
 col_a.metric(
-    " Folhas analisadas", n_folhas,
+    "Folhas analisadas", n_folhas,
     help="Total de folhas registradas no banco e usadas no treinamento do modelo.",
 )
 col_b.metric(
-    " Folhas atípicas detectadas", n_anomalias,
+    "Folhas atípicas detectadas", n_anomalias,
     help="Quantas dessas folhas o algoritmo marcou como diferentes do padrão.",
 )
 col_c.metric(
-    " Critério usado",
+    "Critério usado",
     f"{int(contamination*100)}% mais diferentes",
     help="Reflete a posição atual do slider acima.",
 )
 col_d.metric(
-    "️ Método",
+    "Método",
     "Isolation Forest",
     help="Algoritmo de Machine Learning não-supervisionado.",
 )
@@ -341,7 +341,7 @@ col_d.metric(
 # RANKING DE ANOMALIAS
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header(" Score por data")
+st.header("Score por data")
 st.caption(
     "Barras vermelhas = atípicas · cinzas = normais · maior = mais diferente do padrão."
 )
@@ -385,7 +385,7 @@ st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, "responsi
 # DETALHES DE CADA ANOMALIA
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header(" Detalhes")
+st.header("Detalhes")
 st.caption(
     "Top 3 campos que mais contribuíram pro desvio. _σ = desvios-padrão acima/abaixo do normal._"
 )
@@ -493,7 +493,7 @@ else:
         elif btn_clicked and api_key_disponivel:
             try:
                 from claude_assistant import explicar_anomalia
-                with st.spinner(f" Claude analisando {data_fmt}..."):
+                with st.spinner(f"Claude analisando {data_fmt}..."):
                     resultado = explicar_anomalia(
                         data=data_iso,
                         top_features=list(top3),
@@ -502,9 +502,9 @@ else:
                 st.session_state.explicacoes_anomalias[data_iso] = resultado
                 st.rerun()
             except ImportError as e:
-                st.error(f" Erro ao importar claude_assistant: {e}")
+                st.error(f"Erro ao importar claude_assistant: {e}")
             except Exception as e:
-                st.error(f" Erro inesperado: {e}")
+                st.error(f"Erro inesperado: {e}")
 
     # (Explicação detalhada do σ está na página Ajuda — caption acima já resume)
 
@@ -512,9 +512,9 @@ else:
 # ════════════════════════════════════════════════════════════════════════════
 # TABELA COMPLETA (TODAS AS FOLHAS COM SCORE)
 # ════════════════════════════════════════════════════════════════════════════
-with st.expander(" Ver todas as folhas com score (não só anomalias)", expanded=False):
+with st.expander("Ver todas as folhas com score (não só anomalias)", expanded=False):
     df_tab = df_result[["data", "anomaly_score"]].copy()
-    df_tab["status"] = df_result["is_anomaly"].map({-1: " Atípica", 1: " Normal"})
+    df_tab["status"] = df_result["is_anomaly"].map({-1: "Atípica", 1: "Normal"})
     df_tab["data"] = pd.to_datetime(df_tab["data"]).dt.strftime("%d/%m/%Y")
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
@@ -524,6 +524,6 @@ with st.expander(" Ver todas as folhas com score (não só anomalias)", expanded
 
 st.divider()
 st.caption(
-    f" Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
+    f"Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
     f"{n_folhas} folhas · cache 30 min."
 )
