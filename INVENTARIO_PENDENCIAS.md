@@ -64,7 +64,7 @@ Pendências do questionário inicial (CADERNO seção 3) — várias respondidas
 | 24 | Confirmar 15 kg leite condensado por tacho de Cocada Leite Condensado | CADERNO Bloco 5 | ❓ Parece muito — confirmar |
 | 25 | Mistério dos 36 kg Pé de Moça vs 30 potes | CADERNO Bloco 7 | ❓ pendente |
 | 26 | Dias exatos de corte de palha | CADERNO 3.1 | parcial |
-| 27 | API do Sigee — existe? | CADERNO 1.0 Bloco 6 + HANDOFF_SIGEE | ❓ pendente (Mariana ou Sigee) |
+| 27 | API do Sigee — existe? | CADERNO 1.0 Bloco 6 + HANDOFF_SIGEE | ✅ **SIM — confirmado por pesquisa web 27/05.** REST documentada (swagger em api.sigecloud.com.br). Falta Suprimentos solicitar credenciais (Authorization-Token/User/App) ao suporte SIGE. Decisão: modelo B (read-only). Detalhes no CADERNO Bloco 6. |
 
 ### Pendências TÉCNICAS (eu)
 

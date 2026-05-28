@@ -311,15 +311,65 @@ Rendimento do lote **não indicado na foto — a confirmar** (provavelmente 1 bo
 
 ### Bloco 6 — Sigee Cloud
 
-**Quem faz compras / controla insumos:** **Mariana** (pessoa nova mapeada).
+**Quem faz compras / controla insumos:** Suprimentos (Mariana é a pessoa atual).
 
 **Sigee Cloud tem:** Estoque, Vendas, NF, NFE. **NÃO tem PCP.**
 
 **Insumos JÁ ESTÃO cadastrados no Sigee** — não precisamos digitar manualmente.
 
-**API do Sigee:** Eraldo não sabe se existe. **Pendência crítica.**
+**API do Sigee — confirmado por pesquisa web em 27/05/2026 (sessão 3):** EXISTE
+e é bem documentada. Erro anterior do CADERNO ("Eraldo não sabe se existe") era
+desinformação. O produto se chama oficialmente **SIGE Cloud** (uma palavra,
+não "Sigee").
 
-→ **Memória persistente:** `project_pessoa_mariana_e_sigee.md`.
+**Documentação oficial:**
+- Página de docs: https://ajuda.sigecloud.com.br/documentacao-para-utilizacao-da-api/
+- Swagger interativo: https://api.sigecloud.com.br/swagger/ui/index
+- URL base: `https://api.sigecloud.com.br/request/`
+
+**Tecnologia:** REST · HTTPS · JSON · UTF-8.
+
+**Autenticação:** 3 headers em toda requisição:
+- `Authorization-Token: <token>`
+- `User: <email_administrador>`
+- `App: <nome_app_registrado>`
+
+**Como obter credenciais:** email do administrador da conta SIGE pro suporte
+em `suporte@sigecloud.com.br` (ou painel `https://atendimento.sigecloud.com.br`)
+com assunto *"Solicitação de dados de autenticação API SIGE Cloud"*. Telefone
+0800 591 8755.
+
+**Endpoints relevantes pro PCP** (4 confirmados, podem ter mais no Swagger):
+| Verbo | Endpoint | Uso pro PCP |
+|---|---|---|
+| GET  | `/request/produtos/get`            | Puxar cadastro completo de insumos |
+| GET  | `/request/produtos/pesquisar`      | Buscar produto específico por nome/código |
+| POST | `/request/produtos/salvar`         | Criar ou atualizar produto |
+| POST | `/request/produtosestoque/salvar`  | Registrar movimentação de estoque |
+
+**Direção da integração — decisão arquitetural (27/05/2026):**
+
+| Modelo | O quê | Avaliação |
+|---|---|---|
+| A — CSV manual (hoje) | Mariana exporta, PCP importa via `importar_csv_sigee.py` | ✅ Funciona. Sem dependência. Trabalho manual semanal. |
+| B — API read-only | PCP puxa cadastro+custo+estoque do Sigee a cada N min | 🎯 **Alvo de fase 2.** Cliente HTTP simples; mantém Sigee como fonte da verdade contábil. |
+| C — API two-way | PCP escreve `produtosestoque/salvar` quando uma folha é baixada | ⚠️ Evitar. Acoplamento alto, Mariana perde controle granular, conflitos viram bug. |
+
+**Justificativa do modelo B (vira capítulo do TCC):**
+- Princípio DDD de *bounded contexts*: Sigee é o contexto **contábil/comercial**;
+  PCP é o contexto **operacional/produção**. Cada um é dono dos seus dados.
+- Estoque tem 2 visões legítimas: oficial (Sigee, fechado por NF + contagem física)
+  e operacional (PCP, baixado por produção). Divergência mensal é informação
+  útil, não bug.
+- Auditoria mensal: Mariana confronta "PCP consumiu X kg" com "NFs + contagem
+  física". Diferença vira ajuste de inventário.
+
+**Bloqueios pra avançar pro modelo B:**
+1. Suprimentos solicitar credenciais (`Authorization-Token`, `User`, `App`) via email pro suporte SIGE.
+2. Confirmar quotas/rate limit do plano da empresa (não documentado publicamente).
+3. Definir frequência de sync (sugestão: 1h pra cadastro/custo, manual sob demanda pra estoque).
+
+→ Memória persistente: `project_pessoa_mariana_e_sigee.md` (atualizada 27/05/2026).
 
 ### Bloco 7 — Operação geral
 
