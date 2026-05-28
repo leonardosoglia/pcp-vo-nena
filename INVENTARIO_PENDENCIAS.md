@@ -77,10 +77,10 @@ Pendências do questionário inicial (CADERNO seção 3) — várias respondidas
 | # | Pendência | Origem | Status |
 |---|---|---|---|
 | 28 | Cocada v4 — outra abordagem (você pausou em 26/05) | memória `project_gaps_cocada_camada2.md` | ⏸ pausada |
-| 29 | Calendário operacional (curto prazo do gap "eventos da semana") | CADERNO seção 1.B gap 4 | 🔴 não iniciado |
-| 30 | Campo livre "evento da semana / observação" no input | CADERNO gap 2 | 🔴 não iniciado |
-| 31 | Modelagem da "não-acomodação" | CADERNO gap 3 | 🔴 não iniciado |
-| 32 | Headcount diário das 3 áreas (Produção, Corte, Embalagem) | CADERNO gap 3 | 🔴 não iniciado |
+| 29 | Calendário operacional — página dedicada (gap 4) | CADERNO seção 1.B gap 4 | 🔴 não iniciado. `get_eventos_periodo` (28/05) já é a base. |
+| 30 | Campo "evento da semana / observação" | CADERNO gap 2 | ✅ **FEITO 28/05** — tabela `eventos_semana` + UI na Sugestão de Cocada |
+| 31 | Modelagem da "não-acomodação" | CADERNO gap 3 | 🟡 **parcial 28/05** — teto de capacidade ligado (Equipe→Cocada). Falta o piso dinâmico (precisa histórico). |
+| 32 | Headcount diário das 3 áreas (Produção, Corte, Embalagem) | CADERNO gap 3 | 🟡 Módulo Equipe já captura presença+capacidade; ligado à cocada (Produção). Falta Corte/Embalagem + coleta consistente. |
 
 ---
 

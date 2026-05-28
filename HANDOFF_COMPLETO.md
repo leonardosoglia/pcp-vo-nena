@@ -16,18 +16,30 @@
 corrigido, limpeza de deprecation, e a integração SIGE avançou muito (API
 descoberta + cliente HTTP + upload de planilha como plano B).
 
-**6 commits, todos no ar (origin + hf):**
+**9 commits, todos no ar (origin + hf):**
 1. `2b5a745` feat(etapa-e): auto-baixa de insumos
 2. `ecbe3ee` fix(mrp): ceil(band/8) em tachos parciais (subestimava ingrediente)
 3. `182f06c` chore(ui): use_container_width → width='stretch' (105 ocorrências)
 4. `d0096eb` docs(sige): API REST confirmada + decisão de arquitetura
 5. `9240c2a` feat(sige): cliente HTTP read-only (sige_cloud_api.py)
 6. `ca44155` feat(sige): aba "Importar do SIGE" (upload de planilha, plano B)
+7. `eaaa5ae` docs(handoff): fecha primeira metade da sessão
+8. `96eb52c` feat(cocada): liga capacidade da Equipe ao teto da sugestão (gap 3)
+9. `663f2b4` feat(cocada): eventos/observações da semana (gap 2)
 
 **Decisão grande:** SIGE Cloud TEM API REST (a Gestão não sabia). Mas a
 integração vai ser **read-only** (modelo B — SIGE = verdade contábil, PCP =
 operacional). Detalhes e justificativa DDD no CADERNO Bloco 6. O plano B sem
 API (upload de planilha na aba Suprimentos) já está pronto e funcionando.
+
+**Camada 2 cocada — 2 gaps fechados (CADERNO 1.B):**
+- Gap 3 (capacidade): a Sugestão de Cocada pré-preenche o teto de tachos com a
+  capacidade efetiva de quem está presente (módulo Equipe). Falta o "piso
+  dinâmico" (pedir mais quando bate a meta) — precisa de histórico de presença.
+- Gap 2 (eventos da semana): tabela `eventos_semana` + UI na Sugestão de Cocada
+  pra registrar contexto (equipe reduzida, feriado, pedido grande). Só lembra,
+  não calcula. `get_eventos_periodo` é genérico (reusável em Home/Palha/IA).
+- Restam: gap 4 (página de Calendário Operacional) e o piso dinâmico do gap 3.
 
 **Pra você (Leonardo) destravar o que ficou:**
 - Apertar o botão "Cadastrar BOM completa" na Admin Seed do HF (banco us-east-1)
