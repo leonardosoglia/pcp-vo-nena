@@ -11,10 +11,15 @@ na web antes de escrever cada parte**.
 - [ ] Verificar template oficial da UFCG pra ABNT
 
 ## Antes de escrever o Capítulo 2 (Revisão de Literatura)
-- [ ] **CAPES Catálogo de Teses** — buscar "PCP confeitaria", "MRP alimentos PMI"
+> 1ª passada de busca feita em 28/05 (resultados na 2ª rodada do `02_busca_web_resultados.md`).
+> Esboço do Cap 2 escrito. Itens abaixo: ✅ = buscado · [ ] = ainda fazer ao fechar o capítulo.
+- [x] Busca web geral — PCP/MRP em pequenas empresas de alimentos (achados registrados)
+- [x] Busca web geral — Curva ABC em indústria de alimentos
+- [x] Busca web geral — Isolation Forest / ML em indústria
+- [x] Busca web geral — LLM / agentes em manufatura
+- [ ] **CAPES Catálogo de Teses** — confirmar dissertações com dados ABNT completos
 - [ ] **Google Scholar** — verificar contagem de citações pra ranquear referências
-- [ ] **SciELO** — artigos em PT-BR de PCP em alimentos
-- [ ] **Spell BR** — base de periódicos brasileiros em administração
+- [ ] **SciELO / Spell BR** — refinar artigos PT-BR revisados por pares
 - [ ] Baixar arXiv 2505.16120 (LLM-Powered AI Agents) e extrair bibliografia
 - [ ] Verificar se UFCG tem Hopp & Spearman, Slack, Tubino na biblioteca
 - [ ] Buscar artigos sobre Streamlit ou Python aplicado a indústria (raro)

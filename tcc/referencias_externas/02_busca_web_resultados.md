@@ -181,3 +181,59 @@ Pra próxima rodada (antes do Cap 2):
 3. Verificar **biblioteca da UFCG** se tem o livro do Tubino, Slack, Corrêa
 4. Procurar artigos específicos sobre **Streamlit aplicado a indústria** (raro mas vale tentar)
 5. Buscar **simulação Arena vs Streamlit** comparativa (pra justificar nossa escolha)
+
+---
+
+# 2ª rodada de busca — 28/05/2026 (foco no Capítulo 2)
+
+> Buscas feitas antes de escrever o esboço do Cap 2. **Todos os dados ABNT
+> (autor completo, ano, página) precisam ser confirmados pelo Leonardo ao ler
+> cada trabalho — abaixo está só a trilha pra achar de novo.**
+
+## Tema — PCP / MRP em pequenas empresas de alimentos
+
+- **Implantação de PCP em pequena empresa produtora de doces** (BERALDO, L.) —
+  Academia.edu. **Relevância ALTA** (mesmo ramo: doces). Seções 2.2 / 4.
+  academia.edu/32050261
+- **PCP em empresa alimentícia de pequeno porte** (RODRIGUES *et al.*) — Revista
+  Gestão Industrial, UTFPR. periodicos.utfpr.edu.br/revistagi/article/view/11537
+- **Modelo de melhoria de PCP para PMEs via DMAIC** — Tese USP, 2019.
+  teses.usp.br/teses/disponiveis/3/3136/tde-13092019-083039
+- **Utilização do MRP em empresa de panificação** — Congresso de Eng. de
+  Produção da Região Sul, 2014. ResearchGate 269763023
+- **PCP em indústria de margarinas** — ResearchGate 326434871
+
+## Tema — Curva ABC em indústria de alimentos
+
+- **Aplicação da Curva ABC em indústria de alimentos** — Repositório UFC.
+  repositorio.ufc.br/handle/riufc/79864
+- **Curva ABC em micro empresa do setor alimentício** — ABEPRO/ENEGEP
+  (TN_STP_258_480_35928). abepro.org.br
+- **A Curva ABC na gestão de estoque** — Brazilian Journal of Development, v.7,
+  n.5, 2021. ojs.brazilianjournals.com.br
+
+## Tema — Isolation Forest / ML em indústria
+
+- **Isolation Forests and Deep Autoencoders for Industrial Screw Tightening
+  Anomaly Detection** — MDPI *Computers*, v.11, n.4, 2022. mdpi.com/2073-431X/11/4/54
+- **Extending Isolation Forest for Anomaly Detection in Big Data via K-Means** —
+  arXiv 2104.13190
+- (clássico já mapeado) **LIU, TING, ZHOU (2008)** — Isolation Forest, ICDM.
+
+## Tema — LLM / agentes em manufatura
+
+- **Leveraging large language models in next generation intelligent
+  manufacturing: retrospect and prospect** — ScienceDirect, 2025
+  (S0278612525001943).
+- **A survey of emerging applications of LLMs for problems in mechanics, product
+  design, and manufacturing** — ScienceDirect (S1474034624007171).
+- Survey de LLM + Indústria 5.0 — 197 papers 2020–2025 (localizar referência exata).
+- (clássico já mapeado) **BROWN et al. (2020)** — Few-Shot Learners, NeurIPS.
+
+## Ainda pendente (não bloqueia o esboço, fecha depois)
+
+- [ ] CAPES Catálogo + BDTD: confirmar dissertações com autor/ano/página.
+- [ ] Estatística SEBRAE/IBGE de MPI alimentícias (mais pro Cap 1).
+- [ ] arXiv 2505.16120 — baixar e extrair bibliografia.
+- [ ] Confirmar edições dos clássicos na biblioteca UFCG.
+- [ ] Declaração de uso de IA conforme norma da UFCG (verificar com orientador).
