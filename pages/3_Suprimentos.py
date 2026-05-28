@@ -44,6 +44,12 @@ from cached_db import (
     listar_produtos_possiveis,
     invalidar_suprimentos,
 )
+# Escrita direta no banco (sem cache) pro import do SIGE — invalidamos o cache
+# logo após. database é puro; importável sem efeito colateral.
+import database as _db_raw
+from importar_csv_sigee import (
+    filtrar_materias_primas, processar_export, MATCHES_CONFIRMADOS,
+)
 
 st.set_page_config(
     page_title="Suprimentos • Doces Vó Nena",
@@ -91,11 +97,12 @@ st.divider()
 
 
 # ── Abas ──────────────────────────────────────────────────────────────────────
-aba_insumos, aba_bom, aba_movs, aba_necessidades = st.tabs([
+aba_insumos, aba_bom, aba_movs, aba_necessidades, aba_importar = st.tabs([
     " Insumos",
     " Receitas (BOM)",
     "↕️ Movimentações",
     " Necessidades do dia",
+    "Importar do SIGE",
 ])
 
 
@@ -613,7 +620,102 @@ with aba_necessidades:
 
     st.divider()
     st.caption(
-        " **Próximo passo (Etapa E — 22-29/05):** quando você salvar uma folha de "
-        "produção, o sistema vai dar **baixa automática** nos insumos consumidos. "
-        "Por enquanto, registre saídas manualmente na aba ↕️ Movimentações."
+        "A **baixa automática** de insumos (Etapa E) já está ativa: ao salvar uma "
+        "folha de produção no Lançamento, o sistema mostra o preview do consumo e "
+        "desconta do estoque. As saídas aparecem na aba ↕️ Movimentações com origem "
+        "`producao_auto`."
     )
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ABA 5 — IMPORTAR DO SIGE (upload de planilha exportada)
+# ════════════════════════════════════════════════════════════════════════════
+with aba_importar:
+    st.subheader("Importar cadastro do SIGE Cloud")
+    st.caption(
+        "Suba a planilha de **Matérias-Primas** exportada do SIGE Cloud "
+        "(Estoque → Produtos → Mais Ações → Importar/Exportar). O sistema casa "
+        "cada produto com os insumos do PCP e atualiza **custo** e **fornecedor**. "
+        "Funciona sem precisar de API — é o caminho independente de credenciais."
+    )
+
+    n_matches = sum(1 for v in MATCHES_CONFIRMADOS.values() if v)
+    st.info(
+        f"Hoje há **{n_matches} de {len(MATCHES_CONFIRMADOS)}** insumos com "
+        "correspondência confirmada no SIGE. Os demais aguardam a Suprimentos "
+        "decidir o produto certo (ver `suprimentos_sigee/01_matches_para_mariana.md`)."
+    )
+
+    arquivo = st.file_uploader(
+        "Arquivo do SIGE (.xlsx ou .csv)",
+        type=["xlsx", "csv"],
+        key="sige_upload",
+        help="Export de Matérias-Primas do SIGE Cloud.",
+    )
+
+    if arquivo is not None:
+        # Lê o arquivo conforme a extensão.
+        try:
+            if arquivo.name.lower().endswith(".csv"):
+                df_raw = pd.read_csv(arquivo)
+            else:
+                df_raw = pd.read_excel(arquivo)
+        except Exception as e:
+            st.error(f"Não consegui ler o arquivo: {type(e).__name__}: {e}")
+            df_raw = None
+
+        if df_raw is not None:
+            df_filt = filtrar_materias_primas(df_raw)
+            st.caption(
+                f"{len(df_raw)} linhas no arquivo · {len(df_filt)} matérias-primas "
+                "ativas após filtro."
+            )
+
+            # Preview (dry-run) — não escreve nada.
+            stats_prev, detalhes = processar_export(df_filt, _db_raw, dry_run=True)
+
+            casados = [d for d in detalhes if d["status"] in ("would_update", "updated", "no_change")]
+            nao_achados = [d for d in detalhes if d["status"] == "not_found_in_sigee"]
+
+            if casados:
+                st.markdown("##### Prévia — insumos que vão ser atualizados")
+                df_prev = pd.DataFrame([{
+                    "Insumo (PCP)": d["codigo_nosso"],
+                    "Produto (SIGE)": (d["nome_sigee"] or "")[:45],
+                    "Custo (R$)": f"{d['custo']:.2f}" if d.get("custo") is not None else "—",
+                    "Fornecedor": (d.get("fornecedor") or "—")[:30],
+                } for d in casados])
+                st.dataframe(df_prev, width="stretch", hide_index=True)
+
+            if nao_achados:
+                with st.expander(f"{len(nao_achados)} match(es) definido(s) mas não encontrado(s) no arquivo"):
+                    for d in nao_achados:
+                        st.markdown(f"- **{d['codigo_nosso']}** → procurava `{d['nome_sigee']}`")
+
+            cprev1, cprev2, cprev3 = st.columns(3)
+            cprev1.metric("Vão atualizar", stats_prev.get("would_update", 0))
+            cprev2.metric("Sem mudança", stats_prev.get("no_change", 0))
+            cprev3.metric("Sem match definido", stats_prev.get("not_found_no_match", 0))
+
+            st.divider()
+            if st.button("Aplicar import no banco", type="primary", key="sige_aplicar"):
+                try:
+                    stats, _ = processar_export(df_filt, _db_raw, dry_run=False)
+                    invalidar_suprimentos()
+                    st.success(
+                        f"Import aplicado: {stats.get('updated', 0)} insumos atualizados "
+                        f"· {stats.get('no_change', 0)} sem mudança "
+                        f"· {len(stats.get('errors', []))} erros."
+                    )
+                    if stats.get("errors"):
+                        st.warning("Erros:\n" + "\n".join(f"- {e}" for e in stats["errors"]))
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Falha no import: {type(e).__name__}: {e}")
+                    st.exception(e)
+    else:
+        st.caption(
+            "Quando a API do SIGE estiver liberada (credenciais com a Suprimentos), "
+            "este mesmo casamento de produtos vira um botão **Sincronizar agora** — "
+            "sem upload manual. Ver `suprimentos_sigee/03_solicitar_credenciais_api.md`."
+        )

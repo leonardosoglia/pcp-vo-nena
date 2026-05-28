@@ -110,19 +110,77 @@ COL_ESTOQUE_ATUAL = 'EstoqueAtual'  # Pode não existir — verificar
 # ════════════════════════════════════════════════════════════════════════════
 # FUNÇÕES
 # ════════════════════════════════════════════════════════════════════════════
-def carregar_export_sigee(caminho: str) -> pd.DataFrame:
-    """Lê o Excel exportado do Sigee, filtra só matérias-primas ativas."""
-    if not Path(caminho).exists():
-        raise FileNotFoundError(f"Arquivo não encontrado: {caminho}")
-    df = pd.read_excel(caminho)
-    print(f"  → {len(df)} linhas lidas")
-    # Filtra
+def filtrar_materias_primas(df: pd.DataFrame) -> pd.DataFrame:
+    """Filtra um DataFrame de export do Sigee pra só matérias-primas ativas.
+    Pura — sem I/O nem print. Usada pelo CLI e pela UI (upload)."""
     if COL_GENERO in df.columns:
         df = df[df[COL_GENERO].astype(str).str.contains('Matéria-Prima', na=False)]
     if COL_INATIVO in df.columns:
         df = df[df[COL_INATIVO].astype(str).str.upper() == 'NÃO']
+    return df
+
+
+def carregar_export_sigee(caminho: str) -> pd.DataFrame:
+    """Lê o Excel exportado do Sigee de um caminho, filtra só matérias-primas ativas.
+    Wrapper de I/O usado pelo CLI."""
+    if not Path(caminho).exists():
+        raise FileNotFoundError(f"Arquivo não encontrado: {caminho}")
+    df = pd.read_excel(caminho)
+    print(f"  → {len(df)} linhas lidas")
+    df = filtrar_materias_primas(df)
     print(f"  → {len(df)} matérias-primas ativas após filtro")
     return df
+
+
+def processar_export(df: pd.DataFrame, db, dry_run: bool = False,
+                     matches: dict | None = None) -> tuple[dict, list[dict]]:
+    """Aplica os matches sobre um DataFrame JÁ FILTRADO (matérias-primas ativas).
+
+    Núcleo reutilizável — não imprime nem lê arquivo. Tanto o CLI quanto a UI
+    (upload de CSV/Excel na página Suprimentos) chamam esta função.
+
+    Retorna (stats, detalhes):
+        stats: contadores por status.
+        detalhes: lista [{codigo_nosso, status, custo, fornecedor, nome_sigee}]
+                  pra UI montar tabela de preview/resultado.
+    """
+    matches = matches or MATCHES_CONFIRMADOS
+    stats = {'updated': 0, 'would_update': 0, 'not_found_no_match': 0,
+             'not_found_in_sigee': 0, 'no_change': 0, 'errors': []}
+    detalhes: list[dict] = []
+
+    for codigo_nosso, nome_sigee in matches.items():
+        if nome_sigee is None:
+            stats['not_found_no_match'] += 1
+            continue
+
+        dados = buscar_produto_no_sigee(df, nome_sigee)
+        if dados is None:
+            stats['not_found_in_sigee'] += 1
+            detalhes.append({
+                'codigo_nosso': codigo_nosso, 'status': 'not_found_in_sigee',
+                'nome_sigee': nome_sigee, 'custo': None, 'fornecedor': None,
+            })
+            continue
+
+        try:
+            status, payload = atualizar_insumo_no_banco(db, codigo_nosso, dados, dry_run)
+            stats[status] = stats.get(status, 0) + 1
+            detalhes.append({
+                'codigo_nosso': codigo_nosso, 'status': status,
+                'nome_sigee': dados.get('nome_sigee'),
+                'custo': (payload or {}).get('custo_unitario'),
+                'fornecedor': (payload or {}).get('fornecedor'),
+            })
+        except Exception as e:
+            stats['errors'].append(f"{codigo_nosso}: {e}")
+            detalhes.append({
+                'codigo_nosso': codigo_nosso, 'status': 'error',
+                'nome_sigee': nome_sigee, 'custo': None, 'fornecedor': None,
+                'erro': str(e),
+            })
+
+    return stats, detalhes
 
 
 def buscar_produto_no_sigee(df: pd.DataFrame, nome_esperado: str) -> dict | None:
@@ -226,32 +284,18 @@ def main():
     db.init_db()
     print(f"  → conectado")
 
-    # 3. Aplica matches
+    # 3. Aplica matches (núcleo compartilhado com a UI)
     print(f"\n3) Aplicando matches ({sum(1 for v in MATCHES_CONFIRMADOS.values() if v)} confirmados de {len(MATCHES_CONFIRMADOS)})")
-    stats = {'updated': 0, 'would_update': 0, 'not_found_no_match': 0,
-             'not_found_in_sigee': 0, 'no_change': 0, 'errors': []}
-
-    for codigo_nosso, nome_sigee in MATCHES_CONFIRMADOS.items():
-        if nome_sigee is None:
-            stats['not_found_no_match'] += 1
-            continue
-
-        dados = buscar_produto_no_sigee(df, nome_sigee)
-        if dados is None:
-            stats['not_found_in_sigee'] += 1
-            print(f"  ⚠ {codigo_nosso}: '{nome_sigee}' não achado no export")
-            continue
-
-        try:
-            status, payload = atualizar_insumo_no_banco(db, codigo_nosso, dados, args.dry_run)
-            stats[status] = stats.get(status, 0) + 1
-            if status in ('updated', 'would_update'):
-                preco = payload.get('custo_unitario', '—')
-                forn = payload.get('fornecedor', '—')[:30]
-                print(f"  ✓ {codigo_nosso}: R$ {preco} · {forn}")
-        except Exception as e:
-            stats['errors'].append(f"{codigo_nosso}: {e}")
-            print(f"  ❌ {codigo_nosso}: {e}")
+    stats, detalhes = processar_export(df, db, dry_run=args.dry_run)
+    for d in detalhes:
+        if d['status'] in ('updated', 'would_update'):
+            preco = d.get('custo') if d.get('custo') is not None else '—'
+            forn = (d.get('fornecedor') or '—')[:30]
+            print(f"  ✓ {d['codigo_nosso']}: R$ {preco} · {forn}")
+        elif d['status'] == 'not_found_in_sigee':
+            print(f"  ⚠ {d['codigo_nosso']}: '{d['nome_sigee']}' não achado no export")
+        elif d['status'] == 'error':
+            print(f"  ❌ {d['codigo_nosso']}: {d.get('erro')}")
 
     # 4. Relatório final
     print(f"\n=== RESUMO ===")
