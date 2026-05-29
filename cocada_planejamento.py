@@ -266,13 +266,20 @@ def sugerir_cocada(
             sobra_restante = max(0, sb - band_usada_260)
             pote_605g_da_sobra[s] = min(sobra_restante * POTES_605G_POR_BAND, gap_605)
 
-    # 6. Potes de alvo (mesma lógica da v2) + soma com sobra
+    # 6. Potes de alvo — completa só o gap REMANESCENTE após a sobra do tacho.
+    # A sobra do tacho parcial é subproduto "de graça" (já saiu da massa do dia),
+    # então abate o gap (alvo − estoque) PRIMEIRO; a produção dedicada cobre só o
+    # que faltar. Antes (bug pré-28/05) alvo e sobra usavam o mesmo gap de forma
+    # independente e o total (alvo + sobra) estourava o alvo — superprodução de
+    # pote. Agora pote_da_sobra + pote_alvo×horizonte ≤ gap, por construção.
     pote_260g_alvo, pote_605g_alvo = {}, {}
     for s in SABORES:
-        need260 = max(0, alvo_pote_260g.get(s, 0) - estoque_pote_260g.get(s, 0))
-        pote_260g_alvo[s] = math.ceil(need260 / horizonte_producao) if need260 > 0 else 0
-        need605 = max(0, alvo_pote_605g.get(s, 0) - estoque_pote_605g.get(s, 0))
-        pote_605g_alvo[s] = math.ceil(need605 / horizonte_producao) if need605 > 0 else 0
+        gap260 = max(0, alvo_pote_260g.get(s, 0) - estoque_pote_260g.get(s, 0))
+        rem260 = max(0, gap260 - pote_260g_da_sobra[s])
+        pote_260g_alvo[s] = math.ceil(rem260 / horizonte_producao) if rem260 > 0 else 0
+        gap605 = max(0, alvo_pote_605g.get(s, 0) - estoque_pote_605g.get(s, 0))
+        rem605 = max(0, gap605 - pote_605g_da_sobra[s])
+        pote_605g_alvo[s] = math.ceil(rem605 / horizonte_producao) if rem605 > 0 else 0
 
     pote_260g_total = {s: pote_260g_alvo[s] + pote_260g_da_sobra[s] for s in SABORES}
     pote_605g_total = {s: pote_605g_alvo[s] + pote_605g_da_sobra[s] for s in SABORES}
