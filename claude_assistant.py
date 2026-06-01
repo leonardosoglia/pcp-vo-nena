@@ -653,6 +653,42 @@ def perguntar_com_tools(
 # ════════════════════════════════════════════════════════════════════════════
 # SUGESTÕES CONTEXTUAIS — perguntas baseadas no estado da folha
 # ════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════════
+# BRIEFING PROATIVO DO DIA — a IA observa e avisa SEM ninguém perguntar
+# ════════════════════════════════════════════════════════════════════════════
+BRIEFING_PROMPT = (
+    "Gere o BRIEFING PROATIVO do dia para a Gestão — ninguém perguntou nada; "
+    "você é os olhos da fábrica neste dia.\n\n"
+    "1. Use as FERRAMENTAS pra observar o dia de verdade: a folha de hoje, a "
+    "comparação com as últimas semanas do mesmo dia, o giro de estoque, as "
+    "necessidades de insumos e os eventos da semana.\n"
+    "2. Entregue CURTO e acionável (máx ~8 linhas), em PT-BR direto, nesta ordem:\n"
+    "   - **Resumo do dia:** o que está sendo produzido/cortado, em 1 frase.\n"
+    "   - **Alertas:** estoque encalhando, produto saindo rápido demais, parâmetro "
+    "defasado vs. as últimas semanas, insumo perto de faltar, divergência entre a "
+    "sugestão e o usual. Só o que for REAL — se não houver, diga 'sem alertas hoje'.\n"
+    "   - **Próximos passos:** 1-3 sugestões concretas ('considere X', 'vale conferir Y').\n"
+    "3. Vá ALÉM do óbvio: cruze os dados, antecipe o que a Gestão vai precisar saber. "
+    "Mas seja curto — insight certo, não relatório.\n"
+    "Se a folha do dia não existir, diga isso e faça o briefing do último dia com dados."
+)
+
+
+def gerar_briefing_do_dia(data: str, modelo: str = "claude-sonnet-4-6",
+                          max_tokens: int = 1400) -> dict:
+    """Briefing proativo do dia (resumo + alertas + próximos passos), gerado pela IA
+    SEM o usuário perguntar. Reusa perguntar_com_tools (as 10 ferramentas + a persona
+    'vá sempre além'). Retorna o mesmo dict de perguntar_com_tools — inclusive 'erro'
+    se a ANTHROPIC_API_KEY não estiver configurada."""
+    return perguntar_com_tools(
+        pergunta=BRIEFING_PROMPT,
+        data_referencia=data,
+        modelo=modelo,
+        max_tokens=max_tokens,
+        max_iteracoes=8,
+    )
+
+
 def sugestoes_contextuais(data: str) -> list[str]:
     """Olha a folha do dia e gera 4-6 perguntas relevantes pra mostrar como atalhos.
 

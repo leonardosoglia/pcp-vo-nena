@@ -122,7 +122,7 @@ try:
         perguntar, estimar_custo, usd_para_brl,
         perguntar_streaming, sugestoes_contextuais,
         expandir_slash_command, SLASH_COMMANDS,
-        perguntar_com_tools,
+        perguntar_com_tools, gerar_briefing_do_dia,
     )
 except ImportError as e:
     st.markdown(
@@ -182,6 +182,28 @@ with col_modelo:
         ),
     )
 
+
+# Briefing proativo do dia — a IA observa e te avisa SEM você perguntar
+st.markdown("##### Briefing do dia (a IA observa e avisa, sem você perguntar)")
+if st.button("Gerar briefing do dia", type="primary",
+             help="A IA cruza a folha do dia + giro + insumos + eventos e devolve um resumo com alertas e próximos passos."):
+    with st.spinner("A IA está observando o dia..."):
+        try:
+            _brief = gerar_briefing_do_dia(data_ref, modelo=modelo)
+        except Exception as _e:
+            _brief = {"erro": str(_e)}
+    if _brief.get("erro"):
+        st.error(f"Não consegui gerar o briefing: {_brief['erro']}")
+    else:
+        st.markdown(_brief.get("resposta", "") or "_(sem resposta)_")
+        try:
+            _c = usd_para_brl(estimar_custo(_brief.get("tokens_input", 0),
+                                            _brief.get("tokens_output", 0), modelo))
+            st.caption(f"Briefing gerado · {_brief.get('iteracoes', 0)} passos · ~R${_c:.2f}")
+        except Exception:
+            pass
+
+st.divider()
 
 # Sugestões contextuais (perguntas baseadas no estado da folha selecionada)
 sugestoes = sugestoes_contextuais(data_ref)
