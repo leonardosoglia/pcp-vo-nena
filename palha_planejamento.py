@@ -31,6 +31,10 @@ THRESHOLD_PET_CONSERVADOR = 0.81
 # Origem: folha de 27/05/2026 — T 50g líquido = 644 - 588 = 56 und. A Gestão
 # decidiu 0 bandejas (round normal teria arredondado 0.70 → 1).
 PISO_LIQUIDO_50G_CONSERVADOR = 60
+# CH 50g tem piso MENOR (50): se a necessidade líquida der entre 50 e 79 unidades,
+# corta 1 bandeja (em vez de 0). Determinado na folha de produção de 01/06/2026.
+PISO_LIQUIDO_50G_CH = 50
+PISO_50G_POR_SABOR = {"T": PISO_LIQUIDO_50G_CONSERVADOR, "L": PISO_LIQUIDO_50G_CONSERVADOR, "CH": PISO_LIQUIDO_50G_CH}
 
 
 def _arredondar_50g_conservador(liquido_unidades: float, rendimento: int,
@@ -132,7 +136,9 @@ def sugerir_palha(
     liquido_50g = {s: max(0, unidades_50g_necessarias[s] - estoque_50g.get(s, 0)) for s in SABORES_50G}
     if usar_50g_piso:
         corte_50g = {
-            s: _arredondar_50g_conservador(liquido_50g[s], rend_50g)
+            s: _arredondar_50g_conservador(
+                liquido_50g[s], rend_50g,
+                piso=PISO_50G_POR_SABOR.get(s, PISO_LIQUIDO_50G_CONSERVADOR))
             for s in SABORES_50G
         }
     else:
