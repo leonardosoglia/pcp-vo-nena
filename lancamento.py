@@ -464,6 +464,39 @@ with st.form("folha_completa", border=False):
             obs_gil_v = ""
             obs_leonilia_v = ""
 
+        with st.expander("Observações do dia & Equipe (quem fez o quê)", expanded=False):
+            st.caption(
+                "Observações do dia (o que aconteceu) e quantas pessoas atuaram em cada "
+                "área/atividade. Ajuda a entender, dia a dia, o manejo da equipe na fábrica."
+            )
+            observacao_dia = st.text_area(
+                "Observações do dia",
+                value=pbd_atual.get("observacao_dia", "") or "",
+                height=120, key=f"observacao_dia_{data_str}",
+                placeholder="Ex: faltaram 2 da embalagem; Produção adiantou a cocada de sexta; máquina parou ~1h.",
+            )
+            st.markdown("**Pessoas por área no dia**")
+            AREAS_PESSOAS = [
+                ("pes_producao", "Produção"),
+                ("pes_corte_band", "Corte de bandeja"),
+                ("pes_maq_emb", "Máquina de embalagem"),
+                ("pes_embalagem", "Embalagem"),
+                ("pes_palha", "Produção/corte de palha"),
+                ("pes_pm", "Pão de mel"),
+                ("pes_bala", "Bala de doce de leite"),
+                ("pes_cocada_assada", "Cocada assada"),
+                ("pes_virada", "Virada"),
+            ]
+            pessoas_v = {}
+            _cols_pes = st.columns(3)
+            for _i, (_k, _lbl) in enumerate(AREAS_PESSOAS):
+                with _cols_pes[_i % 3]:
+                    pessoas_v[_k] = st.number_input(
+                        _lbl, min_value=0, step=1,
+                        value=int(pbd_atual.get(_k) or 0),
+                        key=f"{_k}_{data_str}",
+                    )
+
         # ── Bala de Doce de Leite (papelzinho separado do Joel) ──────────────────
         with st.expander("Bala de Doce de Leite — papelzinho do Joel", expanded=False):
             st.caption(
@@ -1200,6 +1233,16 @@ if salvar_clicked:
             "pm_inacabado_und": int(pm_inacabado or 0),
             "pm_bolos": int(pm_bolos or 0),
             "cocada_assada_und": int(cocada_assada or 0),
+            "observacao_dia": observacao_dia or "",
+            "pes_producao": int(pessoas_v.get("pes_producao") or 0),
+            "pes_corte_band": int(pessoas_v.get("pes_corte_band") or 0),
+            "pes_maq_emb": int(pessoas_v.get("pes_maq_emb") or 0),
+            "pes_embalagem": int(pessoas_v.get("pes_embalagem") or 0),
+            "pes_palha": int(pessoas_v.get("pes_palha") or 0),
+            "pes_pm": int(pessoas_v.get("pes_pm") or 0),
+            "pes_bala": int(pessoas_v.get("pes_bala") or 0),
+            "pes_cocada_assada": int(pessoas_v.get("pes_cocada_assada") or 0),
+            "pes_virada": int(pessoas_v.get("pes_virada") or 0),
         }
 
         salvar_folha_completa(

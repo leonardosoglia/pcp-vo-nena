@@ -634,6 +634,19 @@ def _ensure_v2_schema(c):
     if "cocada_assada_und" not in cols_pbd:
         c.execute("ALTER TABLE folha_pm_balas_doces ADD COLUMN cocada_assada_und INTEGER DEFAULT 0")
 
+    # Migração suave: PESSOAS POR ÁREA + OBSERVAÇÃO DO DIA (feature 01/06/2026).
+    # Contagem de quantas pessoas atuaram em cada área/atividade no dia (entender o
+    # manejo de pessoal) + um campo livre de observações do dia — distinto de "obs"
+    # (que são as Orientações da Gestão p/ a equipe). Tudo a nível de DATA.
+    for _col_pes in (
+        "pes_producao", "pes_corte_band", "pes_maq_emb", "pes_embalagem",
+        "pes_palha", "pes_pm", "pes_bala", "pes_cocada_assada", "pes_virada",
+    ):
+        if _col_pes not in cols_pbd:
+            c.execute(f"ALTER TABLE folha_pm_balas_doces ADD COLUMN {_col_pes} INTEGER DEFAULT 0")
+    if "observacao_dia" not in cols_pbd:
+        c.execute("ALTER TABLE folha_pm_balas_doces ADD COLUMN observacao_dia TEXT DEFAULT ''")
+
     # ── Tabelas de referência (parâmetros) ─────────────────────────────────────
     c.execute("""
         CREATE TABLE IF NOT EXISTS metas_45g (
