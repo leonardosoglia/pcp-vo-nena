@@ -124,6 +124,21 @@ st.divider()
 # ════════════════════════════════════════════════════════════════════════════
 # Inputs — estoque do dia
 # ════════════════════════════════════════════════════════════════════════════
+st.header("Somatório de displays da semana")
+st.caption(
+    "Quanto deu o somatório de displays previstos pra semana — **você decide o número** "
+    "(ex.: 136 contando a partir de terça, 168 a semana toda, ou outro conforme a semana). "
+    "O cálculo da palha usa este valor: (somatório − displays em estoque) × composição do display."
+)
+_col_sem, _ = st.columns([1, 3])
+ideal_displays_semana = _col_sem.number_input(
+    "Somatório de displays da semana",
+    min_value=0, value=136, step=1,
+    key=f"ideal_disp_{ks}",
+    help="Ex.: 136 (ter–sex) · 168 (seg–sex) · ou o que a semana pedir. × composição (T=4) → unidades de T.",
+)
+st.divider()
+
 st.header("Estoque do dia")
 
 st.info(
@@ -144,11 +159,12 @@ estoque_displays = col_d.number_input(
 )
 with st.expander("Por que esse input é tão crítico?", expanded=False):
     st.markdown(
-        "**A semana tem ideal de 168 displays.** Se já tem 35 prontos, faltam 133 → "
-        "se não tem nenhum, faltam 168 → o sistema sugere ~25% mais corte. "
-        "**Validação 24/05:** rodando contra 3 semanas (04/05, 11/05, 18/05) — com o valor "
-        "certo de displays, o sistema reproduz a decisão real da Gestão dentro de ~5%. Sem esse "
-        "input, o erro pode chegar a +25%. **Médio prazo:** vira coluna na folha do dia."
+        "**O ideal de displays da semana é o número que você definiu no campo acima** "
+        "(ex.: 136 a partir de terça, 168 a semana toda). O sistema desconta os displays já "
+        "prontos em estoque: quanto mais prontos, menos corte ele sugere. **Validação 24/05:** "
+        "rodando contra 3 semanas (04/05, 11/05, 18/05) — com o valor certo de displays em "
+        "estoque, o sistema reproduz a decisão real da Gestão dentro de ~5%. **Médio prazo:** "
+        "vira coluna na folha do dia."
     )
 
 st.markdown("**Palha 50g pronta em estoque** (só T, L, CH têm 50g):")
@@ -189,6 +205,7 @@ r = sugerir_palha(
     estoque_50g=estoque_50g,
     estoque_pet=estoque_pet,
     estoque_bandejas=estoque_bandejas,
+    ideal_displays_semana=ideal_displays_semana,
     regra_arredondamento='round',
 )
 r_conserv = sugerir_palha(
@@ -196,6 +213,7 @@ r_conserv = sugerir_palha(
     estoque_50g=estoque_50g,
     estoque_pet=estoque_pet,
     estoque_bandejas=estoque_bandejas,
+    ideal_displays_semana=ideal_displays_semana,
     regra_arredondamento='conservador',
 )
 

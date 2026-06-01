@@ -54,7 +54,10 @@ SABORES = ["T", "L", "CH", "CK", "LIM"]
 SABORES_50G = ["T", "L", "CH"]  # palha 50g só existe em T, L, CH
 
 # Defaults — confirmados pelo Leonardo (caderno + conversa 22-23/05/2026)
-IDEAL_DISPLAYS_POR_DIA = {"seg": 32, "ter": 36, "qua": 32, "qui": 32, "sex": 36}  # soma = 168
+# Displays de palha 50g entram no plano semanal A PARTIR DE TERÇA (correção do
+# Leonardo, 01/06/2026 — segunda NÃO conta no somatório). Soma = 136 (ter+qua+qui+sex);
+# × composição do display (T=4) → 544 unidades de T.
+IDEAL_DISPLAYS_POR_DIA = {"seg": 0, "ter": 36, "qua": 32, "qui": 32, "sex": 36}  # soma = 136
 IDEAL_PET_POR_DIA_SABOR = {"T": 170, "L": 170, "CH": 70, "CK": 60, "LIM": 70}      # cada ter e cada sex
 ALVO_BANDEJAS = {"T": 18, "L": 18, "CH": 9, "CK": 4, "LIM": 5}                     # buffer-alvo
 COMPOSICAO_DISPLAY = {"T": 4, "L": 4, "CH": 2}                                     # 1 display = 4T + 4L + 2CH
@@ -84,7 +87,7 @@ def sugerir_palha(
       estoque_bandejas : dict por sabor — bandejas de palha em estoque
 
     Defaults (constantes — alteráveis):
-      ideal_displays_semana : int (default 168)
+      ideal_displays_semana : int (default 136 — só ter–sex; segunda não conta)
       ideal_pet_semana      : dict por sabor (default = IDEAL_PET_POR_DIA_SABOR × 2, ter + sex)
       alvo_bandejas         : dict por sabor
       composicao_display    : dict {"T":4,"L":4,"CH":2}
@@ -192,7 +195,8 @@ ESPERADO_18_05 = {
 
 
 if __name__ == "__main__":
-    r = sugerir_palha(**EXEMPLO_VALIDACAO_18_05)
+    # 18/05 usou a semana TODA (168). Agora o somatório é parâmetro/input — passa explícito.
+    r = sugerir_palha(**EXEMPLO_VALIDACAO_18_05, ideal_displays_semana=168)
     print("=== Validação 18/05/2026 ===")
     print("Corte total sistema:  ", r["corte_total"])
     print("Corte total Gestão:   ", ESPERADO_18_05["corte_total"])
