@@ -1,120 +1,129 @@
 # 3 ATIVIDADES DESENVOLVIDAS
 
-> Estrutura cronológica. Conteúdo a ser detalhado na semana 03–09/06.
-> Vai ser o capítulo MAIS LONGO do relatório (~10-15 páginas).
+> Foco operacional — a rotina diária de PCP que executo. Primeira pessoa.
 
 ---
 
-## 3.1 Visão geral do período
+Minha atuação no estágio concentrou-se na operação do ciclo diário de
+Planejamento e Controle da Produção (PCP) da Doces Vó Nena. Na prática, isso
+significa duas coisas encadeadas: todo dia eu levanto **o que a empresa tem
+em estoque** de produto acabado e, a partir desse retrato, apoio a definição
+das **ordens do dia** — produção, corte de bandejas e embalagem. Descrevo a
+seguir essa rotina, do início da manhã ao fechamento do planejamento do dia.
 
-`<<PREENCHER datas exatas — quando começou, quando terminou>>`
+## 3.1 A rotina diária de PCP — visão geral
 
-O estágio foi conduzido em fases iterativas. Apresento abaixo cada fase,
-suas datas aproximadas, atividades principais e marcos alcançados.
+A rotina segue uma sequência fixa, ditada pelo ritmo da fábrica:
 
-## 3.2 Fase 1 — Imersão e levantamento de processos
+| Horário | Atividade | Responsável |
+|---|---|---|
+| ~7h | Início da equipe e da produção (tachos) | Produção |
+| 7h–10h | Contagem física do estoque de produto acabado | Estagiário (eu) |
+| ~10h | Consolidação da folha de produção do dia | Eu, com a Gestão |
+| ~10h | Definição das ordens do dia (produção, corte, embalagem) | Gestão, com meu apoio |
+| ao longo do dia | Execução do corte e da embalagem; acompanhamento | Corte e Embalagem |
 
-**Período:** `<<DATAS>>`
-**Carga horária aprox.:** `<<X horas>>`
+Minha responsabilidade central é transformar a contagem da manhã em
+informação organizada que sustenta as decisões da Gestão. Sem saber o que já
+existe em estoque, não é possível dimensionar quanto produzir, cortar ou
+embalar — por isso a contagem é o ponto de partida de todo o planejamento.
 
-### Atividades realizadas
-- Apresentação aos departamentos da empresa
-- Observação do cotidiano de cada departamento (Gestão, Produção, Corte, Embalagem, Suprimentos)
-- Acompanhamento do ciclo completo de produção (tacho → viração → corte → embalagem → venda)
-- Análise de documentos físicos (folhas de produção arquivadas)
-- Entrevistas semi-estruturadas com a Gestão
-- Aplicação de questionário estruturado (Anexo `<<X>>`)
+## 3.2 Levantamento diário do estoque de produto acabado
 
-### Marcos
-- Documento `01_pcp_inicial.docx` preenchido com respostas da Gestão
-- Cronologia operacional do dia mapeada (contagem 7h-10h, ordens ~10h, etc.)
+A primeira atividade do dia, entre aproximadamente 7h e 10h, é a contagem
+física do que temos pronto. Percorro o estoque e registro, por **sabor e
+formato**:
 
-## 3.3 Fase 2 — Modelagem e prototipagem
+- **Cocada** — seis sabores (Tradicional, Leite Condensado, Brigadeiro, Café,
+  Pé de Moça e Zero) em cada formato: 45 g, Mini, Pet e potes (260 g e 605 g);
+- **Palha** — cinco sabores (Tradicional, Leite em Pó, Churros, Cookies e
+  Limão) em barra de 50 g e Pet;
+- **Pão de mel** — contado em displays;
+- **Bala de doce de leite** — contada em unidades.
 
-**Período:** `<<DATAS>>`
+Essa contagem responde à pergunta que abre todo o planejamento: *o que já
+temos?* É a fotografia do estoque no início do dia.
 
-### Atividades realizadas
-- Modelagem conceitual do banco de dados (esquema v1)
-- Construção do protótipo inicial em Streamlit
-- Primeira validação visual com a Gestão
-- Refinamento do schema (v2) após primeiras observações
+`<<preencher: detalhe pessoal — como faço a contagem na prática (no celular,
+em planilha, direto no sistema), tempo médio, e dificuldades, como produto
+espalhado por mais de um local de armazenagem>>`
 
-### Marcos
-- Schema do banco com 13 tabelas principais
-- Protótipo funcional do formulário de lançamento
-- Aprovação da Gestão sobre fidelidade ao papel
+## 3.3 Consolidação da folha de produção do dia
 
-## 3.4 Fase 3 — Desenvolvimento e implantação
+Com a contagem em mãos, consolido a **folha de produção do dia** — o
+documento central do PCP da empresa. Nela reúno três fontes:
 
-**Período:** `<<DATAS>>`
+1. os estoques que contei (produto embalado e pronto para venda);
+2. a contagem da Produção, registrada no documento auxiliar conhecido como
+   "Papelzinho do Joel" (tachos do dia, bandejas viradas e o que está pronto
+   para corte);
+3. os parâmetros de referência por sabor e por dia da semana.
 
-### 3.4.1 Camada 0 — Digitalização
-- Implementação completa do formulário de lançamento
-- Sistema de salvamento atômico (4 tabelas em 1 transação)
-- Página de painel com visualização da folha do dia
+A partir desses dados, a folha calcula os valores derivados que antes eram
+feitos de cabeça ou no papel: quanto já foi cortado, quanto sobrou para virar
+e quanto ainda falta produzir. Esse fechamento, por volta das 10h, deixa o
+quadro do dia pronto para a tomada de decisão.
 
-### 3.4.2 Camada 1 — Visualização e análise
-- Curva ABC de sabores (com correção de princípio Estoque vs Fluxo)
-- Detecção de anomalias por Isolation Forest
-- Média móvel para calibração de metas
-- Página de Insights com 6 achados automáticos
+## 3.4 Apoio à definição das ordens de produção
 
-### 3.4.3 Camada 2 — Sugestão automática
-- Algoritmo de sugestão semanal para palha (calibrado contra decisões reais)
-- Algoritmo de sugestão diária para cocada com capacidade priorizada
-- Painel histórico complementar à sugestão automática
+Com a folha consolidada, apoio a Gestão na definição de **quanto produzir** de
+cada sabor. A decisão pondera quatro fatores:
 
-### 3.4.4 Camada 3 — Apoio cognitivo (LLM)
-- Integração com Claude API (Anthropic)
-- Streaming, sugestões contextuais, slash commands
-- Tool use — consulta direta ao banco via funções
-- Seletor de modelo (Haiku/Sonnet/Opus)
+- o **estoque atual** (o que já temos);
+- o **parâmetro do dia** (a meta de unidades por sabor, que varia conforme o
+  dia da semana);
+- **pedidos antecipados** e sazonalidade;
+- o **lead time** — a cocada leva cerca de três dias entre o tacho e o corte,
+  de modo que a produção de hoje atende à demanda de dois a três dias à frente.
 
-### Marcos
-- Sistema em produção em Hugging Face Spaces
-- Base de dados migrada para Postgres us-east-1
-- 11 páginas funcionais no aplicativo
+As ordens de produção são expressas em **tachos** e **bandejas** (um tacho de
+cocada rende oito bandejas; a bandeja de 45 g rende cem unidades). Quando uma
+ordem não fecha em tachos inteiros, a sobra é direcionada para potes — uma
+decisão intencional de aproveitamento, não um desperdício.
 
-## 3.5 Fase 4 — Iteração contínua
+## 3.5 Ordens de corte de bandeja
 
-**Período:** `<<DATAS>>`
+Em seguida, defino junto ao Corte **quantas bandejas cortar** de cada sabor e
+em qual formato, seguindo o calendário de corte da empresa:
 
-### Atividades realizadas
-- Reuniões semanais (ou diárias) com a Gestão para feedback
-- Calibração de algoritmos contra folhas reais lançadas no sistema
-- Correção de bugs descobertos pela Gestão durante uso
-- Documentação contínua no CADERNO.md
+- segunda, quarta e quinta — corte de 45 g;
+- terça e sexta — corte de Mini e Pet.
 
-### Marcos
-- Cadastro completo de BOM (Lista de Materiais) - 33 insumos + 91 linhas
-- Auto-baixa de insumos por produção (em desenvolvimento)
-- Etapas do roadmap A-F documentadas
+O corte transforma a bandeja (semiacabado) em produto final. As conversões que
+uso diariamente: um tacho equivale a oito bandejas (a cocada Zero rende três);
+a bandeja de 45 g rende cem unidades; a de Mini, cento e cinquenta; a de Pet,
+trinta. Essas contas, antes feitas manualmente, hoje saem prontas na folha.
 
-## 3.6 Atividades complementares
+## 3.6 Ordens de embalagem
 
-- Documentação técnica (CLAUDE.md, CADERNO.md)
-- Gravação de histórico de sessões de desenvolvimento
-- Levantamento bibliográfico para o TCC
-- Preparação de questionários estruturados para entrevistas
-- Suporte ao uso diário do sistema pela Gestão
+A última etapa do fluxo que acompanho é a **embalagem**, feita em duas fases:
+primeiro o plástico individual e depois a cinta de papel. A capacidade diária é
+variável — depende de quantas pessoas estão na embalagem no dia —, então as
+ordens são priorizadas: o 45 g tem prioridade sobre o Mini. A meta gira em
+torno de `<<preencher: ~3 mil>>` unidades por dia.
 
-## 3.7 Cronograma resumido
+## 3.7 Acompanhamento e controle
 
-| Mês | Atividade principal |
-|---|---|
-| `<<MÊS 1>>` | Imersão + entrevistas iniciais |
-| `<<MÊS 2>>` | Modelagem + protótipo |
-| `<<MÊS 3>>` | Camada 0 + Camada 1 (parcial) |
-| `<<MÊS 4>>` | Camada 1 completa + Camada 2 (parcial) |
-| `<<MÊS 5>>` | Camada 2 completa + início Camada 3 |
-| `<<MÊS 6>>` | Camada 3 + BOM + iteração |
-| `<<MÊS 7>>` | Polimento + redação do relatório |
+Ao longo do dia e da semana, comparo o **planejado com o realizado**: o que foi
+efetivamente cortado e embalado em relação ao que foi pedido, registrando
+observações (faltas, sobras e eventos que alteraram o ritmo, como equipe
+reduzida ou pedido grande). Esse acompanhamento realimenta o planejamento do
+dia seguinte e a calibração dos parâmetros por sabor.
 
----
+## 3.8 Ferramenta de apoio desenvolvida
 
-## Notas pra completar
+Para executar essa rotina, desenvolvi e passei a operar um **sistema digital de
+PCP** que substituiu as folhas de papel. Do ponto de vista da minha rotina, o
+sistema agiliza o registro da contagem matinal, calcula automaticamente os
+derivados (cortados, viradas, pra virar), organiza as ordens do dia e preserva
+o histórico — que antes se perdia no arquivo físico. A descrição técnica e
+conceitual do sistema é objeto do Trabalho de Conclusão de Curso; neste
+relatório ele é tratado como a ferramenta que viabiliza o trabalho diário.
 
-- Preencher TODAS as datas com base no termo de estágio + diário no CADERNO
-- Adicionar fotos (com permissão) de cada fase
-- Capturas de tela do sistema em cada estágio de evolução
-- Validar carga horária semanal vs total declarado no termo
+## 3.9 Atividades complementares
+
+- entrevistas e conversas com a Gestão para entender as regras de negócio e
+  calibrar os parâmetros de produção;
+- levantamento e cadastro das receitas (lista de materiais) e dos insumos;
+- apoio ao uso diário do sistema pela equipe;
+- documentação das rotinas e das decisões tomadas ao longo do estágio.

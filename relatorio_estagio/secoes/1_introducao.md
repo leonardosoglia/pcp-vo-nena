@@ -11,13 +11,14 @@ Universidade Federal de Campina Grande, realizado na empresa Pequenas
 Mordidas Alimentos Eireli — conhecida comercialmente como **Doces Vó
 Nena** —, indústria de alimentos localizada em São Paulo (SP).
 
-O estágio teve como foco principal o desenvolvimento de um sistema digital
-de Planejamento e Controle da Produção (PCP) que substituísse o controle
-manual em folhas de papel utilizado pela empresa até então. Ao longo do
-período, atuei em todas as etapas do ciclo de desenvolvimento — desde o
-levantamento de processos junto aos departamentos de Gestão, Produção,
-Corte, Embalagem e Suprimentos, até a implementação, validação e implantação
-do sistema em ambiente produtivo.
+O estágio teve como foco a atuação no Planejamento e Controle da Produção
+(PCP) diário da empresa e a estruturação desse processo. Na prática, atuei na
+rotina operacional do PCP — o levantamento diário do estoque de produto
+acabado e o apoio à definição das ordens de produção, corte de bandejas e
+embalagem — e, em paralelo, desenvolvi um sistema digital que substituísse o
+controle manual em folhas de papel utilizado pela empresa até então. Para
+isso, foi necessário compreender as rotinas e as restrições dos departamentos
+de Gestão, Produção, Corte, Embalagem e Suprimentos.
 
 ## 1.1 Objetivos do estágio
 
@@ -61,9 +62,9 @@ Este relatório está organizado em cinco seções, além desta introdução.
 A **Seção 2** apresenta a empresa concedente do estágio, descrevendo seu
 setor, porte, produtos, fluxos produtivos e estrutura organizacional.
 
-A **Seção 3** descreve cronologicamente as atividades desenvolvidas durante
-o estágio, organizadas por fase: imersão e levantamento, modelagem e
-prototipagem, desenvolvimento e implantação, e iteração contínua.
+A **Seção 3** descreve a rotina diária de PCP em que atuei — o levantamento do
+estoque de produto acabado, a consolidação da folha de produção do dia e o
+apoio à definição das ordens de produção, corte de bandejas e embalagem.
 
 A **Seção 4** apresenta os resultados obtidos e as contribuições do estágio
 à empresa, incluindo métricas quantitativas (quando disponíveis) e
