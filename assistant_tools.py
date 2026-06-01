@@ -180,6 +180,55 @@ TOOLS = [
             "required": ["data"]
         }
     },
+    {
+        "name": "necessidades_insumos",
+        "description": (
+            "Cruza a folha do dia × receitas (BOM) × estoque de insumos e retorna "
+            "o que vai FALTAR (ou sobrar) pra produzir o que está ordenado no dia. "
+            "Use pra 'quanto de leite/açúcar/coco vou precisar?' ou 'algum insumo "
+            "vai faltar?'. Depende de BOM e insumos cadastrados."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "data": {"type": "string", "description": "YYYY-MM-DD"},
+            },
+            "required": ["data"]
+        }
+    },
+    {
+        "name": "eventos_semana",
+        "description": (
+            "Lista eventos/observações de um período (equipe reduzida, feriado, "
+            "pedido grande, manutenção, observação livre). É o CONTEXTO que a folha "
+            "numérica não mostra mas que muda a decisão da Gestão. Use pra entender "
+            "por que um dia foi atípico ou o que está previsto."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "data_inicio": {"type": "string", "description": "YYYY-MM-DD"},
+                "data_fim": {"type": "string", "description": "YYYY-MM-DD"},
+            },
+            "required": ["data_inicio", "data_fim"]
+        }
+    },
+    {
+        "name": "giro_estoque",
+        "description": (
+            "Tendência do estoque de produto EMBALADO por produto ao longo das "
+            "folhas (proxy de giro SEM dados de venda): subindo = possível PARADO/"
+            "super-produzido; caindo = SAINDO bem. Use pra 'o que está encalhando?' "
+            "ou 'qual sai mais rápido?'. Em fábrica em crescimento, subir é esperado."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "data_inicio": {"type": "string", "description": "YYYY-MM-DD (opcional)"},
+                "data_fim": {"type": "string", "description": "YYYY-MM-DD (opcional)"},
+            },
+        }
+    },
 ]
 
 
@@ -391,6 +440,66 @@ def _tool_calcular_cortados2(data: str) -> dict:
     return {"data": data, "sabores_45g": sabores}
 
 
+def _tool_necessidades_insumos(data: str) -> dict:
+    try:
+        nec = _db().calcular_necessidades_do_dia(data)
+        return {"data": data, "total_insumos": len(nec), "necessidades": nec}
+    except Exception as e:
+        return {"erro": str(e)}
+
+
+def _tool_eventos_semana(data_inicio: str, data_fim: str) -> dict:
+    try:
+        return {"eventos": _db().get_eventos_periodo(data_inicio, data_fim)}
+    except Exception as e:
+        return {"erro": str(e)}
+
+
+def _tool_giro_estoque(data_inicio: str = None, data_fim: str = None) -> dict:
+    from collections import defaultdict
+    try:
+        db = _db()
+        datas = sorted(db.list_datas_folha())
+        if data_inicio:
+            datas = [d for d in datas if d >= data_inicio]
+        if data_fim:
+            datas = [d for d in datas if d <= data_fim]
+        if not datas:
+            return {"erro": "sem folhas no período"}
+        COC = [('emb_45g', '45g'), ('emb_mini', 'Mini'), ('emb_pet', 'Pet'),
+               ('emb_potes_260g', 'P260'), ('emb_potes_605g', 'P605')]
+        series = defaultdict(dict)
+        for d in datas:
+            for row in db.get_folha_cocada(d):
+                s = row.get('sabor', '?')
+                for col, lbl in COC:
+                    series[f'COC {s} {lbl}'][d] = row.get(col) or 0
+            for row in db.get_folha_palha(d):
+                s = row.get('sabor', '?')
+                for col, lbl in (('emb_50g', '50g'), ('emb_pet', 'Pet')):
+                    series[f'PAL {s} {lbl}'][d] = row.get(col) or 0
+        linhas = []
+        for prod, dv in series.items():
+            vals = [dv[d] for d in sorted(dv)]
+            if not any(vals):
+                continue
+            k = min(3, len(vals))
+            ini = sum(vals[:k]) / k
+            fim = sum(vals[-k:]) / k
+            linhas.append({"produto": prod, "n": len(vals), "inicio": round(ini),
+                           "fim": round(fim), "delta": round(fim - ini),
+                           "media": round(sum(vals) / len(vals)), "pico": max(vals)})
+        linhas.sort(key=lambda r: r["delta"], reverse=True)
+        return {
+            "periodo": f"{datas[0]} a {datas[-1]}", "n_folhas": len(datas),
+            "acumulando_mais": linhas[:8], "reduzindo_mais": linhas[-5:],
+            "nota": ("Proxy de giro SEM dados de venda. Subindo = possível parado/super-"
+                     "produzido; caindo = saindo bem. Em crescimento, subir é esperado."),
+        }
+    except Exception as e:
+        return {"erro": str(e)}
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # DISPATCHER
 # ════════════════════════════════════════════════════════════════════════════
@@ -402,6 +511,9 @@ _TOOL_REGISTRY = {
     "info_meta_base_cocada_45g": _tool_info_meta_base_cocada_45g,
     "info_alvos_estoque": _tool_info_alvos_estoque,
     "calcular_cortados2": _tool_calcular_cortados2,
+    "necessidades_insumos": _tool_necessidades_insumos,
+    "eventos_semana": _tool_eventos_semana,
+    "giro_estoque": _tool_giro_estoque,
 }
 
 
