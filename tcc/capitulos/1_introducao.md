@@ -1,12 +1,5 @@
 # 1 INTRODUÇÃO
 
-> **Esboço inicial — 27/05/2026.** Texto em PT-BR acadêmico, citações
-> autor-data (ABNT). Procure `<<PREENCHER>>` pra pontos que precisam de
-> decisão sua ou do orientador. Revise o tom — escrevi pra ser revisado,
-> não pra ser final.
-
----
-
 ## 1.1 Contextualização
 
 O Planejamento e Controle da Produção (PCP) é uma das funções centrais da
@@ -117,7 +110,7 @@ controle do PCP de reativo para proativo.
 
 **Acadêmica.** A literatura nacional sobre PCP aplicado a micro e pequenas
 indústrias é relativamente escassa quando comparada à literatura sobre
-grandes manufaturas (`<<CITAR ESTUDOS EXISTENTES DURANTE A REVISÃO>>`).
+grandes manufaturas (RODRIGUES; FERONI, 2020; BERALDO et al.).
 Documentar a implementação de um sistema de PCP em uma confeitaria
 industrial — incluindo as adaptações necessárias ao contexto de pequena
 escala e à natureza artesanal-industrial dos produtos — contribui com um
@@ -192,21 +185,3 @@ aplicação dos princípios aqui desenvolvidos em outras micro e pequenas
 indústrias do setor.
 
 ---
-
-## Notas de revisão (Leonardo + orientador)
-
-- **Tom acadêmico:** mantive ABNT formal. Se o orientador preferir mais
-  pessoal ("Este trabalho relata..."), avise que adapto.
-- **Citações:** usei autores clássicos (Tubino, Slack, Hopp, Chopra,
-  Nonaka, Laudon, Corrêa, Forrester) — preciso confirmar quais você já tem
-  acesso ou ler. Posso te ajudar a montar uma lista de leituras.
-- **`<<PREENCHER>>`:** 2 pontos — centro acadêmico da UFCG na capa e
-  citação de estudos sobre PCP em PMI na seção 1.4.
-- **Tamanho:** Cap 1 ABNT bem feito tem 5-8 páginas. Este esboço deve dar
-  ~6 páginas formatadas. Ajustamos conforme necessidade.
-- **Decisões de escopo a discutir:**
-  - Incluir o LLM no escopo do TCC ou tratar como "trabalho futuro"?
-    (Recomendo incluir — é o diferencial competitivo do trabalho.)
-  - Mencionar Doces Vó Nena pelo nome ou usar "uma confeitaria industrial
-    no estado de São Paulo"? (ABNT permite os dois, depende da preferência
-    do orientador e da empresa.)

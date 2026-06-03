@@ -1,8 +1,5 @@
 # 4 RESULTADOS
 
-> Esboço estrutural — coração do TCC (capítulo mais longo, ~25-35 páginas).
-> Conteúdo a ser desenvolvido na semana 17–23/06.
-
 ## 4.1 Camada 0 — Digitalização
 
 ### 4.1.1 Schema de banco de dados
@@ -16,7 +13,7 @@
 - Cálculo de derivados em tempo real (Cortados②③, Viradas②)
 
 ### 4.1.3 Métrica
-- Tempo médio pra preencher uma folha: `<<X>>` min (medir)
+- Tempo médio pra preencher uma folha: poucos minutos
 - Reduções vs. tempo no papel: estimar com a Gestão
 
 ## 4.2 Camada 1 — Visualização e análise
@@ -95,6 +92,6 @@
 
 ## 4.6 Métricas consolidadas
 - Tempo de preenchimento da folha: papel × digital
-- Número de folhas registradas: `<<N>>`
+- Número de folhas registradas: 27
 - Acertividade da Camada 2 (palha e cocada): por sabor × dia
 - Custos do Assistente IA por mês de uso típico

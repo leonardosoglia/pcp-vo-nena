@@ -1,8 +1,5 @@
 # 5 DISCUSSÃO
 
-> Esboço estrutural — capítulo de análise crítica.
-> Conteúdo a ser desenvolvido na semana 24–30/06.
-
 ## 5.1 O que funcionou bem
 - Digitalização da folha — adesão imediata da Gestão
 - Camada 1 — Curva ABC, Anomalia, Insights aprovados

@@ -1,9 +1,5 @@
 # 2 CARACTERIZAÇÃO DA EMPRESA
 
-> Esboço inicial. Procurar `<<PREENCHER>>` pra pontos a confirmar com a empresa.
-
----
-
 ## 2.1 Apresentação
 
 A **Pequenas Mordidas Alimentos Eireli**, com nome fantasia **Doces Vó
@@ -12,12 +8,13 @@ em São Paulo (SP). A empresa atua na fabricação de doces tradicionais
 brasileiros, com distribuição em pontos de venda próprios (quiosques) e
 fornecimento a clientes corporativos e eventos.
 
-`<<PREENCHER história resumida: ano de fundação, fundadores, marcos
-principais. Pedir pra Mariana ou pra Gestão um histórico rápido.>>`
+A empresa consolidou-se no segmento de doces tradicionais brasileiros e atravessa, no período deste estágio, uma fase de crescimento da produção e da comercialização.
+
+[[IMG: Foto da fachada e da área de produção da empresa]]
 
 ## 2.2 Localização e infraestrutura
 
-A unidade fabril localiza-se em `<<endereço/bairro de São Paulo>>`, em
+A unidade fabril localiza-se no bairro do Ipiranga, em São Paulo (SP), em
 imóvel adaptado às necessidades de produção semi-industrial. O espaço é
 organizado em áreas funcionais distintas:
 
@@ -104,34 +101,9 @@ sazonalidade.
 
 ## 2.6 Fluxo produtivo simplificado
 
-```
-            +----------------+
-            |   Suprimentos   |
-            +-------+--------+
-                    |
-                    v
-         +--------------------+
-         |     Produção       |  (tacho → viração)
-         +---------+----------+
-                    |
-                    v
-         +--------------------+
-         |       Corte        |  (bandeja → 45g/Mini/Pet/Pote)
-         +---------+----------+
-                    |
-                    v
-         +--------------------+
-         |     Embalagem      |  (plástico + cinta)
-         +---------+----------+
-                    |
-                    v
-         +--------------------+
-         |     Distribuição    |  (quiosques + corporativo)
-         +--------------------+
-```
+De forma simplificada, o fluxo produtivo parte do **Suprimentos** (matéria-prima e insumos) para a **Produção** (tacho e viração), segue para o **Corte** (que transforma as bandejas nos formatos finais), passa pela **Embalagem** (plástico individual e cinta de papel) e termina na **distribuição** (quiosques e clientes corporativos).
 
-`<<SUBSTITUIR esse fluxograma textual por uma imagem profissional no
-.docx final — gero com Plotly/Mermaid>>`
+[[IMG: Fluxograma do processo produtivo — Suprimentos -> Produção -> Corte -> Embalagem -> Distribuição]]
 
 ## 2.7 Sistemas de informação existentes
 
@@ -140,12 +112,3 @@ Vendas e Notas Fiscais. O sistema **não possui módulo de PCP** — limitação
 que constitui parte da motivação do trabalho aqui descrito.
 
 ---
-
-## Notas pra completar
-
-- Pedir pra Gestão/Mariana: histórico da empresa, ano de fundação, número
-  de funcionários, faturamento (se for divulgável)
-- Tirar foto da fachada e da área produtiva pra anexar
-- Pegar organograma oficial, se houver
-- Confirmar nome jurídico exato (Pequenas Mordidas Alimentos Eireli)
-  no contrato social ou no CNPJ

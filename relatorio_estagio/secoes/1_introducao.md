@@ -1,8 +1,5 @@
 # 1 INTRODUÇÃO
 
-> Esboço inicial — primeira pessoa, tom profissional.
-> Mais curto que a introdução do TCC (3-4 páginas em ABNT).
-
 ---
 
 Este relatório descreve as atividades desenvolvidas durante o Estágio
@@ -19,6 +16,10 @@ embalagem — e, em paralelo, desenvolvi um sistema digital que substituísse o
 controle manual em folhas de papel utilizado pela empresa até então. Para
 isso, foi necessário compreender as rotinas e as restrições dos departamentos
 de Gestão, Produção, Corte, Embalagem e Suprimentos.
+
+O setor de confeitaria semi-industrial combina receitas tradicionais com escalas crescentes de comercialização, o que torna o planejamento da produção um desafio particular: é preciso conciliar a natureza artesanal do produto com a previsibilidade exigida pela operação diária. Em empresas desse porte, esse planejamento costuma apoiar-se sobretudo na experiência da gestão, com pouco suporte sistemático de dados — exatamente a lacuna que este estágio buscou endereçar.
+
+Ao longo do período do estágio, acompanhei o ciclo completo de produção e atuei diretamente na rotina de Planejamento e Controle da Produção, ao mesmo tempo em que desenvolvia, de forma incremental, o sistema digital que passou a sustentá-la. Este relatório descreve essa experiência, da imersão inicial no chão de fábrica aos resultados obtidos e às recomendações para a continuidade.
 
 ## 1.1 Objetivos do estágio
 
@@ -57,7 +58,7 @@ que estágio e TCC se desenvolvessem em paralelo e se retroalimentassem.
 
 ## 1.3 Estrutura do relatório
 
-Este relatório está organizado em cinco seções, além desta introdução.
+Este relatório está organizado em cinco seções, além desta introdução; ao final, apresentam-se as referências e uma lista de perguntas ao orientador.
 
 A **Seção 2** apresenta a empresa concedente do estágio, descrevendo seu
 setor, porte, produtos, fluxos produtivos e estrutura organizacional.
@@ -78,10 +79,3 @@ Anexos contendo declarações da empresa, capturas de tela do sistema
 desenvolvido e documentação complementar finalizam o relatório.
 
 ---
-
-## Notas
-
-- Texto em primeira pessoa — pode ajustar pra terceira se o orientador
-  preferir (alguns programas exigem).
-- Volume: ~2 páginas formatadas. Capítulo introdutório enxuto.
-- Mantém alinhamento com o TCC sem repetir conteúdo (TCC vai aprofundar).

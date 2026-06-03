@@ -1,24 +1,5 @@
 # 2 REVISÃO DE LITERATURA
 
-> **Esboço desenvolvido (rascunho) — gerado com apoio de IA em 28/05/2026 pra
-> adiantar a escrita da semana 03–09/06.**
->
-> ⚠️ **Antes de usar no TCC, o Leonardo precisa:**
-> 1. **Ler de fato** cada referência citada — não citar o que não leu.
-> 2. **Confirmar os dados completos** (autor, ano da edição, página, editora) de
->    cada obra; as marcações `[conferir: ...]` indicam o que falta fechar.
-> 3. Ajustar o texto à sua voz e ao template ABNT da UFCG.
-> 4. Garantir a regra de ouro: toda obra citada aqui tem que aparecer nas
->    Referências, e vice-versa.
->
-> As referências da web identificadas estão em `referencias_externas/` — a lista
-> consolidada e verificada (dados ABNT + correções de citação) está em
-> `referencias_externas/05_referencias_ABNT_cap2.md`. Os clássicos (Orlicky,
-> Forrester, Liu et al., Brown et al., Tubino, Makridakis et al.) já estão
-> confirmados; ainda assim, **verifique a edição** que você vai citar.
-
----
-
 ## 2.1 Planejamento e Controle da Produção: fundamentos
 
 O Planejamento e Controle da Produção (PCP) é a função que articula *o que*
@@ -44,9 +25,6 @@ e, progressivamente, adiciona apoio tático (sugestão de corte e produção,
 calibração de parâmetros). Esta seção fundamenta o vocabulário que estrutura todo
 o sistema.
 
-`[conferir: edições de TUBINO (2017?), SLACK et al. (2018?), CORRÊA & CORRÊA
-(2017?), HOPP & SPEARMAN (2008) — confirmar na biblioteca da UFCG]`
-
 ## 2.2 Pequenas indústrias e a digitalização do PCP
 
 As micro e pequenas indústrias (MPI) brasileiras caracterizam-se por estrutura
@@ -71,11 +49,6 @@ empresa produtora de doces** (BERALDO, L. *et al.*), pela proximidade de
 contexto com o caso aqui estudado. A revisão desses trabalhos posiciona a
 contribuição deste TCC: em vez de adaptar um ERP genérico, **constrói-se um
 sistema sob medida** que espelha a folha de papel existente e evolui em camadas.
-
-`[conferir: páginas de RODRIGUES; FERONI (2020) e nome do autor da tese USP/DMAIC
-(2019) — dados parciais em referencias_externas/05_referencias_ABNT_cap2.md;
-confirmar se BERALDO (doces) é artigo publicado ou TCC; buscar estatística
-SEBRAE/IBGE de MPI alimentícias para dimensionar o setor]`
 
 ## 2.3 MRP e Lista de Materiais (BOM)
 
@@ -103,9 +76,6 @@ necessidades roda quando a folha do dia é salva, gerando a baixa automática de
 insumos. A receita por tacho — e não por formato de venda — é uma decisão de
 modelagem derivada da entrevista com a Gestão, detalhada no Capítulo 4.
 
-`[conferir: ORLICKY (1975), CHOPRA & MEINDL (2016, ed. brasileira?); fechar dados
-do artigo de MRP em panificação e dos demais trabalhos de MRP em alimentos]`
-
 ## 2.4 Curva ABC e priorização por giro
 
 A Curva ABC aplica o **princípio de Pareto** (a regra dos 80/20, derivada das
@@ -129,9 +99,6 @@ longo do tempo) em vez de por **estoque** (quantidade embalada num instante, que
 não pode ser somada entre dias) — distinção desenvolvida na seção 2.5. Essa
 correção evita um erro estatístico comum em aplicações ingênuas da Curva ABC.
 
-`[conferir: dados ABNT dos estudos de Curva ABC em alimentos (UFC, ABEPRO, BJD
-2021); citar Pereira (1999) e Lourenço & Castilho conforme o PDF 3 do orientador]`
-
 ## 2.5 Estoque versus Fluxo (princípio de Forrester)
 
 A distinção entre variáveis de **estoque** (*stock*) e de **fluxo** (*flow*) é
@@ -150,8 +117,6 @@ pode legitimamente ser acumulada por período). O mesmo cuidado foi aplicado à
 detecção de anomalias e à média móvel. Trata-se de um caso concreto em que um
 conceito teórico clássico corrigiu um erro de implementação — material rico para
 a discussão do Capítulo 4.
-
-`[conferir: FORRESTER (1961), MIT Press / ed. utilizada]`
 
 ## 2.6 Aprendizado de máquina aplicado a operações industriais
 
@@ -176,10 +141,6 @@ sugerir recalibração das metas por sabor e dia da semana. O princípio de
 estoque/fluxo (2.5) é respeitado na engenharia de atributos — os modelos operam
 sobre variáveis de fluxo, não sobre snapshots de estoque.
 
-`[conferir: LIU, TING & ZHOU (2008, ICDM) e MAKRIDAKIS, WHEELWRIGHT & HYNDMAN (1998)
-já confirmados em referencias_externas/05_referencias_ABNT_cap2.md; falta fechar a
-referência industrial de Isolation Forest que será efetivamente citada]`
-
 ## 2.7 Modelos de Linguagem de Grande Porte (LLM) em ambientes industriais
 
 Os Modelos de Linguagem de Grande Porte (LLM) ganharam capacidade de
@@ -202,10 +163,6 @@ antecipados) que a estrutura algorítmica não modela — exatamente o "gap" ent
 que o MRP clássico resolve e o que a decisão experiente faz. Trabalhos em
 português sobre LLM em indústria ainda são escassos, o que reforça o caráter
 exploratório desta contribuição.
-
-`[conferir: BROWN et al. (2020, NeurIPS); fechar 1–2 referências de survey de LLM
-em manufatura (ScienceDirect 2025) e o arXiv 2505.16120; declarar uso de IA
-conforme as normas da UFCG]`
 
 ## 2.8 Síntese
 

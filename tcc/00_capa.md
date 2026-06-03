@@ -6,13 +6,13 @@
 ---
 
 **UNIVERSIDADE FEDERAL DE CAMPINA GRANDE**
-**CENTRO `<<PREENCHER — provavelmente CCT ou CDSA>>`**
+**UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO**
 **UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO**
 **CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO**
 
 <br><br><br><br>
 
-**LEONARDO `<<PREENCHER SOBRENOME COMPLETO>>`**
+**LEONARDO SÓGLIA**
 
 <br><br><br><br><br>
 
@@ -22,14 +22,6 @@
 
 **CAMPINA GRANDE — PB**
 **2026**
-
----
-
-## Notas
-
-- **Título acima é um RASCUNHO** — sugiro alternativas no final.
-- Título oficial ABNT: maiúsculas, centralizado, negrito opcional.
-- Verificar com o orientador se o nome do centro acadêmico é UAEP/CCT/CDSA/UAEMA — varia por unidade.
 
 ## Alternativas de título (escolher 1 antes da defesa)
 

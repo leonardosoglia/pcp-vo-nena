@@ -1,7 +1,5 @@
 # 6 CONCLUSÃO
 
-> Esboço estrutural — semana 24–30/06.
-
 ## 6.1 Síntese do trabalho
 - Recapitular o problema, a abordagem e os resultados principais
 - Quantificar ganhos sempre que possível

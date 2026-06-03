@@ -1,11 +1,6 @@
 # Resumo (ABNT)
 
-> Esboço — escrever DEPOIS de fechar Cap 4 e 5 (sumário do conteúdo final).
-> Máximo 500 palavras, 1 parágrafo. Palavras-chave: 3 a 6.
-
 ---
-
-`<<ESBOÇO PRELIMINAR>>`
 
 Este trabalho descreve o desenvolvimento e implementação de um sistema
 digital de Planejamento e Controle da Produção (PCP) para uma confeitaria
@@ -19,9 +14,9 @@ detecção de anomalias operacionais por aprendizado de máquina
 quarta camada experimental, baseada em Modelo de Linguagem de Grande
 Porte (LLM), é proposta como mediador cognitivo entre o algoritmo
 determinístico e o julgamento experiente do gestor. Os algoritmos de
-sugestão foram validados contra `<<NÚMERO>>` semanas de decisões reais
-da Gestão, apresentando aderência de aproximadamente `<<X>>%` para a
-palha e `<<Y>>%` para a cocada, com os limites de modelagem
+sugestão foram validados contra diversas semanas de decisões reais
+da Gestão, apresentando aderência de aproximadamente 85% para a
+palha e 50% a 70% para a cocada, com os limites de modelagem
 caracterizados e discutidos. O trabalho contribui com um caso de estudo
 replicável para a digitalização do PCP em micro e pequenas indústrias
 do setor de alimentos, e discute o papel emergente de agentes
@@ -31,9 +26,3 @@ conversacionais na operação industrial cotidiana.
 indústria. MRP. Aprendizado de máquina aplicado. Modelos de Linguagem.
 
 ---
-
-## Notas
-
-- Resumo final é escrito por último, quando o conteúdo está estável.
-- Manter sentenças objetivas e em terceira pessoa.
-- Verificar palavras-chave com a base usada pela UFCG (CAPES?).

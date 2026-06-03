@@ -5,12 +5,12 @@
 ---
 
 **UNIVERSIDADE FEDERAL DE CAMPINA GRANDE**
-**`<<CENTRO/UNIDADE — confirmar>>`**
+**UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO**
 **CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO**
 
 <br><br><br><br>
 
-**LEONARDO `<<SOBRENOME COMPLETO>>`**
+**LEONARDO SÓGLIA**
 
 <br><br><br><br><br>
 
@@ -25,9 +25,3 @@
 **2026**
 
 ---
-
-## Notas
-
-- Algumas universidades pedem "ESTÁGIO SUPERVISIONADO OBRIGATÓRIO" no título.
-  Confirmar com o orientador / coordenação de estágio.
-- Pode ser substituído por template institucional da UFCG, se houver.

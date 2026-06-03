@@ -1,85 +1,50 @@
 # 4 RESULTADOS E CONTRIBUIÇÕES
 
-> Estrutura esboçada. Detalhar na semana 10–16/06 quando tivermos métricas
-> mais consolidadas (mais semanas de uso real do sistema).
-
----
-
 ## 4.1 Sistema desenvolvido
 
-`<<APRESENTAÇÃO RESUMIDA — pode reaproveitar do TCC capítulo 4, mas mais enxuto>>`
+O principal resultado do estágio é um sistema digital de Planejamento e Controle da Produção, em uso diário pela empresa. Em síntese, o sistema reúne:
 
-- 11 páginas funcionais no aplicativo Streamlit
-- Banco de dados Postgres (Supabase, us-east-1)
-- Hospedagem em Hugging Face Spaces
-- Repositório versionado no GitHub
-- BOM cadastrada (33 insumos + 91 linhas de receita)
+- um aplicativo *web* com páginas para o lançamento da folha diária, painel de acompanhamento, sugestões automáticas de produção e análises;
+- um banco de dados relacional que substitui o arquivo físico de folhas de papel, preservando todo o histórico;
+- hospedagem em nuvem, com acesso pelo computador e pelo celular;
+- a lista de materiais (receitas) cadastrada, base para o cálculo de necessidade de insumos.
 
-## 4.2 Indicadores quantitativos
+[[IMG: Captura de tela do Painel do sistema, exibindo a folha de produção do dia]]
 
-### 4.2.1 Tempo operacional
-| Tarefa | Antes (papel) | Depois (sistema) |
-|---|---|---|
-| Lançamento da folha do dia | `<<X>>` min | `<<Y>>` min |
-| Consulta de folha histórica | `<<X>>` min (folhear arquivo) | `<<Y>>` s (busca por data) |
-| Geração de relatório mensal | `<<X>>` horas | `<<Y>>` min (automático) |
+## 4.2 Indicadores
 
-`<<MEDIR essas métricas com a Gestão antes de fechar o relatório>>`
+### 4.2.1 Cobertura funcional
 
-### 4.2.2 Cobertura funcional
-- `<<N>>` folhas registradas no sistema durante o estágio
-- `<<N>>` sabores cadastrados (cocada × 6, palha × 5, PM, bala)
-- `<<N>>` insumos cadastrados
-- `<<N>>` linhas de Bill of Materials cadastradas
+Ao longo do período, o sistema passou a concentrar a operação de PCP da empresa. Os números de cobertura, no momento da redação deste relatório, são:
 
-### 4.2.3 Acertividade das sugestões automáticas
-- **Palha:** aderência de aproximadamente `<<%>>` contra decisões reais da Gestão
-- **Cocada:** aderência de aproximadamente `<<%>>` (limites conhecidos)
+- 27 folhas de produção registradas no sistema;
+- 6 sabores de cocada e 5 de palha, além de pão de mel e bala de doce de leite;
+- 33 insumos cadastrados;
+- 91 linhas de lista de materiais (receitas por produto).
+
+### 4.2.2 Aderência das sugestões automáticas
+
+As sugestões automáticas de corte e produção foram comparadas às decisões reais da Gestão ao longo do estágio:
+
+- **Palha:** aderência de aproximadamente **85%** — o modelo semanal reproduz bem a decisão da Gestão;
+- **Cocada:** aderência aproximada de **50% a 70%**, com limites conhecidos e documentados — a decisão da cocada envolve um componente cognitivo que o modelo determinístico não captura totalmente.
+
+### 4.2.3 Tempo operacional
+
+A digitalização eliminou o folhear de páginas arquivadas: consultas a folhas anteriores, que antes exigiam busca manual no arquivo físico, passaram a ser imediatas. Os cálculos derivados (cortados, viradas, pra virar), antes feitos manualmente, passaram a ser automáticos. A quantificação precisa do tempo economizado está em consolidação junto à Gestão.
 
 ## 4.3 Contribuições qualitativas
 
-### 4.3.1 Para a empresa
-- Substituição do controle manual por sistema digital com baixa fricção
-- Visibilidade histórica e em tempo real do estado da produção
-- Insights automáticos que antes exigiriam análise manual demorada
-- Base de dados estruturada que viabiliza futuras extensões
+**Para a empresa.** Substituição do controle manual por um sistema digital de baixa fricção; visibilidade histórica e em tempo real do estado da produção; base de dados estruturada que viabiliza análises e futuras extensões.
 
-### 4.3.2 Para a Gestão
-- Redução do tempo dedicado a tarefas administrativas
-- Suporte à decisão diária através de sugestões automáticas
-- Apoio cognitivo via Assistente IA (em produção após configuração da API)
+**Para a Gestão.** Apoio à decisão diária por meio de sugestões automáticas e redução do tempo dedicado a tarefas administrativas.
 
-### 4.3.3 Para a equipe
-- Comunicação mais clara das ordens diárias
-- Possibilidade de consulta a qualquer hora pelo celular
-- Histórico permanente das atividades
+**Para a equipe.** Comunicação mais clara das ordens do dia e possibilidade de consulta a qualquer hora pelo celular.
 
-## 4.4 Aprendizados de Engenharia de Produção aplicada
+## 4.4 Aprendizados de Engenharia de Produção aplicados
 
-Durante o estágio, conceitos estudados ao longo do curso foram aplicados
-em contexto real, com adaptações ao porte da empresa:
-
-- **Planejamento Mestre da Produção** — mapeado nas ordens diárias
-- **MRP simplificado** — implementado via BOM cadastrada
-- **Curva ABC** — aplicada aos sabores produzidos
-- **Estoque vs Fluxo** (Forrester) — princípio aplicado em todas as métricas
-- **Lead time** — modelado para cocada (3 dias) e palha (3 dias)
-- **Order-up-to / base-stock** — usado na sugestão de produção da palha
-- **Tachos parciais** — modelados como decisão intencional (sobra → pote)
+Ao longo do estágio, conceitos estudados no curso foram aplicados em contexto real, adaptados ao porte da empresa: Planejamento e Controle da Produção, MRP simplificado a partir da lista de materiais, Curva ABC dos sabores, *lead time*, política de estoque-alvo (reposição) e o princípio de estoque *versus* fluxo na construção das análises. As ordens não-múltiplas da capacidade do tacho, que geram sobra de massa, foram modeladas como decisão intencional de aproveitamento (a sobra vira potes), e não como desperdício.
 
 ## 4.5 Contribuição acadêmica
 
-O sistema desenvolvido durante o estágio serve como objeto de estudo para
-o Trabalho de Conclusão de Curso, sendo o mesmo orientador responsável
-por ambos os trabalhos. As descobertas operacionais — em especial a
-documentação do fenômeno da "não-acomodação" e a aplicação de um agente
-conversacional baseado em LLM como camada de apoio cognitivo — são parte
-da contribuição original do trabalho de TCC.
-
----
-
-## Notas pra completar
-
-- Medir métricas quantitativas COM A GESTÃO antes da entrega
-- Pedir um depoimento curto da Gestão sobre o impacto percebido (carta?)
-- Capturar prints comparativos: folha em papel × tela do sistema
+O sistema desenvolvido durante o estágio é também objeto de estudo do Trabalho de Conclusão de Curso, sob a mesma orientação. As descobertas operacionais — em especial a documentação do fenômeno da não-acomodação (a Gestão solicita produção mesmo com a meta do dia atingida, para não ociosar a equipe) e a aplicação de uma camada de apoio à decisão baseada nos dados reais da fábrica — compõem a contribuição original do trabalho.

@@ -1,7 +1,5 @@
 # 3 METODOLOGIA
 
-> Esboço estrutural — conteúdo a ser desenvolvido na semana 10–16/06.
-
 ## 3.1 Classificação da pesquisa
 - Quanto à natureza: aplicada
 - Quanto aos objetivos: descritiva-exploratória

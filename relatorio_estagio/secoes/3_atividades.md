@@ -1,7 +1,5 @@
 # 3 ATIVIDADES DESENVOLVIDAS
 
-> Foco operacional — a rotina diária de PCP que executo. Primeira pessoa.
-
 ---
 
 Minha atuação no estágio concentrou-se na operação do ciclo diário de
@@ -28,6 +26,10 @@ informação organizada que sustenta as decisões da Gestão. Sem saber o que j�
 existe em estoque, não é possível dimensionar quanto produzir, cortar ou
 embalar — por isso a contagem é o ponto de partida de todo o planejamento.
 
+Embora o levantamento do estoque e a definição das ordens ocupem a manhã, na fábrica, reservo as tardes para o trabalho no computador: a programação do sistema, a análise dos dados de produção e o desenvolvimento das funcionalidades descritas adiante. Dessa forma, o estágio combina a observação direta do chão de fábrica, pela manhã, com a construção e a análise das ferramentas de apoio, à tarde.
+
+[[IMG: Foto do estagiário no computador, durante a programação e a análise de dados (período da tarde)]]
+
 ## 3.2 Levantamento diário do estoque de produto acabado
 
 A primeira atividade do dia, entre aproximadamente 7h e 10h, é a contagem
@@ -44,9 +46,9 @@ formato**:
 Essa contagem responde à pergunta que abre todo o planejamento: *o que já
 temos?* É a fotografia do estoque no início do dia.
 
-`<<preencher: detalhe pessoal — como faço a contagem na prática (no celular,
-em planilha, direto no sistema), tempo médio, e dificuldades, como produto
-espalhado por mais de um local de armazenagem>>`
+Na prática, percorro os pontos de armazenagem e registro as quantidades diretamente no sistema, pelo celular ou pelo computador. A maior dificuldade é o produto distribuído em mais de um local de estoque, o que exige atenção para não contar a mais nem a menos; a contagem completa ocupa a maior parte da manhã.
+
+[[IMG: Foto do estoque de produto acabado e da folha de produção em papel]]
 
 ## 3.3 Consolidação da folha de produção do dia
 
@@ -100,7 +102,7 @@ A última etapa do fluxo que acompanho é a **embalagem**, feita em duas fases:
 primeiro o plástico individual e depois a cinta de papel. A capacidade diária é
 variável — depende de quantas pessoas estão na embalagem no dia —, então as
 ordens são priorizadas: o 45 g tem prioridade sobre o Mini. A meta gira em
-torno de `<<preencher: ~3 mil>>` unidades por dia.
+torno de cerca de três mil unidades por dia.
 
 ## 3.7 Acompanhamento e controle
 
@@ -127,3 +129,11 @@ relatório ele é tratado como a ferramenta que viabiliza o trabalho diário.
 - levantamento e cadastro das receitas (lista de materiais) e dos insumos;
 - apoio ao uso diário do sistema pela equipe;
 - documentação das rotinas e das decisões tomadas ao longo do estágio.
+
+## 3.10 Projeto complementar — automação administrativa com agentes de IA
+
+Em paralelo à rotina de PCP, desenvolvo um projeto voltado à redução de custos no setor administrativo da empresa, baseado na criação de agentes de Inteligência Artificial capazes de executar tarefas hoje realizadas manualmente. A proposta é automatizar atividades repetitivas e de baixo valor agregado — organização de informações, conferências e respostas a consultas recorrentes —, reduzindo o custo operacional da área e liberando as pessoas para atividades de maior valor.
+
+O projeto encontra-se em fase inicial e ainda em andamento, sendo construído de forma incremental à medida que as oportunidades de automação são identificadas no dia a dia da empresa. Trata-se de uma frente complementar ao sistema de PCP, alinhada à mesma lógica de usar a tecnologia para apoiar e tornar mais eficiente a operação.
+
+[[IMG: Foto ou esquema de uma tarefa administrativa automatizada por agente de IA]]
