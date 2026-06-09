@@ -75,7 +75,7 @@ with st.expander("Como funciona (clica pra entender)", expanded=False):
 
 **Custos:**
 - **Por consulta:** ~R$0,02 a R$0,05
-- **Com cache ativo** (system prompt cacheado por 5min): ~60% mais barato
+- **No modo profundo** (com ferramentas): o contexto repetido é cacheado, baixando o custo de perguntas em sequência. No modo rápido, o custo já é mínimo
 - **Mês típico (10 perguntas/dia):** ~R$5-10
 
 **Limitações honestas:**
@@ -166,7 +166,7 @@ with col_modelo:
     MODELOS_DISPONIVEIS = {
         "claude-haiku-4-5":  "Haiku 4.5 — rápido (~R$0,03)",
         "claude-sonnet-4-6": "Sonnet 4.6 — equilibrado (~R$0,10)",
-        "claude-opus-4":     "Opus 4 — análise profunda (~R$0,30)",
+        "claude-opus-4-8":   "Opus 4.8 — análise profunda (~R$0,25)",
     }
     modelo = st.selectbox(
         "Modelo",
@@ -176,8 +176,8 @@ with col_modelo:
         help=(
             "**Haiku 4.5** — default. Perguntas comuns, rápido (~3-5s). "
             "**Sonnet 4.6** — comparações e análise de tendência (~5-10s). "
-            "**Opus 4** — raciocínio multi-camada, análise estratégica, "
-            "decisões de longo prazo. Mais lento (~10-20s) e ~10× mais caro "
+            "**Opus 4.8** — raciocínio multi-camada, análise estratégica, "
+            "decisões de longo prazo. Mais lento (~10-20s) e ~5× mais caro "
             "que Haiku. Use só pra perguntas pesadas — não pra dia a dia."
         ),
     )
@@ -198,7 +198,9 @@ if st.button("Gerar briefing do dia", type="primary",
         st.markdown(_brief.get("resposta", "") or "_(sem resposta)_")
         try:
             _c = usd_para_brl(estimar_custo(_brief.get("tokens_input", 0),
-                                            _brief.get("tokens_output", 0), modelo))
+                                            _brief.get("tokens_output", 0),
+                                            _brief.get("tokens_cache_read", 0),
+                                            modelo=modelo))
             st.caption(f"Briefing gerado · {_brief.get('iteracoes', 0)} passos · ~R${_c:.2f}")
         except Exception:
             pass

@@ -73,7 +73,7 @@ Confeitaria industrial. Produz cocada, palha, pão de mel, balas de doce de leit
 ### CONVERSÕES
 - 1 tacho cocada = 8 bandejas (Zero = 3). **1 receita de palha = 1 panela = 1 bandeja** (NÃO é tacho!).
 - 1 bandeja 45g = 100 und · Mini = 150 · Pet = 30 (Zero Pet = 60) · Palha 50g = ~80 (mín) · Palha Pet = ~30
-- Bandeja cocada recém-tacho ≈ 6 kg · pronta-corte ≈ 5,5 kg (perda ~500g por evaporação)
+- Bandeja cocada — peso físico ≈ 6 kg recém-tacho · ≈ 5,5 kg pronta-corte (perda ~500g por evaporação). Para CONVERSÃO DE POTE, usa-se 7 kg/bandeja (1 tacho = 8 band = 56 kg): o pote sai por peso, tirado antes do "ponto" da bandeja.
 
 ### LEAD TIMES
 - Cocada: 3 dias (tacho → virar → virada → corte)
@@ -126,6 +126,9 @@ Cada folha (`data`) é independente. Derivados não persistem.
 
 ### 8. Crescimento da fábrica
 A produção semanal cresceu ~3× entre abril e maio (114 → 309 band/sem). Fórmulas com pisos fixos defasam rapidamente — use "últimas N semanas" como referência, não "histórico completo".
+
+### 9. Observações do dia e manejo de pessoal
+Cada folha pode trazer uma **"Observação do dia"** (texto livre da Gestão) e a **contagem de pessoas por área** (produção, corte de bandeja, máquina de embalagem, embalagem, palha, PM, bala, cocada assada, virada). É o contexto humano que os números não mostram: equipe reduzida explica produção menor; uma observação ("pedido grande", "máquina parada", "faltou gente") muda a leitura do dia. SEMPRE considere isso ao explicar um dia atípico ou ao sugerir — e se a observação contradiz os números, entenda o porquê antes de alarmar.
 
 ## SEU ESTILO DE RESPOSTA
 
@@ -225,7 +228,7 @@ def _resumir_folha(data, get_cocada, get_palha, get_papel, get_pmbd) -> str:
     cocada = list(get_cocada(data))
     palha = list(get_palha(data))
     papel = list(get_papel(data))
-    pmbd = list(get_pmbd(data))
+    pmbd = get_pmbd(data)  # dict único (1 linha por data), NÃO lista
 
     # Indexa papelzinho por sabor pra calcular Cortados²
     papel_by = {p.get("sabor"): p for p in papel} if papel else {}
@@ -295,17 +298,35 @@ def _resumir_folha(data, get_cocada, get_palha, get_papel, get_pmbd) -> str:
                               f"45g={j_45}, Mini={j_mini}, Pet={j_pet} band")
 
     if pmbd:
-        partes.append("\n### PM, Balas, Doces\n")
-        for r in pmbd:
-            cnt_pm = r.get("cnt_pm") or 0
-            ord_pm = r.get("ord_pm") or 0
-            cnt_balas = r.get("cnt_balas") or 0
-            ord_balas = r.get("ord_balas") or 0
-            if any((cnt_pm, ord_pm, cnt_balas, ord_balas)):
-                partes.append(f"- PM: estoque={cnt_pm} displays ({cnt_pm*10} und), "
-                              f"ordem={ord_pm} bolos ({ord_pm*70} und)")
-                partes.append(f"- Balas: estoque={cnt_balas} und, "
-                              f"ordem={ord_balas} tachos ({ord_balas*30} balas)")
+        cnt_pm = pmbd.get("cnt_pm") or 0
+        ord_pm = pmbd.get("ord_pm") or 0
+        cnt_balas = pmbd.get("cnt_balas") or 0
+        ord_balas = pmbd.get("ord_balas") or 0
+        if any((cnt_pm, ord_pm, cnt_balas, ord_balas)):
+            partes.append("\n### PM, Balas, Doces\n")
+            partes.append(f"- PM: estoque={cnt_pm} displays ({cnt_pm*10} und), "
+                          f"ordem={ord_pm} bolos ({ord_pm*70} und)")
+            partes.append(f"- Balas: estoque={cnt_balas} und, "
+                          f"ordem={ord_balas} tachos ({ord_balas*30} balas)")
+
+        # Observações do dia + manejo de pessoal — contexto que os números não mostram
+        obs = (pmbd.get("observacao_dia") or "").strip()
+        _areas = [
+            ("pes_producao", "produção"), ("pes_corte_band", "corte de bandeja"),
+            ("pes_maq_emb", "máquina de embalagem"), ("pes_embalagem", "embalagem"),
+            ("pes_palha", "palha"), ("pes_pm", "pão de mel"), ("pes_bala", "bala"),
+            ("pes_cocada_assada", "cocada assada"), ("pes_virada", "virada"),
+        ]
+        pessoas = [(lbl, int(pmbd.get(col) or 0)) for col, lbl in _areas]
+        pessoas = [(lbl, n) for lbl, n in pessoas if n > 0]
+        if obs or pessoas:
+            partes.append("\n### Observações do dia & Equipe\n")
+            if obs:
+                partes.append(f"- Observação do dia: {obs}")
+            if pessoas:
+                _tot = sum(n for _, n in pessoas)
+                _det = ", ".join(f"{lbl} {n}" for lbl, n in pessoas)
+                partes.append(f"- Pessoas por área (total {_tot}): {_det}")
 
     return "\n".join(partes) if partes else "(folha vazia ou não preenchida)"
 
@@ -609,6 +630,24 @@ def perguntar_com_tools(
                 messages.append({"role": "user", "content": tool_results})
                 continue
 
+            # max_tokens — a geração estourou o limite, mas há texto parcial VÁLIDO.
+            # Não é erro: o SDK retorna sucesso com stop_reason='max_tokens'. Devolve o
+            # texto acumulado (senão a UI exibe card de erro mesmo tendo pago a chamada).
+            if response.stop_reason == "max_tokens":
+                texto = "".join(b.text for b in response.content if hasattr(b, "text"))
+                return {
+                    "resposta": (texto + "\n\n_(resposta truncada — limite de tokens atingido)_")
+                                 if texto else "(resposta truncada antes de gerar texto — tente de novo)",
+                    "tools_chamadas": tools_chamadas,
+                    "tokens_input": total_in,
+                    "tokens_output": total_out,
+                    "tokens_cache_read": total_cache_read,
+                    "tokens_cache_write": total_cache_write,
+                    "modelo": response.model,
+                    "iteracoes": iter_count,
+                    "erro": None,
+                }
+
             # Refusal ou outro stop_reason
             texto = "".join(b.text for b in response.content if hasattr(b, "text"))
             return {
@@ -675,7 +714,7 @@ BRIEFING_PROMPT = (
 
 
 def gerar_briefing_do_dia(data: str, modelo: str = "claude-sonnet-4-6",
-                          max_tokens: int = 1400) -> dict:
+                          max_tokens: int = 2048) -> dict:
     """Briefing proativo do dia (resumo + alertas + próximos passos), gerado pela IA
     SEM o usuário perguntar. Reusa perguntar_com_tools (as 10 ferramentas + a persona
     'vá sempre além'). Retorna o mesmo dict de perguntar_com_tools — inclusive 'erro'
@@ -952,14 +991,14 @@ def estimar_custo(tokens_input: int, tokens_output: int,
                        Input    Output   Cache Read  Cache Write
         Haiku 4.5      $1.00    $5.00    $0.10       $1.25
         Sonnet 4.6     $3.00    $15.00   $0.30       $3.75
-        Opus 4         $15.00   $75.00   $1.50       $18.75
+        Opus 4.8       $5.00    $25.00   $0.50       $6.25
 
     Cache write é cobrado só na 1ª vez (25% mais caro que input cheio).
     Cache read é cobrado em todas as consultas que reaproveitam (90% off).
     """
     m = modelo.lower()
     if "opus" in m:
-        in_rate, cache_rate, out_rate = 15.00, 1.50, 75.00
+        in_rate, cache_rate, out_rate = 5.00, 0.50, 25.00
     elif "sonnet" in m:
         in_rate, cache_rate, out_rate = 3.00, 0.30, 15.00
     else:  # haiku ou desconhecido (fallback no mais barato)
