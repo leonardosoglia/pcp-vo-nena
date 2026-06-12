@@ -43,6 +43,7 @@ insights_pg = st.Page("pages/2_Insights.py", title="Insights")
 curva_abc_pg = st.Page("pages/4_Curva_ABC.py", title="Curva ABC")
 anomalias_pg = st.Page("pages/5_Anomalias_ML.py", title="Anomalias ML")
 media_movel_pg = st.Page("pages/6_Media_Movel.py", title="Média Móvel")
+bala_pg = st.Page("pages/12_Bala.py", title="Bala")
 
 # Cadastros — gestão de dados mestres
 suprimentos_pg = st.Page("pages/3_Suprimentos.py", title="Suprimentos")
@@ -63,7 +64,7 @@ pg = st.navigation({
     "": [home],                                       # Início sem rótulo de grupo
     "Operação do dia": [lancamento_pg, painel_pg],
     "Sugestão": [sugestao_palha_pg, sugestao_cocada_pg],
-    "Análises": [insights_pg, curva_abc_pg, anomalias_pg, media_movel_pg],
+    "Análises": [insights_pg, curva_abc_pg, anomalias_pg, media_movel_pg, bala_pg],
     "Cadastros": [suprimentos_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
