@@ -47,6 +47,7 @@ bala_pg = st.Page("pages/12_Bala.py", title="Bala")
 
 # Cadastros — gestão de dados mestres
 suprimentos_pg = st.Page("pages/3_Suprimentos.py", title="Suprimentos")
+reconciliacao_pg = st.Page("pages/13_Reconciliacao_SIGE.py", title="Reconciliação SIGE")
 equipe_pg = st.Page("pages/8_Equipe.py", title="Equipe")
 
 # Suporte — ajuda ao usuário
@@ -65,7 +66,7 @@ pg = st.navigation({
     "Operação do dia": [lancamento_pg, painel_pg],
     "Sugestão": [sugestao_palha_pg, sugestao_cocada_pg],
     "Análises": [insights_pg, curva_abc_pg, anomalias_pg, media_movel_pg, bala_pg],
-    "Cadastros": [suprimentos_pg, equipe_pg],
+    "Cadastros": [suprimentos_pg, reconciliacao_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
 })

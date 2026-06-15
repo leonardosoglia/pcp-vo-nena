@@ -51,13 +51,21 @@ BASE_URL = "https://api.sigecloud.com.br/request"
 TIMEOUT = 20  # segundos — ERP externo, latência variável
 
 ENDPOINTS = {
+    # ── Leitura (modelo B — habilitada) ──────────────────────────────────────
     "produtos_listar":    "/Produtos/GetAll",
     "produtos_pesquisar": "/Produtos/Pesquisar",
     "estoque_saldo":      "/Estoque/BuscarQuantidades",
-    # Escrita — só usados se SIGE_PERMITIR_ESCRITA == "1"
+    "depositos_listar":   "/Depositos/GetTodosDepositos",
+    "empresas_listar":    "/Empresas/GetTodasEmpresas",
+    "op_pesquisar":       "/OrdensProducao/Pesquisar",
+    "op_checklist":       "/OrdensProducao/BuscarCheckListQualidade",
+    # ── Escrita — só usados se SIGE_PERMITIR_ESCRITA == "1" ───────────────────
     "produtos_criar":     "/Produtos/Criar",
     "produtos_atualizar": "/Produtos/Atualizar",
     "estoque_movimentar": "/ProdutosEstoque/Salvar",
+    # Escrita da OP — RAMO PENDENTE (decisão da Gestão). Ver docs/ARQUITETURA_SIGE.md.
+    "op_cadastrar":       "/OrdensProducao/Cadastrar",
+    "op_finalizar":       "/OrdensProducao/Finalizar",
 }
 
 
@@ -201,6 +209,100 @@ def buscar_saldo_estoque(deposito: str | None = None,
     return _extrair_lista(data)
 
 
+def buscar_estoque_deposito(deposito: str | None = None) -> list[dict]:
+    """Saldo por produto NUM depósito específico (READ-ONLY). Devolve a lista de
+    itens `{ProdutoCodigo, EstoqueAtual, SaldoReservado}` do depósito informado.
+    `SaldoReservado` = pré-reserva das OPs (some da necessidade de compra).
+
+    A MATÉRIA-PRIMA da fábrica vive no depósito **"FABRICA"** (confirmado 14/06):
+    os demais depósitos são lojas (produto acabado). Use isto na reconciliação,
+    não o EstoqueSaldo consolidado do GetAll (que dá número diferente)."""
+    dep = deposito or deposito_padrao()
+    data = _request("GET", "estoque_saldo", params={"deposito": dep})
+    if isinstance(data, dict):
+        itens = data.get("EstoqueItens") or data.get("Itens")
+        if isinstance(itens, list):
+            return itens
+    return _extrair_lista(data)
+
+
+def listar_depositos() -> list[dict]:
+    """Lista os depósitos (almoxarifados) do SIGE. Campos: ID, Nome, EmpresaID,
+    Empresa. Use o Nome certo em buscar_saldo_estoque/SIGE_DEPOSITO_PADRAO."""
+    data = _request("GET", "depositos_listar")
+    return _extrair_lista(data)
+
+
+def listar_empresas() -> list[dict]:
+    """Lista as empresas (CNPJs) da conta SIGE. Campos: ID, NomeFantasia,
+    RazaoSocial, CNPJ. Uma credencial cobre todos os CNPJs."""
+    data = _request("GET", "empresas_listar")
+    return _extrair_lista(data)
+
+
+def pesquisar_ordens_producao(*, codigo: int | None = None,
+                              codigo_pedido: int | None = None,
+                              situacao: str | None = None,
+                              status: str | None = None,
+                              filtrar_por: str | None = None,
+                              data_inicial: str | None = None,
+                              data_final: str | None = None,
+                              page_size: int = 50, skip: int = 0) -> list[dict]:
+    """Lê ordens de produção (READ-ONLY). Cada OP (OrdemProducaoRetorno) traz:
+    Codigo, Situacao, Deposito, Produtos[] (SKU/Quantidade/Lote/AtributosGrade),
+    PrevisaoInicio/Termino, DataInicio/Termino, ValidadeLote, responsáveis,
+    CheckList[] e Historicos[]. O RENDIMENTO real e o descarte saem da avaliação/
+    finalização (QuantidadeProduzida vs planejada).
+
+    Datas no formato YYYY-MM-DD; pra filtrar por período passe filtrar_por='Data'.
+    NOTA: hoje o módulo de produção do SIGE ainda não tem OPs cadastradas — o
+    endpoint responde, mas devolve lista vazia. Fica pronto pra quando a fábrica
+    começar a lançar OPs (ver docs/ARQUITETURA_SIGE.md)."""
+    params: dict = {"pageSize": page_size, "skip": skip}
+    if codigo is not None:
+        params["codigo"] = codigo
+    if codigo_pedido is not None:
+        params["codigoPedido"] = codigo_pedido
+    if situacao is not None:
+        params["situacao"] = situacao
+    if status is not None:
+        params["status"] = status
+    if filtrar_por is not None:
+        params["filtrarPor"] = filtrar_por
+    if data_inicial is not None:
+        params["dataInicial"] = data_inicial
+    if data_final is not None:
+        params["dataFinal"] = data_final
+    data = _request("GET", "op_pesquisar", params=params)
+    return _extrair_lista(data)
+
+
+def listar_todas_ordens_producao(data_inicial: str | None = None,
+                                 data_final: str | None = None,
+                                 page_size: int = 100,
+                                 max_paginas: int = 50) -> list[dict]:
+    """Pagina todas as OPs (opcionalmente por intervalo de datas). Trava de
+    segurança em max_paginas."""
+    todas: list[dict] = []
+    usa_data = bool(data_inicial or data_final)
+    for pagina in range(max_paginas):
+        lote = pesquisar_ordens_producao(
+            filtrar_por=("Data" if usa_data else None),
+            data_inicial=data_inicial, data_final=data_final,
+            page_size=page_size, skip=pagina * page_size)
+        if not lote:
+            break
+        todas.extend(lote)
+        if len(lote) < page_size:
+            break
+    return todas
+
+
+def buscar_checklist_qualidade(codigo_op: int) -> object:
+    """Checklist de qualidade de uma OP específica (READ-ONLY)."""
+    return _request("GET", "op_checklist", params={"codigo": codigo_op})
+
+
 # ── Escrita (modelo C — BLOQUEADA por padrão) ────────────────────────────────
 def _exigir_escrita():
     if not escrita_habilitada():
@@ -242,6 +344,37 @@ def salvar_movimento_estoque(produto_codigo: str, quantidade: float,
     return _request("POST", "estoque_movimentar", json_body=body)
 
 
+# ── Ordem de Produção: RAMO DE ESCRITA PENDENTE (decisão da Gestão) ───────────
+# A OP é o ponto de ligação PCP↔SIGE. As pessoas (Gestão + planejamento) decidem
+# a produção; isso vira uma OP no SIGE. COMO a OP entra está EM ABERTO:
+#   (a) lançada manualmente por uma pessoa a partir do nosso plano  -> read-only;
+#   (b) escrita pelo nosso sistema via estas funções                -> único ponto
+#       de escrita.
+# Decisão pendente com a Gestão (ver docs/ARQUITETURA_SIGE.md). Estas funções
+# ficam ISOLADAS e DESLIGADAS de propósito: não montam o corpo nem chamam a API.
+def cadastrar_ordem_producao(ordem: dict) -> object:
+    """[PENDENTE — NÃO ATIVAR] Cadastraria uma OP no SIGE (POST /OrdensProducao/
+    Cadastrar) a partir do plano do PCP. Seria o ÚNICO ponto de escrita no SIGE.
+    Bloqueada por SIGE_PERMITIR_ESCRITA E não implementada — aguarda a decisão da
+    Gestão sobre OP manual vs via API."""
+    _exigir_escrita()
+    raise NotImplementedError(
+        "Escrita da OP no SIGE é decisão pendente da Gestão (OP manual vs via API). "
+        "Ramo isolado e não implementado de propósito. Ver docs/ARQUITETURA_SIGE.md."
+    )
+
+
+def finalizar_ordem_producao(codigo_op: int, avaliacao: dict) -> object:
+    """[PENDENTE — NÃO ATIVAR] Finalizaria a OP com o rendimento real (POST
+    /OrdensProducao/Finalizar). Mesma regra: bloqueada e não implementada até a
+    decisão da Gestão."""
+    _exigir_escrita()
+    raise NotImplementedError(
+        "Finalização de OP é escrita no SIGE — pendente da decisão da Gestão. "
+        "Ramo isolado e não implementado. Ver docs/ARQUITETURA_SIGE.md."
+    )
+
+
 # ── Diagnóstico ──────────────────────────────────────────────────────────────
 def testar_conexao() -> dict:
     """Smoke test de conectividade + auth. Não escreve nada.
@@ -280,7 +413,7 @@ def _extrair_lista(data: object) -> list[dict]:
     if isinstance(data, list):
         return data
     if isinstance(data, dict):
-        for chave in ("Data", "data", "Result", "result", "Itens", "Items", "Produtos"):
+        for chave in ("Data", "data", "Result", "result", "Itens", "Items", "Produtos", "EstoqueItens"):
             valor = data.get(chave)
             if isinstance(valor, list):
                 return valor
