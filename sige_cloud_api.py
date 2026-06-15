@@ -59,6 +59,9 @@ ENDPOINTS = {
     "empresas_listar":    "/Empresas/GetTodasEmpresas",
     "op_pesquisar":       "/OrdensProducao/Pesquisar",
     "op_checklist":       "/OrdensProducao/BuscarCheckListQualidade",
+    "pedidos_pesquisar":  "/Pedidos/Pesquisar",
+    "pdv_pesquisar":      "/OperacoesPDV/Pesquisar",
+    "tabelas_preco":      "/TabelasPreco/Pesquisar",
     # ── Escrita — só usados se SIGE_PERMITIR_ESCRITA == "1" ───────────────────
     "produtos_criar":     "/Produtos/Criar",
     "produtos_atualizar": "/Produtos/Atualizar",
@@ -301,6 +304,44 @@ def listar_todas_ordens_producao(data_inicial: str | None = None,
 def buscar_checklist_qualidade(codigo_op: int) -> object:
     """Checklist de qualidade de uma OP específica (READ-ONLY)."""
     return _request("GET", "op_checklist", params={"codigo": codigo_op})
+
+
+def pesquisar_pedidos(*, data_inicial: str | None = None,
+                      data_final: str | None = None,
+                      status: str | None = None,
+                      page_size: int = 100, skip: int = 0) -> list[dict]:
+    """Lê pedidos de VENDA (READ-ONLY). Cada pedido traz Cliente, Data,
+    DataFaturamento, **Tabela (=CANAL: QUIOSQUE/REVENDA/PADRÃO)**, Deposito,
+    Empresa, OrigemVenda, StatusSistema, ValorFinal e **Items** (cada item:
+    Codigo, Descricao, Quantidade, ValorUnitario, ValorTotal, Unidade). Fonte do
+    módulo de Vendas (volume × preço por produto/canal).
+    Datas YYYY-MM-DD. ATENÇÃO: pageSize MÁXIMO do SIGE p/ pedidos = 100."""
+    params: dict = {"pageSize": min(page_size, 100), "skip": skip}
+    if data_inicial is not None:
+        params["dataInicial"] = data_inicial
+    if data_final is not None:
+        params["dataFinal"] = data_final
+    if status is not None:
+        params["status"] = status
+    data = _request("GET", "pedidos_pesquisar", params=params)
+    return _extrair_lista(data)
+
+
+def listar_todos_pedidos(data_inicial: str, data_final: str,
+                         page_size: int = 100, max_paginas: int = 300) -> list[dict]:
+    """Pagina todos os pedidos de um período (pageSize cap 100). Trava de
+    segurança em max_paginas (300 × 100 = 30k pedidos)."""
+    todos: list[dict] = []
+    ps = min(page_size, 100)
+    for pagina in range(max_paginas):
+        lote = pesquisar_pedidos(data_inicial=data_inicial, data_final=data_final,
+                                 page_size=ps, skip=pagina * ps)
+        if not lote:
+            break
+        todos.extend(lote)
+        if len(lote) < ps:
+            break
+    return todos
 
 
 # ── Escrita (modelo C — BLOQUEADA por padrão) ────────────────────────────────
