@@ -1,0 +1,34 @@
+FOTOS E DESCRICOES DOS PRODUTOS — Doces Vo Nena
+================================================
+Organizacao por FORMATO (cada formato = um produto/SKU separado),
+e dentro de cada formato, uma pasta por SABOR.
+Fonte do catalogo: CADASTRO DE PRODUTOS (SKUs).xlsx (na pasta entrevistas/).
+
+ESTRUTURA:
+
+  01_Cocada_Tablete_45g/    Tradicional · Leite_Condensado · Brigadeiro · Cafe · Pe_de_Moca
+                            (Zero NAO existe em 45g)
+  02_Cocada_Mini_30g/       os 5 sabores acima (30g) + Zero_27g (Zero e 27g)
+  03_Cocada_Pet/            caixa plastica quadrada "Cocada em Cubos" ~160g (Zero 100g) — 6 sabores
+  04_Cocada_Pote_Cremosa/   pote de VIDRO 260g e 605g — 6 sabores (fotos dos 2 tamanhos juntas)
+  05_Cocada_Assada/         cumbuca / casca de coco 145g
+  06_Palha_Tablete_50g/     Tradicional(=Chocolate) · Leite_em_Po(=Ninho) · Churros
+                            + _Display (caixa display 10 x 50g = 500g)
+  07_Palha_Pet/             Tradicional · Leite_em_Po · Churros · Cookies · Limao (160g)
+  08_Pao_de_Mel/            unidade 60g + _Display (caixa 10 x 60g = 600g; sortido)
+  09_Bala_Doce_de_Leite/    paralelepipedo 400g (lead ~8 dias)
+  10_Doce_de_Leite/
+  11_Terceirizados/         Bala_de_Coco · Goiabada_Cascao · Doce_de_Leite_Cubos · Doce_de_Leite_Barra
+  _A_CONFERIR/              fotos cujo rotulo nao traz o sabor — Leonardo confirma
+
+CADA pasta de produto tem um descricao.md (modelo) — preencher com descricao,
+peso, lead time, demanda/margem.
+
+PADRAO DE FOTO por produto: 2-3 fotos — FRENTE (rotulo/cinta) + VERSO
+(ingredientes + tabela nutricional).
+
+Notas:
+- "Pequenas Mordidas" = razao social da Vo Nena (nao e terceirizado).
+- Palha rotulo "Tradicional" = sabor Chocolate; "Leite em Po" = Ninho.
+- Cores de cinta cocada: azul=LC · marrom/vinho=Brigadeiro · preto/cinza=Cafe ·
+  laranja/vermelho=Pe de Moca · verde/creme=Zero.

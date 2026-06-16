@@ -43,8 +43,42 @@ a receita deles para entrarem no custo.
 
 ---
 
-## Respostas (preencher conforme chegam)
+## Respostas — CONFIRMADAS pela fábrica (15/06/2026)
 
-- Cocada tradicional: _____ bandejas/tacho · Zero: _____ bandejas/tacho
-- Bala: _____ por tacho
-- Palha: _____ por bandeja/tacho
+### Cocada — rendimento e formatos
+- **Tradicional, Leite Condensado, Brigadeiro, Café, Pé de Moça: 8 bandejas/tacho.**
+- **Zero: 3 bandejas/tacho.** Bandeja = **5,5 kg** em todos os sabores.
+- (A dúvida do "4-5 bandejas" foi **descartada**: é 8 mesmo. Os custos da tela
+  estão corretos, não dobram.)
+- **Formatos** em que a bandeja é cortada:
+  - **Tablete 45 g** (todos os sabores normais)
+  - **Mini 30 g** (normais) · **Mini 27 g** (Zero)
+  - **PET = pedaços pequenos num pote plástico:** **160 g** (Leite Cond., Brigadeiro,
+    Café, Pé de Moça), **150 g** (Tradicional), **100 g** (Zero).
+
+### Bala (Bala de Doce de Leite)
+- **1 tacho = 30 balas · cada bala = 400 g.** Custo de material ≈ R$ 6,47/bala.
+- É um doce próprio (não revenda): cremosa por dentro, casca fina crocante por
+  fora; embrulhada em papel filme + pano + cinta. Tem fotos no banco de fotos.
+
+### Palha
+- **1 bandeja de palha = 30 PETs (potes) de 160 g** cada (= 4,8 kg/bandeja).
+- Também vendida em **display (caixa)**: 4 tradicionais + 4 leite em pó + 2 churros,
+  cada palha do display pesa **50 g** (display = 10 palhas = 500 g).
+- **Receitas** (Tradicional=chocolate, Leite em Pó=Ninho, Churros, Cookies, Limão):
+  **já estão no BOM do projeto** (`seed_bom_completa.py`); as fotos das fichas
+  técnicas (Pequenas Mordidas) confirmam. Os outros sabores (morango, paçoca) =
+  desconsiderar por ora. _Custo da palha ainda sai PARCIAL_ até confirmarmos o
+  custo de creme de leite / manteiga / biscoito maisena no de-para (§7).
+
+### Pão de Mel
+- Receita já no BOM (`pm_bolo`). Foto da receita manuscrita confere
+  (farinha 360 g, mascavo 340 g, cacau 160 g, leite 230 g, palmiste 220 g, mel
+  9 colheres, canela/cravo/essência 3 g, antimofo 10 g, amaciante 20 g,
+  bicarbonato 11 g, fermento 14 g).
+
+### Pendente
+- **Banco de fotos** (`entrevistas/fotos_produtos/`): Leonardo pediu uma leitura de
+  todas as fotos dos produtos comercializados (preencher os `descricao.md`).
+- Produtos sem receita no BOM: **Doce de Leite Cremoso 700 g**, **Cocada Assada
+  145 g** (e os terceirizados: bala de coco, goiabada, doce de leite cubos/barra).

@@ -37,6 +37,11 @@ audios/.venv312/
 audios/*.mp3
 audios/*.wav
 
+# Fotos dos produtos — ficam no OneDrive; só as fichas (descricao.md) vão pro Git.
+entrevistas/fotos_produtos/**/*.jpeg
+entrevistas/fotos_produtos/**/*.jpg
+entrevistas/fotos_produtos/**/*.png
+
 # State local do Claude Code
 .claude/
 

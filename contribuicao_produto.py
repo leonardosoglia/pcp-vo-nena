@@ -19,8 +19,9 @@ import unicodedata
 import custo_producao as cp
 
 # Base de rendimento: 1 bandeja 45g = 100 und × 45 g = 4,5 kg de cocada vendável
-# (≠ 5,5 kg da bandeja úmida; ~1 kg vira aparas/umidade/cinta). Tacho = 8 band,
-# Zero = 3 band. >>> 8 band É O PARÂMETRO EM DISPUTA — se for ~4-5, custo/kg ~dobra.
+# (≠ 5,5 kg da bandeja úmida; ~1 kg vira aparas/umidade/cinta).
+# >>> CONFIRMADO PELA FÁBRICA (15/06/2026): tacho normal = 8 bandejas, Zero = 3.
+# (Bandeja = 5,5 kg em todos. A dúvida do "4-5" foi descartada: é 8 mesmo.)
 KG_VENDAVEL_POR_BANDEJA = 4.5
 BAND_POR_TACHO = {"cocada_T_tacho": 8, "cocada_L_tacho": 8, "cocada_B_tacho": 8,
                   "cocada_C_tacho": 8, "cocada_P_tacho": 8, "cocada_Z_tacho": 3}
@@ -71,10 +72,21 @@ def custo_unit_pm(db, custo_por_id=None):
     return cr["custo_receita"] / rend if rend else None
 
 
+def custo_unit_bala(db, custo_por_id=None):
+    """Custo de matéria-prima por bala (pacote de 400 g). 1 tacho = 30 balas
+    (confirmado pela fábrica 15/06/2026)."""
+    cr = cp.custo_produto(db, "bala_tacho", custo_por_id or cp._mapa_custos(db))
+    return cr.get("custo_por_unidade")  # já é custo_receita / 30
+
+
 def classificar(nome: str):
-    """(tipo, chave, gramas). tipo: 'cocada' | 'pm' | None.
-    cocada: precisa de sabor + gramatura no nome. pm: 'PAO DE MEL'."""
+    """(tipo, chave, gramas). tipo: 'cocada' | 'pm' | 'bala' | None.
+    cocada: precisa de sabor + gramatura no nome. pm: 'PAO DE MEL'.
+    bala: 'BALA DE DOCE DE LEITE' (1 tacho = 30 balas de 400g — fábrica 15/06)."""
     n = _sem_acento(nome)
+    if "BALA DE DOCE DE LEITE" in n:
+        m = re.search(r"(\d+)\s*G\b", n)
+        return "bala", None, (float(m.group(1)) if m else None)
     if "PAO DE MEL" in n:
         m = re.search(r"(\d+)\s*G\b", n)
         return "pm", None, (float(m.group(1)) if m else None)
@@ -93,7 +105,7 @@ def classificar(nome: str):
     return "cocada", chave, float(m.group(1))
 
 
-def custo_unit_produto(nome, ckg, custo_pm):
+def custo_unit_produto(nome, ckg, custo_pm, custo_bala=None):
     """Custo de MP por unidade vendável de um produto, ou None se não mapeável."""
     tipo, chave, gramas = classificar(nome)
     if tipo == "cocada" and chave and gramas:
@@ -101,6 +113,8 @@ def custo_unit_produto(nome, ckg, custo_pm):
         return ck * (gramas / 1000.0) if ck else None
     if tipo == "pm":
         return custo_pm
+    if tipo == "bala":
+        return custo_bala
     return None
 
 
@@ -111,12 +125,13 @@ def contribuicao(db, agregado_vendas: dict, custo_por_id=None) -> dict:
         custo_por_id = cp._mapa_custos(db)
     ckg = custo_kg_cocada(db, custo_por_id)
     cpm = custo_unit_pm(db, custo_por_id)
+    cba = custo_unit_bala(db, custo_por_id)
 
     linhas = []
     total_receita = receita_coberta = contrib_total = 0.0
     for cod, d in agregado_vendas["por_produto"].items():
         total_receita += d["receita"]
-        cu = custo_unit_produto(d["descricao"], ckg, cpm)
+        cu = custo_unit_produto(d["descricao"], ckg, cpm, cba)
         tipo, chave, gramas = classificar(d["descricao"])
         if cu is not None:
             custo = cu * d["qtd"]
@@ -128,7 +143,7 @@ def contribuicao(db, agregado_vendas: dict, custo_por_id=None) -> dict:
                 "receita": round(d["receita"], 2), "custo_mp": round(custo, 2),
                 "contrib": round(contrib, 2),
                 "margem_pct": round(contrib / d["receita"] * 100, 1) if d["receita"] else None,
-                "sabor": SABOR_LABEL.get(chave, "Pão de Mel" if tipo == "pm" else "—"),
+                "sabor": SABOR_LABEL.get(chave, {"pm": "Pão de Mel", "bala": "Bala"}.get(tipo, "—")),
                 "gramas": gramas, "mapeado": True,
             })
         else:
@@ -186,6 +201,7 @@ def por_canal(db, pedidos: list, custo_por_id=None) -> dict:
         custo_por_id = cp._mapa_custos(db)
     ckg = custo_kg_cocada(db, custo_por_id)
     cpm = custo_unit_pm(db, custo_por_id)
+    cba = custo_unit_bala(db, custo_por_id)
 
     def _num(v):
         try:
@@ -201,7 +217,7 @@ def por_canal(db, pedidos: list, custo_por_id=None) -> dict:
         for it in (ped.get("Items") or []):
             rec = _num(it.get("ValorTotal"))
             qtd = _num(it.get("Quantidade"))
-            cu = custo_unit_produto(it.get("Descricao"), ckg, cpm)
+            cu = custo_unit_produto(it.get("Descricao"), ckg, cpm, cba)
             d = canais.setdefault(canal, {"receita": 0.0, "custo": 0.0,
                                           "receita_coberta": 0.0})
             d["receita"] += rec

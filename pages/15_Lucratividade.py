@@ -286,10 +286,10 @@ falta_txt = ", ".join(str(l["descricao"]).split(" - ")[-1][:24] for l in nao_map
 st.markdown(
     "<div class='card-info'>"
     f"<b>O que estes números cobrem:</b> {res['cobertura_pct']:.0f}% das vendas "
-    "(cocada por peso + Pão de Mel). A contribuição é só de <b>material</b> — falta "
+    "(cocada por peso + Pão de Mel + Bala). A contribuição é só de <b>material</b> — falta "
     "o custo de mão de obra/energia (em levantamento à parte). O custo por quilo "
-    "usa o rendimento atual de 8 bandejas por tacho; se a fábrica confirmar um "
-    "rendimento menor, os custos sobem proporcionalmente (o <b>ranking</b> não muda)."
+    "usa o rendimento <b>confirmado pela fábrica</b>: 8 bandejas por tacho "
+    "(Zero, 3 bandejas)."
     f"<br><b>Ainda sem custo</b> (a confirmar): {falta_txt}."
     "</div>", unsafe_allow_html=True)
 
