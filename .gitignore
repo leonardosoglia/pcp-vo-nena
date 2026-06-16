@@ -31,6 +31,12 @@ Thumbs.db
 # Histórico de sessões (transcrições com possível conteúdo sensível)
 historico_sessoes/
 
+# Áudios da reunião — ficam no OneDrive (backup); só a transcrição vai pro Git.
+# Ambiente Python da transcrição (faster-whisper, Python 3.12) também fora.
+audios/.venv312/
+audios/*.mp3
+audios/*.wav
+
 # State local do Claude Code
 .claude/
 
