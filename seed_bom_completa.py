@@ -50,6 +50,10 @@ INSUMOS = [
     ("COCO_RALADO",           "Coco ralado",                    "materia_prima", "kg", ""),
     ("AMENDOIM",              "Amendoim",                       "materia_prima", "kg", ""),
 
+    # ── Ovos ────────────────────────────────────────────────────────────────
+    ("OVO",                   "Ovo",                            "materia_prima", "und",
+        "Cocada assada: usa só a GEMA (12 ovos/30 cumbucas); a clara é descartada (perda)"),
+
     # ── Cacau / chocolate / café ───────────────────────────────────────────
     ("ACHOCOLATADO",          "Achocolatado / Cacau (Brigadeiro)", "materia_prima", "kg", ""),
     ("CACAU_PO",              "Cacau em pó (Pão de Mel)",       "materia_prima", "kg", ""),
@@ -147,6 +151,20 @@ RECEITAS = {
         ("XILITOL",                1.0,  "kg"),
         ("SAL",                    0.015,"kg"),
         ("SORBATO",                0.070,"kg"),
+    ],
+
+    # Cocada Assada na Cumbuca — ASSADA no forno (não é cocada de tacho).
+    # Por LOTE = 30 cumbucas de 145 g (Leonardo, 17/06/2026). 12 ovos = só a gema.
+    # Só a MASSA (igual às cocadas de tacho, que também não contam embalagem).
+    # O casco/cumbuca e a cinta/filme ficam FORA (sem custo disponível) -> custo PARCIAL.
+    "cocada_assada_cumbuca": [
+        ("LEITE_CONDENSADO",       3.0,   "kg"),
+        ("COCO_RALADO",            2.0,   "kg"),
+        ("OVO",                   12,     "und"),
+        ("ACUCAR_CRISTAL",         0.5,   "kg"),
+        ("LEITE_IN_NATURA",        0.15,  "L"),
+        ("SAL",                    0.005, "kg"),
+        ("SORBATO",                0.060, "kg"),
     ],
 
     # ── PALHA — por BANDEJA (1 panela = 1 bandeja) ──────────────────────────

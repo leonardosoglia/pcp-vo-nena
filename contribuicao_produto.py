@@ -79,6 +79,17 @@ def custo_unit_bala(db, custo_por_id=None):
     return cr.get("custo_por_unidade")  # já é custo_receita / 30
 
 
+def custo_unit_assada(db, custo_por_id=None):
+    """Custo de matéria-prima por cumbuca de Cocada Assada (1 lote = 30 cumbucas;
+    Leonardo 17/06/2026). É só a MASSA — o casco/cumbuca e a embalagem NÃO entram
+    (sem custo disponível), igual às demais cocadas que também não contam embalagem.
+    Logo o custo sai PARCIAL/subestimado. Retorna None se a receita ainda não foi
+    cadastrada no banco (evita mostrar margem 100% falsa antes do seed rodar)."""
+    cr = cp.custo_produto(db, "cocada_assada_cumbuca", custo_por_id or cp._mapa_custos(db))
+    c = cr.get("custo_por_unidade")
+    return c if c else None  # já é custo_receita / 30
+
+
 def classificar(nome: str):
     """(tipo, chave, gramas). tipo: 'cocada' | 'pm' | 'bala' | None.
     cocada: precisa de sabor + gramatura no nome. pm: 'PAO DE MEL'.
@@ -92,6 +103,11 @@ def classificar(nome: str):
         return "pm", None, (float(m.group(1)) if m else None)
     if "PALHA" in n:
         return None, None, None
+    # Cocada Assada na Cumbuca — receita/processo próprios (assada, leva ovo).
+    # Detecta por ASSADA/CUMBUCA antes do casamento por sabor (não tem sabor).
+    if "ASSADA" in n or "CUMBUCA" in n:
+        m = re.search(r"(\d+)\s*G\b", n)
+        return "assada", "cocada_assada_cumbuca", (float(m.group(1)) if m else None)
     # Indicadores de que é cocada (alguns nomes não trazem "COCADA", ex.:
     # "PE DE MOCA CUBOS 160G"): aceita COCADA / TABLETE / CUBOS / CREMOSA.
     if not any(t in n for t in ("COCADA", "TABLETE", "CUBOS", "CREMOSA")):
@@ -105,7 +121,7 @@ def classificar(nome: str):
     return "cocada", chave, float(m.group(1))
 
 
-def custo_unit_produto(nome, ckg, custo_pm, custo_bala=None):
+def custo_unit_produto(nome, ckg, custo_pm, custo_bala=None, custo_assada=None):
     """Custo de MP por unidade vendável de um produto, ou None se não mapeável."""
     tipo, chave, gramas = classificar(nome)
     if tipo == "cocada" and chave and gramas:
@@ -115,6 +131,8 @@ def custo_unit_produto(nome, ckg, custo_pm, custo_bala=None):
         return custo_pm
     if tipo == "bala":
         return custo_bala
+    if tipo == "assada":
+        return custo_assada
     return None
 
 
@@ -126,12 +144,13 @@ def contribuicao(db, agregado_vendas: dict, custo_por_id=None) -> dict:
     ckg = custo_kg_cocada(db, custo_por_id)
     cpm = custo_unit_pm(db, custo_por_id)
     cba = custo_unit_bala(db, custo_por_id)
+    cas = custo_unit_assada(db, custo_por_id)
 
     linhas = []
     total_receita = receita_coberta = contrib_total = 0.0
     for cod, d in agregado_vendas["por_produto"].items():
         total_receita += d["receita"]
-        cu = custo_unit_produto(d["descricao"], ckg, cpm, cba)
+        cu = custo_unit_produto(d["descricao"], ckg, cpm, cba, cas)
         tipo, chave, gramas = classificar(d["descricao"])
         if cu is not None:
             custo = cu * d["qtd"]
@@ -143,7 +162,8 @@ def contribuicao(db, agregado_vendas: dict, custo_por_id=None) -> dict:
                 "receita": round(d["receita"], 2), "custo_mp": round(custo, 2),
                 "contrib": round(contrib, 2),
                 "margem_pct": round(contrib / d["receita"] * 100, 1) if d["receita"] else None,
-                "sabor": SABOR_LABEL.get(chave, {"pm": "Pão de Mel", "bala": "Bala"}.get(tipo, "—")),
+                "sabor": SABOR_LABEL.get(chave, {"pm": "Pão de Mel", "bala": "Bala",
+                                                 "assada": "Cocada Assada"}.get(tipo, "—")),
                 "gramas": gramas, "mapeado": True,
             })
         else:
@@ -202,6 +222,7 @@ def por_canal(db, pedidos: list, custo_por_id=None) -> dict:
     ckg = custo_kg_cocada(db, custo_por_id)
     cpm = custo_unit_pm(db, custo_por_id)
     cba = custo_unit_bala(db, custo_por_id)
+    cas = custo_unit_assada(db, custo_por_id)
 
     def _num(v):
         try:
@@ -217,7 +238,7 @@ def por_canal(db, pedidos: list, custo_por_id=None) -> dict:
         for it in (ped.get("Items") or []):
             rec = _num(it.get("ValorTotal"))
             qtd = _num(it.get("Quantidade"))
-            cu = custo_unit_produto(it.get("Descricao"), ckg, cpm, cba)
+            cu = custo_unit_produto(it.get("Descricao"), ckg, cpm, cba, cas)
             d = canais.setdefault(canal, {"receita": 0.0, "custo": 0.0,
                                           "receita_coberta": 0.0})
             d["receita"] += rec

@@ -66,6 +66,9 @@ DEPARA = [
     ("ESSENCIA_MEL",             None,                    None,  "kg",  "NAO_CADASTRADO"),
     ("COCO_RALADO",              "008",                    2.0,  "kg",  "AMBIGUO"),
     ("AMENDOIM",                 "649",                    5.0,  "kg",  "AMBIGUO"),
+    # OVO -> "OVOS BRANCOS GRANDES (30 OVOS)" (cod 291, R$17,55 -> R$0,585/ovo).
+    # AMBIGUO: há vários cadastros de ovo no SIGE, nenhum com saldo p/ desempatar.
+    ("OVO",                      "291",                   30.0,  "und", "AMBIGUO"),
     ("ACHOCOLATADO",             "82143",                  0.5,  "kg",  "AMBIGUO"),
     ("CACAU_PO",                 "82143",                  0.5,  "kg",  "AMBIGUO"),
     ("CHOCOLATE_MEIO_AMARGO",    "409000228",              2.1,  "kg",  "FATOR_INCERTO"),

@@ -77,8 +77,19 @@ a receita deles para entrarem no custo.
   9 colheres, canela/cravo/essência 3 g, antimofo 10 g, amaciante 20 g,
   bicarbonato 11 g, fermento 14 g).
 
+### Cocada Assada na Cumbuca 145 g — recebida 17/06/2026 (massa completa; casco fora)
+- Receita **por lote de 30 cumbucas**, assada em vasilhas: 12 ovos (só a gema; clara
+  descartada), 3 kg leite condensado, **2 kg coco ralado**, 500 g açúcar, 150 ml leite,
+  60 g sorbato, 5 g sal. (O coco era o furo do rótulo — resolvido: 2 kg.)
+- **Cumbuca** (casco do coco): comprada vazia, lote de 300; **150–160 descartadas/lote**
+  (aproveitamento ~47–50 %). **Deixada FORA do custo por enquanto** (sem dado de custo; não
+  está cadastrada no SIGE) → custo da assada sai **subestimado** até o casco entrar.
+- Etiqueta da cocada assada no SIGE = R$0,18/un (embalagem).
+- Detalhe completo no `CADERNO.md` → Bloco 5.
+
 ### Pendente
 - **Banco de fotos** (`entrevistas/fotos_produtos/`): Leonardo pediu uma leitura de
   todas as fotos dos produtos comercializados (preencher os `descricao.md`).
-- Produtos sem receita no BOM: **Doce de Leite Cremoso 700 g**, **Cocada Assada
-  145 g** (e os terceirizados: bala de coco, goiabada, doce de leite cubos/barra).
+- Produtos sem receita no BOM: **Doce de Leite Cremoso 700 g** (e os terceirizados:
+  bala de coco, goiabada, doce de leite cubos/barra). **Cocada Assada 145 g** = recebida
+  parcialmente (faltam coco + custo da cumbuca, acima).

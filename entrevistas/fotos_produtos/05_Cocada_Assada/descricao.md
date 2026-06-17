@@ -16,11 +16,22 @@ Cocada assada da marca Vo Nena, servida dentro de uma cumbuca. A foto mostra um 
 ## Lead time (dias)
 - A confirmar (nao temos lead time especifico da cocada assada nos nossos dados; a cocada de tacho fica entre 3-5 dias, mas a assada e produto/processo diferente).
 
-## Demanda / margem (alta, media, baixa)
-- A confirmar. Nao ha custo nem margem deste produto nos nossos dados porque a receita NAO esta modelada no sistema.
+## Receita (recebida 17/06/2026) — por lote de 30 cumbucas
+- Assada em vasilhas: 12 ovos (so a GEMA; a clara e descartada), 3 kg leite condensado,
+  2 kg coco ralado, 500 g acucar, 150 ml leite, 60 g sorbato (antimofo), 5 g sal.
+- Rende 30 cumbucas de 145 g. Receita cadastrada no sistema como "cocada_assada_cumbuca".
+
+## Custo / margem
+- Custo de MATERIAL ~R$2,53/cumbuca (so a massa) — leite condensado (~47%) + coco (~40%)
+  dominam. PARCIAL/subestimado: NAO inclui o casco/cumbuca, a embalagem (cinta+filme) nem
+  o custo de conversao (mao de obra/energia). Margem de material aparece na tela Lucratividade.
+- O casco (cumbuca) chega em lote de 300, ~50% e descartado (pequeno/furado); custo do casco
+  ainda nao disponivel (nao esta cadastrado no SIGE) -> deixado de fora por ora.
 
 ## Observacoes
-- IMPORTANTE: a Cocada Assada na Cumbuca vende, mas NAO temos a receita/custo modelados no sistema (produto nao modelado). Custo, margem, lead time e demanda ficam "a confirmar".
+- A Cocada Assada na Cumbuca AGORA esta modelada no sistema (receita + custo de material).
+  O custo e PARCIAL ate entrar o casco/embalagem/conversao.
 - Peso da foto (145g) bate com nossos dados (Cocada Assada na Cumbuca = 145g).
 - Produto distinto das cocadas tradicionais da casa: e ASSADA (de forno), enquanto a linha principal de cocada e cremosa/de tacho (tablete 45g, mini, pet, potes 260g/605g). Nao confundir formatos.
-- Leva gema de ovo na receita (ingrediente que nao aparece nas cocadas de tacho), reforcando que e um item a parte que precisa de cadastro proprio.
+- Leva gema de ovo na receita (ingrediente que nao aparece nas cocadas de tacho) — alergeno
+  exclusivo deste produto; o ovo foi cadastrado como insumo novo.

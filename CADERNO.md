@@ -257,6 +257,51 @@ Leonardo levou ficha (`entrevistas/01_pcp_inicial.docx`) pro Eraldo. Eraldo resp
 - **Pé de Moça NÃO leva coco ralado** — é a única cocada sem coco (vira só amendoim).
 - **Adoçante da Zero:** "servia" = **Lowçucar Culinária com Stevia** (FoodService), adoçante à base de stévia — confirmado por foto da embalagem.
 
+### Receita da COCADA ASSADA NA CUMBUCA 145 g (recebida 17/06/2026)
+
+Produto **assado em vasilhas** (não é cocada de tacho) e servido na **cumbuca = casco
+do coco** (a parte dura). Produto que ainda NÃO estava modelado no BOM. Lote padrão da
+receita = **30 cumbucas**.
+
+**Massa — por lote de 30 cumbucas (ditado pelo Leonardo, 17/06):**
+
+| Ingrediente | Qtd (30 cumbucas) | Obs. |
+|---|---|---|
+| Ovos | 12 ovos | **só a GEMA é usada — a clara é descartada.** Compra = ovo inteiro (custo do ovo inteiro entra; a clara é perda) |
+| Leite condensado | 3 kg | |
+| Açúcar | 500 g | |
+| Leite (integral) | 150 ml | |
+| Sorbato (antimofo) | 60 g | |
+| Sal | 5 g | |
+| **Coco ralado** | **2 kg** | confirmado 17/06 (era o furo do rótulo) — usar o mesmo de-para de coco das outras cocadas |
+
+**Cumbuca (casco do coco) — é o recipiente onde a cocada é assada/vendida:**
+- Comprada **vazia** (o casco), em **lote de 300 cumbucas**; precisa limpar/preparar/selecionar.
+- **150 a 160 são descartadas por lote** (pequenas, furadas) → aproveitamento **~47–50 %**.
+- **DECISÃO (Leonardo, 17/06): deixar o casco FORA do custo por enquanto** — não há custo/cadastro
+  disponível. A cumbuca **não está cadastrada no SIGE** (busca por "cumbuca"/"casco"/"coco" só achou
+  o produto pronto e a etiqueta) → custo do casco hoje **invisível no ERP**. Retomar quando houver dado.
+- Etiqueta/adesivo da cocada assada existe no SIGE: **R$0,18/un** (cod 7898682301433) → embalagem.
+
+**Rótulo (fotos 17/06):**
+- Ingredientes: leite condensado, coco ralado, açúcar, leite integral, gema de ovo, sal,
+  conservante sorbato de potássio.
+- Alérgicos: **CONTÉM OVOS, LEITE E DERIVADOS; CONTÉM LACTOSE; CONTÉM GLÚTEN**; pode conter
+  aveia, amendoim, centeio, cevada, soja e trigo. (Gema de ovo = alérgeno exclusivo deste produto.)
+- Nutricional (por 100 g): 356 kcal · carb 43 g · açúcares totais 41 g (adicionados 34 g) ·
+  proteína 5,4 g · gord. totais 18 g (saturada 12 g) · sódio 158 mg. Porção 50 g (≈1/3 da embalagem).
+- **Peso líquido 145 g** · EAN **7898682301422** · validade **~40 dias** (fab. 02/06/2026 → val. 12/07/2026).
+- Produzido/distribuído: **Soglia Ind. e Com. de Prods. Alimentícios Ltda** (CNPJ 04.846.092/0001-86), Ipiranga-SP.
+
+**Custo de material calculado (17/06):** massa de 30 cumbucas ≈ **R$75,81** → **≈ R$2,53/cumbuca**
+(só massa); + etiqueta R$0,18 = **≈ R$2,71/un**. Leite cond (47%) + coco (40%) = ~87% da massa.
+**É PISO** — NÃO inclui casco (fora por decisão), cinta+filme, nem conversão. Ovo = estimativa
+~R$0,59/un (caixa de 30 no SIGE; confirmar cadastro). Ovo ainda NÃO é insumo cadastrado no banco.
+
+**Pendências:** (1) custo do **casco/cumbuca** (deixado fora por ora); (2) embalagem (cinta + filme);
+(3) confirmar o cadastro do ovo no SIGE; (4) custo do sorbato (sem custo no banco — de-para §7);
+(5) **cadastrar a receita no sistema** (BOM + motor de custo/contribuição + catálogo) — aguarda OK do Leonardo.
+
 ### Receita da PALHA — fichas técnicas (recebidas 22/05/2026)
 
 Fichas técnicas oficiais ("Pequenas Mordidas Alimentos Eireli"). **Cada ficha é a receita de 1 bandeja** (= 1 receita = 1 panela, ver seção 1.A). A ficha lista ETIQUETA = 100 (lote nominal), mas na prática **1 bandeja rende 80-90 palhas 50g** — o planejamento usa **80** (o mínimo) — ou **~30 Pets** (confirmado 22/05/2026).
