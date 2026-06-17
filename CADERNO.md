@@ -250,7 +250,7 @@ Leonardo levou ficha (`entrevistas/01_pcp_inicial.docx`) pro Eraldo. Eraldo resp
 | Amendoim | — | — | — | — | 2,5 kg | — |
 | Adoçante | — | — | — | — | — | 2 kg Lowçucar Stevia + 2 kg eritritol + 1 kg xilitol |
 
-**Mistura — igual em TODOS os sabores (por tacho):** 500 ml de leite + 1 colher de sal + 14 colheres de antimofo. O leite da mistura soma ao leite in natura.
+**Mistura — igual em TODOS os sabores (por tacho):** 500 ml de leite + 1 colher de sal (15 g) + 14 colheres de antimofo (= 70 g de sorbato). **Os 500 ml da mistura JÁ estão inclusos no leite total** (19 L nas cocadas T/L/B/C/P; 26 L na Zero) — **não somam por cima** (confirmado por Leonardo 17/06: "é 19, não 19,5"). Sal e sorbato entram como insumos da receita.
 
 **Notas (confirmadas 22/05/2026):**
 - vs respostas verbais de 15/05: o coco da Tradicional era estimado em "4 kg" — o questionário diz **5 kg**. A "mistura" não tinha aparecido na resposta verbal.

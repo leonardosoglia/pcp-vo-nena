@@ -41,7 +41,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 19.5 | L |
+| Leite in natura | `01021` | 19 | L |
 | Açúcar cristal | `409000200` | 8 | kg |
 | Coco ralado | `008` | 5 | kg |
 | Sal | `344` | 0.015 | kg |
@@ -52,7 +52,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 19.5 | L |
+| Leite in natura | `01021` | 19 | L |
 | Açúcar cristal | `409000200` | 8 | kg |
 | Coco ralado | `008` | 10 | kg |
 | Leite condensado | `000000000000012332` | 15 | kg |
@@ -64,7 +64,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 19.5 | L |
+| Leite in natura | `01021` | 19 | L |
 | Açúcar cristal | `409000200` | 8 | kg |
 | Coco ralado | `008` | 5 | kg |
 | Achocolatado / Cacau (Brigadeiro) | `82143` | 0.5 | kg |
@@ -76,7 +76,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 19.5 | L |
+| Leite in natura | `01021` | 19 | L |
 | Açúcar cristal | `409000200` | 8 | kg |
 | Coco ralado | `008` | 5 | kg |
 | Café (sachê 40 g) | `409000174` | 5 | und |
@@ -88,7 +88,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 19.5 | L |
+| Leite in natura | `01021` | 19 | L |
 | Açúcar cristal | `409000200` | 8 | kg |
 | Amendoim | `649` | 2.5 | kg |
 | Sal | `344` | 0.015 | kg |
@@ -99,7 +99,7 @@ de teste para entender as grandezas e validar o ciclo:
 
 | Insumo | Código SIGE | Qtd / receita | Unidade |
 |---|---|---:|---|
-| Leite in natura | `01021` | 26.5 | L |
+| Leite in natura | `01021` | 26 | L |
 | Coco ralado | `008` | 6 | kg |
 | Adoçante Lowçucar Culinária c/ Stevia | `409000415` | 2 | kg |
 | Eritritol | `409000463` | 2 | kg |
@@ -250,6 +250,10 @@ unidades por receita). Mesma estrutura das fichas acima.
 
 - **Insumos `⚠ a cadastrar no SIGE`** (açúcar mascavo, essência de mel, cravo em
   pó, amaciante): precisam ser criados no ERP antes de a ficha ficar completa.
+- **Cocadas — a "mistura" do tacho:** o **sal** (15 g = 1 colher) e o **sorbato**
+  (70 g) listados em cada cocada são a *mistura*, dissolvidos em ~500 ml do leite.
+  Esses 500 ml **já estão dentro** do leite total (19 L nas cocadas T/L/B/C/P;
+  26 L na Zero) — **não somam por cima**.
 - **Cocada Assada na Cumbuca** (adicionada 17/06): o **ovo** usa o cadastro
   `OVOS BRANCOS GRANDES (30 OVOS)` (cód. `291`) — confirmar se é esse mesmo.
   O **casco/cumbuca** (recipiente) e a **embalagem** **não entram na ficha** (não
