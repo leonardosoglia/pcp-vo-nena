@@ -82,17 +82,22 @@ A integração é **somente leitura** no SIGE: o nosso PCP **lê**, mas **não a
 nada** no ERP. Isso preserva o controle do ciclo de materiais inteiramente com a
 empresa e evita conflito de escrita.
 
-**A única exceção possível — e que está EM ABERTO — é COMO a OP entra no SIGE:**
+**A única exceção possível era COMO a OP entra no SIGE — ✅ DECIDIDO (17/06/2026):**
 
-- **(a) OP lançada manualmente** por uma pessoa, a partir do plano do nosso PCP →
-  mantém a integração 100% read-only. *(caminho conservador)*
-- **(b) OP escrita pelo nosso sistema via API** (`POST /OrdensProducao/Cadastrar`)
-  → seria o **único ponto de escrita** do sistema no SIGE.
+- **(a) OP lançada MANUALMENTE** por uma pessoa, a partir do plano do nosso PCP →
+  **escolha da Gestão.** Mantém a integração **100% somente leitura**.
+- ~~(b) OP escrita pelo nosso sistema via API (`POST /OrdensProducao/Cadastrar`)~~ →
+  **não adotado** (fica como evolução futura, se um dia quiserem automatizar).
 
-> **Decisão pendente com a Gestão.** Até ela ser tomada, o ramo de escrita fica
-> **isolado e desligado** no código (`sige_cloud_api.cadastrar_ordem_producao` /
-> `finalizar_ordem_producao`: bloqueadas por `SIGE_PERMITIR_ESCRITA` **e** com
+> **Decisão tomada: OP MANUAL.** A integração é **100% read-only**. O ramo de escrita
+> permanece **isolado e desligado** no código (`sige_cloud_api.cadastrar_ordem_producao`
+> / `finalizar_ordem_producao`: bloqueadas por `SIGE_PERMITIR_ESCRITA` **e** com
 > `NotImplementedError`). **Nada é escrito no SIGE.**
+
+**Outras decisões da Gestão (17/06):** as **fichas técnicas são fonte única no SIGE**
+(nosso BOM = espelho de referência/planejamento, não a verdade operacional); a **baixa
+de insumos é AO FINALIZAR a OP** (não ao iniciar); o cadastro de fichas + 1ª OP começam
+**hoje**. Ver `docs/requisitos_gestora_sige.md` §3.
 
 ---
 
@@ -128,6 +133,45 @@ real — Forrester/stock-vs-flow, já adotado no projeto).
 **Escrita (bloqueada — modelo read-only):** `Produtos/Criar|Atualizar`,
 `ProdutosEstoque/Salvar`, `OrdensProducao/Cadastrar|Finalizar`.
 
+**Ciclo completo de OP exposto na API (spec/Swagger):** `OrdensProducao/` →
+`Cadastrar`, `Pesquisar`, `BuscarCheckListQualidade`, `AvaliacaoConcluida`,
+`Finalizar`, `AdicionarHistorico`, `Impressoes`, `Excluir`. Ou seja, **a API
+permite criar OP** (`Cadastrar`) — a automação é tecnicamente possível (fica como
+evolução futura, ramo isolado/desligado; ver §4).
+
+---
+
+## 6-bis. Confirmação do módulo nativo de PCP do SIGE (17/06/2026)
+
+Confirmado na **central de ajuda** do SIGE (ajuda.sigecloud.com.br) + API + conta:
+o SIGE tem um **módulo de PCP/Ordem de Produção nativo** que executa o **ciclo de
+materiais inteiro** (os 6 passos que a Gestão descreveu). Não é hipótese — é fato
+documentado:
+
+- **Produtos Compostos** = a **ficha técnica** (BOM) cadastrada no SIGE.
+- **Ao gerar a OP:** explode a composição e **calcula os insumos** automaticamente.
+- **Ao iniciar a produção:** baixa o estoque dos insumos *(se configurado p/ baixar
+  no início)* + abre o **checklist de qualidade**.
+- **Ao finalizar:** baixa os insumos *(quantidade produzida − descarte)*, **dá
+  entrada do produto acabado** no estoque e registra o **rendimento**.
+- **Geral:** rastreabilidade por **lote/validade**, **subordens**, **ordem de compra**
+  pro que faltou, etiquetas, histórico de setores/status.
+- **A baixa ao INICIAR vs ao FINALIZAR é CONFIGURÁVEL** ("Baixa Estoque de Compostos
+  ao iniciar OP" × "Abater Estoque de Compostos no PCP" ao finalizar) — vira a
+  pergunta (d) à Gestão (afeta como lemos o estoque).
+- Relatórios nativos: Uso de Materiais, Consumo de Materiais, Previsão de Produção.
+
+> **Na conta da Doces Vó Nena o módulo está VAZIO** (sem produtos compostos, sem OP).
+> Ele existe e funciona — só não foi alimentado ainda.
+
+**Consequência arquitetural (reforça a decisão):** como o SIGE faz o ciclo de
+materiais nativamente, **o nosso PCP não deve duplicá-lo** (pedido explícito da
+Gestão). O ciclo roda no SIGE; o nosso PCP fica nas **pontas** — apoio à decisão
+(antes) e folha/análise/reconciliação (depois) — com a **OP como ponte**.
+
+**Fontes:** central de ajuda do SIGE — categoria *PCP / Ordem de Produção*; artigos
+*Como criar Ordens de Produção* e *Como cadastrar Produtos Compostos*.
+
 **Limitações confirmadas (viram pergunta/decisão):**
 - **Não há endpoint de leitura do histórico de movimentações de estoque** (só o
   saldo atual e a gravação de movimento). Rastreabilidade de movimento depende da OP.
@@ -142,9 +186,19 @@ real — Forrester/stock-vs-flow, já adotado no projeto).
 - ✅ Leitura de produtos/custo + de-para + importação de custo (feito).
 - ✅ Cliente estendido: depósitos, empresas, OPs, checklist (read-only).
 - ✅ Reconciliação estoque SIGE × nosso sistema (feito, `reconciliacao_sige.py`).
+- ✅ **Confirmado o módulo nativo de PCP do SIGE** (17/06 — §6-bis): o ciclo de
+  materiais roda no SIGE; não duplicar do nosso lado.
+- ⏳ **Popular o SIGE (pré-requisito):** cadastrar as fichas técnicas (entregar as **14**
+  já geradas em `docs/fichas_tecnicas_para_sige.md` — inclui a Cocada Assada) + lançar
+  **1 OP de teste** p/ validar os campos de rendimento. Depende da fábrica.
+- ⏳ **Repor o que pode duplicar:** nosso **BOM** (Etapa D) → vira apoio de
+  planejamento/custo + fonte p/ popular o SIGE (não é a verdade operacional); nossa
+  **auto-baixa** (Etapa E) → vira **estimativa de planejamento** (reconciliada contra
+  o SIGE) ou é desligada, já que o SIGE passa a baixar pela OP. **Decisão a tomar.**
 - ⏳ **Carga inicial de estoque** via contagem física → torna a reconciliação real.
 - ⏳ **Análise de rendimento** de OP → aguarda a 1ª OP no SIGE.
-- ❓ **Decisão da OP** (manual × API) → ver `docs/requisitos_gestora_sige.md`.
+- ❓ **Decisão da OP** (manual × API) → recomendação: **manual p/ começar** (mantém
+  read-only). Ver `docs/requisitos_gestora_sige.md`.
 
 **Regra firme desta fase: a integração é SOMENTE LEITURA até a Gestão decidir o
 caminho da OP. O ramo de escrita está isolado e não implementado.**

@@ -1,9 +1,10 @@
 # Fichas técnicas para o SIGE — grandezas por receita/tacho
 
-> **Doces Vó Nena · 14/06/2026.** Geradas a partir do nosso BOM cruzado com o
-> de-para SIGE ([`suprimentos_sigee/de_para_sige.md`](../suprimentos_sigee/de_para_sige.md)).
+> **Doces Vó Nena · 14/06/2026 (atualizado 17/06: + Cocada Assada na Cumbuca).**
+> Geradas a partir do nosso BOM cruzado com o de-para SIGE
+> ([`suprimentos_sigee/de_para_sige.md`](../suprimentos_sigee/de_para_sige.md)).
 > Servem para **cadastrar as fichas técnicas no SIGE** (fonte única — decisão da
-> Gestão) e para montar a **OP de teste**. Arquitetura em
+> Gestão, 17/06) e para montar a **OP de teste**. Arquitetura em
 > [`ARQUITETURA_SIGE.md`](ARQUITETURA_SIGE.md).
 
 A coluna **Código SIGE** já traz o código do insumo no ERP — é só transcrever.
@@ -105,6 +106,22 @@ de teste para entender as grandezas e validar o ciclo:
 | Xilitol | `XILITOL` | 1 | kg |
 | Sal | `344` | 0.015 | kg |
 | Sorbato (anti-mofo) | `29.08.07.01` | 0.07 | kg |
+
+
+## Cocada Assada (por lote de 30 cumbucas)
+
+### Cocada Assada na Cumbuca
+**Rendimento:** 1 lote → 30 cumbucas de 145 g (assada no forno)
+
+| Insumo | Código SIGE | Qtd / receita | Unidade |
+|---|---|---:|---|
+| Leite condensado | `000000000000012332` | 3 | kg |
+| Coco ralado | `008` | 2 | kg |
+| Ovo | `291` | 12 | und |
+| Açúcar cristal | `409000200` | 0.5 | kg |
+| Leite in natura | `01021` | 0.15 | L |
+| Sal | `344` | 0.005 | kg |
+| Sorbato (anti-mofo) | `29.08.07.01` | 0.06 | kg |
 
 
 ## Palhas (por bandeja)
@@ -224,8 +241,8 @@ das grandezas por receita: quais insumos, quanto de cada, e o rendimento (quanta
 unidades por receita). Mesma estrutura das fichas acima.
 
 > Outros produtos vistos no catálogo do SIGE que **também não têm receita** no
-> nosso sistema (caso entrem no escopo): linha de **morango**, **cocada assada**
-> (com ovo), **coberturas**, **biscoitos amanteigados**, **bala de gengibre**.
+> nosso sistema (caso entrem no escopo): linha de **morango**, **coberturas**,
+> **biscoitos amanteigados**, **bala de gengibre**.
 
 ---
 
@@ -233,6 +250,10 @@ unidades por receita). Mesma estrutura das fichas acima.
 
 - **Insumos `⚠ a cadastrar no SIGE`** (açúcar mascavo, essência de mel, cravo em
   pó, amaciante): precisam ser criados no ERP antes de a ficha ficar completa.
+- **Cocada Assada na Cumbuca** (adicionada 17/06): o **ovo** usa o cadastro
+  `OVOS BRANCOS GRANDES (30 OVOS)` (cód. `291`) — confirmar se é esse mesmo.
+  O **casco/cumbuca** (recipiente) e a **embalagem** **não entram na ficha** (não
+  estão cadastrados no SIGE) — a ficha cobre só a massa.
 - **Rendimentos** marcados em bandejas/unidades são os que conhecemos com
   segurança; os valores em **kg são aproximados** e devem ser confirmados na OP de
   teste (é exatamente o "rendeu 60 / devia render 70" que a Gestão quer medir).

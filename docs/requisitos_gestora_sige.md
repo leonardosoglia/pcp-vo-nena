@@ -3,6 +3,12 @@
 > **Doces Vó Nena · reuniões com a Gestão em 14/06/2026.**
 > Fonte: `audios/docs/transcricao_reuniao_gestora.md`. Arquitetura em
 > [`ARQUITETURA_SIGE.md`](ARQUITETURA_SIGE.md).
+>
+> **Atualização 17/06/2026:** confirmado (API + central de ajuda) que o SIGE tem um
+> **módulo de PCP/OP nativo** que faz o ciclo de materiais inteiro (ver §6-bis da
+> arquitetura). Reforça a decisão de **não duplicar** e acrescenta 2 perguntas novas
+> abaixo: **(e)** baixa ao iniciar × ao finalizar (configurável) e **(f)** o destino
+> da nossa auto-baixa (Etapa E).
 
 ---
 
@@ -40,6 +46,26 @@
 ---
 
 ## 3. Perguntas a confirmar com a Gestão
+
+> ### ✅ RESPONDIDAS pela Gestão (via Leonardo, 17/06/2026)
+> - **(a) OP entra MANUAL.** Uma pessoa lança a OP no SIGE a partir do nosso plano →
+>   a integração permanece **100 % somente leitura**. O ramo de escrita fica desligado.
+> - **(b) Fichas técnicas = fonte única no SIGE.** As fichas **devem ficar no SIGE**.
+>   O nosso sistema **pode** ter um campo/visão da ficha (referência/planejamento — o
+>   BOM da Etapa D), mas a **verdade operacional é a do SIGE**; nós só lemos.
+> - **(c/e) Baixa de insumos = AO FINALIZAR a OP.** O estoque do SIGE só cai quando a
+>   OP é finalizada (não no início). *Implicação:* entre lançar e finalizar a OP, os
+>   insumos ainda aparecem no saldo do SIGE → a reconciliação precisa tratar "reservado
+>   mas ainda não baixado".
+> - **(d, "quando") HOJE.** Começam **hoje (17/06)** a cadastrar as fichas e a lançar a
+>   1ª OP no SIGE → podemos **entregar as 14 fichas já geradas**
+>   (`docs/fichas_tecnicas_para_sige.md` — inclui a Cocada Assada) para acelerar.
+> - **(f) — a confirmar:** como a baixa oficial passa a ser do SIGE (ao finalizar), a
+>   nossa auto-baixa (Etapa E) deve virar **estimativa de planejamento** (ou ser
+>   desligada). Direção definida; confirmar o tratamento exato.
+>
+> **Resultado: a arquitetura está FECHADA — integração 100 % read-only, OP manual,
+> fichas no SIGE, baixa ao finalizar.** Detalhes abaixo (mantidos como histórico).
 
 ### (a) A OP entra no SIGE manual ou via nosso sistema (API)?
 O nosso plano de produção (decidido pelas pessoas) precisa virar uma OP no SIGE.
@@ -80,6 +106,22 @@ A reconciliação compara SIGE × físico. Precisamos definir:
 > **Recomendação:** registrar a contagem no nosso PCP (vira a carga inicial real e
 > zera os saldos negativos da auto-baixa); o ajuste no SIGE é lançado pela
 > Suprimentos/estoquista, mantendo o ERP como verdade contábil.
+
+### (e) A baixa dos insumos será ao INICIAR ou ao FINALIZAR a OP?
+O módulo nativo do SIGE permite as duas (configurável): "Baixa Estoque de Compostos
+ao iniciar OP" **ou** abater ao finalizar. As duas têm lógica diferente:
+- **Ao iniciar:** o estoque cai quando a produção começa (mais cedo, otimista).
+- **Ao finalizar:** o estoque cai com o que realmente saiu (produzido − descarte).
+> **Impacto:** muda **como o nosso PCP lê o estoque** e como interpretamos a
+> reconciliação (estoque comprometido × já baixado). Precisamos saber a escolha.
+
+### (f) Nossa auto-baixa (Etapa E) deixa de ser controle oficial?
+Hoje, ao salvar a folha, o nosso PCP **estima** o consumo de insumos e baixa no nosso
+banco. Com o SIGE passando a baixar pela OP, manter a nossa baixa como "verdade"
+**duplicaria** o controle (o que a Gestão pediu pra evitar).
+> **Recomendação:** a nossa auto-baixa vira **estimativa de planejamento** (entre OPs,
+> reconciliada contra o SIGE) — ou é desligada. A baixa oficial passa a ser do SIGE.
+> Confirmar com a Gestão.
 
 ---
 

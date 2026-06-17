@@ -298,9 +298,14 @@ receita = **30 cumbucas**.
 **É PISO** — NÃO inclui casco (fora por decisão), cinta+filme, nem conversão. Ovo = estimativa
 ~R$0,59/un (caixa de 30 no SIGE; confirmar cadastro). Ovo ainda NÃO é insumo cadastrado no banco.
 
-**Pendências:** (1) custo do **casco/cumbuca** (deixado fora por ora); (2) embalagem (cinta + filme);
-(3) confirmar o cadastro do ovo no SIGE; (4) custo do sorbato (sem custo no banco — de-para §7);
-(5) **cadastrar a receita no sistema** (BOM + motor de custo/contribuição + catálogo) — aguarda OK do Leonardo.
+**✅ CADASTRADA NO SISTEMA E PUBLICADA (17/06, commit `dc0deef`, push origin+hf):** receita no BOM
+(`cocada_assada_cumbuca`), insumo OVO criado, custo do ovo do SIGE (cod 291 → R$0,585/un); motor de
+custo/contribuição reconhece a assada → aparece na Lucratividade e no catálogo. Custo confirmado em
+produção: **R$2,53/cumbuca** (PARCIAL — só o sorbato sem custo).
+
+**Pendências (pra completar o custo):** (1) custo do **casco/cumbuca** (deixado fora por ora; não
+está cadastrado no SIGE); (2) embalagem (cinta + filme); (3) confirmar o cadastro do ovo no SIGE
+(usei a caixa de 30, cod 291); (4) custo do sorbato (sem custo no banco — de-para §7).
 
 ### Receita da PALHA — fichas técnicas (recebidas 22/05/2026)
 
