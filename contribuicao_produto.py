@@ -255,6 +255,63 @@ def por_canal(db, pedidos: list, custo_por_id=None) -> dict:
     return canais
 
 
+# ── Produção × Demanda (o coração: o que a fábrica corta × o que o mercado compra)
+def demanda_por_sabor(pedidos: list) -> dict:
+    """Volume (un) e receita (R$) de COCADA por SABOR (os 6 sabores de tacho), a
+    partir dos pedidos faturados do SIGE. Usa classificar() pra mapear cada item →
+    sabor; ignora o que não é cocada de tacho (assada/PM/bala/palha/revenda).
+    {label_sabor: {volume, receita}}."""
+    def _n(v):
+        try:
+            return float(str(v).replace(",", "."))
+        except (TypeError, ValueError):
+            return 0.0
+    out = {}
+    for ped in pedidos:
+        if "fatur" not in str(ped.get("StatusSistema") or "").lower():
+            continue
+        for it in (ped.get("Items") or []):
+            tipo, chave, _g = classificar(it.get("Descricao"))
+            if tipo != "cocada" or not chave:
+                continue
+            lab = SABOR_LABEL[chave]
+            d = out.setdefault(lab, {"volume": 0.0, "receita": 0.0})
+            d["volume"] += _n(it.get("Quantidade"))
+            d["receita"] += _n(it.get("ValorTotal"))
+    return out
+
+
+def producao_x_demanda(db, pedidos: list) -> list:
+    """Cruza PRODUÇÃO (bandejas cortadas das folhas, por sabor) com DEMANDA (volume
+    + receita vendidos do SIGE, por sabor). Compara o MIX (%) — corte está em
+    bandejas e venda em unidades/reais, então o que se compara é a PROPORÇÃO de cada
+    sabor em cada lado. gap > 0 ⇒ produz mais (em proporção) do que vende; gap < 0 ⇒
+    vende mais do que produz (oportunidade). 1 linha por sabor."""
+    prod = producao_por_sabor(db)                     # {label: bandejas}
+    dem = demanda_por_sabor(pedidos)                  # {label: {volume, receita}}
+    ordem = [SABOR_LABEL[k] for k in BAND_POR_TACHO]  # 6 sabores, ordem fixa
+    tot_b = sum(prod.values()) or 1.0
+    tot_v = sum(d["volume"] for d in dem.values()) or 1.0
+    tot_r = sum(d["receita"] for d in dem.values()) or 1.0
+    linhas = []
+    for s in ordem:
+        b = prod.get(s, 0) or 0
+        v = dem.get(s, {}).get("volume", 0) or 0
+        r = dem.get(s, {}).get("receita", 0) or 0
+        pct_prod = b / tot_b * 100
+        pct_vol = v / tot_v * 100
+        pct_rec = r / tot_r * 100
+        linhas.append({
+            "sabor": s, "bandejas": b, "volume": v, "receita": r,
+            "pct_prod": round(pct_prod, 1),
+            "pct_vol": round(pct_vol, 1),
+            "pct_rec": round(pct_rec, 1),
+            "gap_vol": round(pct_prod - pct_vol, 1),
+            "gap_rec": round(pct_prod - pct_rec, 1),
+        })
+    return linhas
+
+
 # ── CLI de validação (read-only) ─────────────────────────────────────────────
 def main():
     import sys, os

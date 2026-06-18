@@ -42,6 +42,7 @@ sugestao_cocada_pg = st.Page("pages/11_Sugestao_Cocada.py", title="Cocada")
 insights_pg = st.Page("pages/2_Insights.py", title="Insights")
 vendas_pg = st.Page("pages/14_Vendas.py", title="Vendas")
 lucratividade_pg = st.Page("pages/15_Lucratividade.py", title="Lucratividade")
+producao_demanda_pg = st.Page("pages/16_Producao_x_Demanda.py", title="Produção × Demanda")
 curva_abc_pg = st.Page("pages/4_Curva_ABC.py", title="Curva ABC")
 anomalias_pg = st.Page("pages/5_Anomalias_ML.py", title="Anomalias ML")
 media_movel_pg = st.Page("pages/6_Media_Movel.py", title="Média Móvel")
@@ -67,7 +68,7 @@ pg = st.navigation({
     "": [home],                                       # Início sem rótulo de grupo
     "Operação do dia": [lancamento_pg, painel_pg],
     "Sugestão": [sugestao_palha_pg, sugestao_cocada_pg],
-    "Análises": [insights_pg, vendas_pg, lucratividade_pg, curva_abc_pg, anomalias_pg, media_movel_pg, bala_pg],
+    "Análises": [insights_pg, vendas_pg, lucratividade_pg, producao_demanda_pg, curva_abc_pg, anomalias_pg, media_movel_pg, bala_pg],
     "Cadastros": [suprimentos_pg, reconciliacao_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
