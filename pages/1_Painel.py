@@ -52,8 +52,8 @@ def cor(val, c="rgba(192,86,33,0.18)"):
     return "color:rgba(0,0,0,0.18);" if val == 0 or val == "0" else ""
 
 def estilo_laranja(v): return cor(v,"rgba(192,86,33,0.18)")
-def estilo_verde(v):   return cor(v,"rgba(5,150,105,0.18)")
-def estilo_azul(v):    return cor(v,"rgba(37,99,235,0.16)")
+def estilo_verde(v):   return cor(v,"rgba(14,116,144,0.18)")
+def estilo_azul(v):    return cor(v,"rgba(14,116,144,0.16)")
 def estilo_vermelho(v):return cor(v,"rgba(220,38,38,0.18)")
 
 def df_styled(df, fn, excluir=None):
@@ -65,7 +65,7 @@ def saldo_style(val):
     try:
         v = float(val)
         if v > 0: return "background-color:rgba(220,38,38,0.2);color:#7f1d1d;font-weight:700;"
-        if v == 0: return "background-color:rgba(5,150,105,0.2);color:#065f46;font-weight:700;"
+        if v == 0: return "background-color:rgba(14,116,144,0.2);color:#0E7490;font-weight:700;"
     except: pass
     return ""
 
@@ -101,7 +101,7 @@ def modal_alertas(df):
 
 # ── Carregar dados ─────────────────────────────────────────────────────────────
 # Mostra a folha de hoje. Se não houver dados de hoje, cai pra última data registrada
-# (útil enquanto o Leonardo está digitalizando histórico antes da folha do dia).
+# (útil enquanto o histórico está sendo digitalizado antes da folha do dia).
 hoje_real = str(date.today())
 datas_disponiveis = list_datas_folha()
 # Usa cache de list_datas_folha em vez de query separada — zero round-trips se já cacheado.
@@ -118,17 +118,19 @@ df_est     = pd.DataFrame(get_estoque())
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
 col_t, col_d, col_r = st.columns([5,2,1])
-with col_t: st.title("PCP — Doces Vó Nena")
+with col_t:
+    st.title("PCP — Doces Vó Nena")
+    st.caption("Visão operacional do dia por departamento.")
 with col_d:
     if hoje == hoje_real:
-        st.markdown(f"<div style='margin-top:14px;color:#7B341E;font-weight:600;'> {datetime.today().strftime('%A, %d/%m/%Y').capitalize()}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='margin-top:14px;color:#C05621;font-weight:600;'>{datetime.today().strftime('%A, %d/%m/%Y').capitalize()}</div>", unsafe_allow_html=True)
     else:
         from datetime import datetime as _dt
         d_show = _dt.strptime(hoje, "%Y-%m-%d").strftime("%d/%m/%Y")
-        st.markdown(f"<div style='margin-top:14px;color:#C05621;font-weight:600;'> Última folha registrada: {d_show}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='margin-top:14px;color:#C05621;font-weight:600;'>Última folha registrada: {d_show}</div>", unsafe_allow_html=True)
 with col_r:
     st.write("")
-    if st.button("", type="primary", width='stretch', help="Atualizar"): st.rerun()
+    if st.button("🔄 Atualizar", type="primary", width='stretch', help="Atualizar"): st.rerun()
 st.divider()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
@@ -147,7 +149,7 @@ with st.sidebar:
             df_al.columns = ["Produto","Em Estoque","Meta"]
             modal_alertas(df_al)
     st.divider()
-    st.caption("Atualizado em tempo real.\nUse  para forçar atualização.")
+    st.caption("Atualizado em tempo real.\nUse 🔄 Atualizar para forçar atualização.")
 
 # ── Abas ───────────────────────────────────────────────────────────────────────
 aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = st.tabs([
@@ -160,7 +162,7 @@ aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = s
 ])
 
 # ══════════════════════════════════════════════════════════════════
-# ABA ERALDO
+# ABA GESTÃO
 # ══════════════════════════════════════════════════════════════════
 with aba_gestao:
 
@@ -183,7 +185,7 @@ with aba_gestao:
             df_cv = pd.DataFrame(get_conversoes())[["descricao","rende"]]
             df_cv.columns = ["Unidade","Rende"]
             st.dataframe(df_cv, width='stretch', hide_index=True)
-            st.info("**Regra de ouro:** 1 Tacho = 8 Bandejas. Coluna Produção (Joel): sempre múltiplo de 8 (exceto ZERO).")
+            st.info("**Regra de ouro:** 1 Tacho = 8 Bandejas. Coluna Produção: sempre múltiplo de 8 (exceto ZERO).")
 
     st.subheader("Visão Geral do Dia")
     if not df_cocada.empty:
@@ -210,7 +212,7 @@ with aba_gestao:
     st.divider()
 
     st.subheader("Cortados — Cocada")
-    st.caption("① cortados hoje (lado embalagem) · ② = ① + Embalados + Joel · ③ = ② − Parâmetro Real (45g)")
+    st.caption("① cortados hoje (lado embalagem) · ② = ① + Embalados + Produção · ③ = ② − Parâmetro Real (45g)")
     cort_data = calcular_cortados(hoje)
     if cort_data and not df_cocada.empty:
         df_c = pd.DataFrame(cort_data)[["sabor","c1_45g","c2_45g","c3_45g","c1_mini","c2_mini","c1_pet","c2_pet"]]
@@ -222,23 +224,23 @@ with aba_gestao:
     col_v, col_pv = st.columns(2)
     vp = calcular_viradas_pvirar(hoje)
     with col_v:
-        st.caption("Viradas cocada: ① Joel · ② = ① − soma das ordens de corte")
+        st.caption("Viradas cocada: ① Produção · ② = ① − soma das ordens de corte")
         if vp:
             df_vir = pd.DataFrame(vp)[["sabor","vir1","vir2"]]
-            df_vir.columns = ["Sabor","① Joel","② Pós-corte"]
+            df_vir.columns = ["Sabor","① Produção","② Pós-corte"]
             st.dataframe(df_styled(df_vir, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
         if not df_palha.empty:
             df_palha_v = reord_palha(df_palha)[["sabor","cont_band_palha"]]
             df_palha_v.columns = ["Palha (sabor)","Bandejas"]
             df_palha_v_f = df_palha_v[df_palha_v["Bandejas"] > 0]
             if not df_palha_v_f.empty:
-                st.caption("Coluna PALHA (bandejas que Leonardo conta):")
+                st.caption("Coluna Palha (bandejas em contagem):")
                 st.dataframe(df_palha_v_f, width='stretch', hide_index=True)
     with col_pv:
-        st.caption("P/Virar: ① Joel · ② = ① + Viradas② · Meta = referência fixa por sabor")
+        st.caption("P/Virar: ① Produção · ② = ① + Viradas② · Meta = referência fixa por sabor")
         if vp:
             df_pv = pd.DataFrame(vp)[["sabor","pv1","pv2","pv_meta"]]
-            df_pv.columns = ["Sabor","① Joel","② c/Viradas","Meta"]
+            df_pv.columns = ["Sabor","① Produção","② c/Viradas","Meta"]
             st.dataframe(df_styled(df_pv, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
     st.divider()
 
@@ -246,23 +248,23 @@ with aba_gestao:
     if pbd:
         col_pm, col_b, col_d_col = st.columns(3)
         with col_pm:
-            st.markdown("** Pão de Mel**")
+            st.markdown("**Pão de Mel**")
             st.metric("Hoje (cnt)",   pbd.get("cnt_pm", 0))
             st.metric("Ordem do dia", pbd.get("ord_pm", 0))
         with col_b:
-            st.markdown("** Balas**")
+            st.markdown("**Balas**")
             st.metric("Hoje (cnt)",     pbd.get("cnt_balas", 0))
             balas_tachos = pbd.get("ord_balas", 0)
             st.metric("Ordem (tachos)", balas_tachos,
                       help=f"1 tacho = 30 balas → equivale a {balas_tachos*30} balas")
         with col_d_col:
-            st.markdown("** Doces**")
+            st.markdown("**Doces**")
             st.metric("Unidades", pbd.get("cnt_doces_displays", 0))
         if pbd.get("ord_amanha_obs"): st.info(f"Amanhã: {pbd['ord_amanha_obs']}")
         if pbd.get("obs"): st.info(f"{pbd['obs']}")
 
 # ══════════════════════════════════════════════════════════════════
-# ABA SR. JOEL
+# ABA PRODUÇÃO
 # ══════════════════════════════════════════════════════════════════
 with aba_producao:
     st.subheader("Quadro de Produção")
@@ -277,7 +279,7 @@ with aba_producao:
             c1.metric("Total bandejas", tot_band)
             c2.metric("Equiv. tachos (excl. Z)", f"{tot_band/8:.1f}")
         with col_l:
-            st.markdown("** Lembretes / Amanhã**")
+            st.markdown("**Lembretes / Amanhã**")
             lem = reord_cocada(df_cocada)[["sabor","amanha_obs"]]
             lem = lem[lem["amanha_obs"].astype(str).str.strip() != ""]
             if lem.empty: st.success("Nenhum lembrete.")
@@ -307,11 +309,11 @@ with aba_producao:
             st.info(f"Amanhã: {pbd['ord_amanha_obs']}")
 
 # ══════════════════════════════════════════════════════════════════
-# ABA GIL
+# ABA CORTE
 # ══════════════════════════════════════════════════════════════════
 with aba_corte:
-    st.subheader("Quadro de Corte — Gil")
-    st.caption("Ordens de corte do dia (em bandejas). O realizado vira CORTADOS① no dia seguinte.")
+    st.subheader("Quadro de Corte")
+    st.caption("Ordens de corte do dia (em bandejas). O realizado vira Cortados① no dia seguinte.")
 
     if not df_cocada.empty:
         st.markdown("##### Corte de Cocada")
@@ -343,7 +345,7 @@ with aba_corte:
         st.info("Sem ordens de corte para hoje.")
 
 # ══════════════════════════════════════════════════════════════════
-# ABA LEONÍLIA
+# ABA EMBALAGEM
 # ══════════════════════════════════════════════════════════════════
 with aba_embalagem:
     st.subheader("Quadro de Embalagem")
@@ -397,7 +399,7 @@ with aba_estoque:
 
         def estilo_status(val):
             if "GERAR" in str(val): return "background-color:rgba(254,202,202,0.6);color:#7f1d1d;font-weight:700;"
-            if "OK" in str(val):    return "background-color:rgba(209,250,229,0.6);color:#065f46;font-weight:600;"
+            if "OK" in str(val):    return "background-color:rgba(14,116,144,0.12);color:#0E7490;font-weight:600;"
             return ""
 
         st.dataframe(df_show.style.map(estilo_status, subset=["Status"]), width='stretch', hide_index=True)

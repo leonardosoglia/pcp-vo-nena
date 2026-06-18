@@ -70,9 +70,9 @@ with st.expander("Como essa página funciona (clica pra entender)", expanded=Fal
 
 | Dimensão | Frequência de mudança | Quem usa |
 |---|---|---|
-| **Funcionários** (nome, departamento) | Raríssimo (entrada/saída de pessoal) | Gestão + Leonardo |
-| **Capacidades** (quanto cada um produz por atividade) | Estável; recalibra a cada ~3 meses | Gestão (Eraldo informa) |
-| **Presença diária** | Diária (de manhã, marca quem veio) | Eraldo / Leonardo |
+| **Funcionários** (nome, departamento) | Raríssimo (entrada/saída de pessoal) | Gestão + Estoque |
+| **Capacidades** (quanto cada um produz por atividade) | Estável; recalibra a cada ~3 meses | Gestão (Gestão informa) |
+| **Presença diária** | Diária (de manhã, marca quem veio) | Gestão / Estoque |
 
 **Como o sistema usa esses dados (próxima Etapa C):**
 
@@ -81,16 +81,16 @@ capacidade_efetiva_do_dia[atividade] =
     soma(valor_normal[atividade]) pra cada funcionário PRESENTE
 ```
 
-Exemplo: se Gil corta 30 bandejas 45g/dia e Paulo corta 25 bandejas/dia,
-e hoje só Paulo veio → capacidade efetiva de corte 45g = 25 band.
+Exemplo: se um funcionário corta 30 bandejas 45g/dia e outro corta 25 bandejas/dia,
+e hoje só um veio → capacidade efetiva de corte 45g = 25 band.
 Aí o sistema sugere ordem de corte respeitando esse limite.
 
 **Por que esse modelo é forte pro TCC:**
 
 Modela explicitamente a **restrição de capacidade de mão-de-obra** — clássico
 de PCP (Heizer & Render, *Operations Management*, Cap 13 — Capacity Planning).
-A maioria dos sistemas comerciais usa capacidade FIXA por departamento;
-aqui é POR FUNCIONÁRIO POR ATIVIDADE, refletindo a realidade da fábrica
+A maioria dos sistemas comerciais usa capacidade fixa por departamento;
+aqui é **por funcionário por atividade**, refletindo a realidade da fábrica
 artesanal onde cada pessoa tem ritmo próprio.
 """)
 
@@ -128,7 +128,7 @@ with tab_func:
         with st.form("form_criar_funcionario", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
-                novo_nome = st.text_input("Nome", placeholder="Ex: Gil")
+                novo_nome = st.text_input("Nome", placeholder="Nome do funcionário")
             with col2:
                 novo_dept = st.selectbox("Departamento", DEPARTAMENTOS_FUNCIONARIO, index=2)
             nova_obs = st.text_area("Observação (opcional)", placeholder="Ex: Especialista em 45g, trabalha desde 2018",
@@ -154,10 +154,9 @@ with tab_func:
         st.markdown(
             "<div class='didatica'>"
             "Nenhum funcionário cadastrado ainda. Use o expander 'Cadastrar' "
-            "acima pra começar. <br><b>Sugestão de cadastros iniciais:</b><br>"
-            "• Eraldo (Gestão) · Sr. Joel (Produção) · Gil (Corte) · Paulo (Auxiliar geral)<br>"
-            "• Leonília (Embalagem) · Popô (Embalagem) · Maria (Produção)<br>"
-            "• Mariana (Suprimentos) · Leonardo (Estoque/Contagem)"
+            "acima pra começar. <br><b>Sugestão de departamentos iniciais:</b><br>"
+            "• Gestão · Produção · Corte · Embalagem<br>"
+            "• Suprimentos · Estoque (contagem)"
             "</div>",
             unsafe_allow_html=True,
         )
@@ -174,15 +173,15 @@ with tab_func:
             st.markdown(f"### {dept}")
             for f in por_dept[dept]:
                 ativo = bool(f.get("ativo"))
-                badge = "<span class='badge-ativo'>ATIVO</span>" if ativo else "<span class='badge-inativo'>INATIVO</span>"
+                badge = "<span class='badge-ativo'>Ativo</span>" if ativo else "<span class='badge-inativo'>Inativo</span>"
                 col_info, col_acoes = st.columns([3, 1])
                 with col_info:
                     st.markdown(
                         f"<div class='card-funcionario'>"
                         f"<b style='font-size:16px;'>{f['nome']}</b> &nbsp;{badge}<br>"
-                        f"<span style='color:#666;font-size:12px;'>ID #{f['id']} · "
+                        f"<span style='color:#A8A29E;font-size:12px;'>ID #{f['id']} · "
                         f"criado em {f.get('criado_em', '?')}</span><br>"
-                        f"{('<i style=\"color:#7B341E;\">' + (f.get('observacao') or '') + '</i>') if f.get('observacao') else ''}"
+                        f"{('<i style=\"color:#C05621;\">' + (f.get('observacao') or '') + '</i>') if f.get('observacao') else ''}"
                         f"</div>",
                         unsafe_allow_html=True,
                     )
@@ -342,14 +341,14 @@ with tab_pres:
     # Botões em massa
     col_mass_a, col_mass_b, col_mass_c = st.columns(3)
     with col_mass_a:
-        if st.button("Marcar TODOS como presentes", width='stretch'):
+        if st.button("Marcar todos como presentes", width='stretch'):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=True)
             invalidar_equipe()
             st.success("Todos marcados como presentes.")
             st.rerun()
     with col_mass_b:
-        if st.button("Marcar TODOS como ausentes", width='stretch'):
+        if st.button("Marcar todos como ausentes", width='stretch'):
             for p in presencas:
                 upsert_presenca(data_str, p["funcionario_id"], presente=False)
             invalidar_equipe()
@@ -375,11 +374,11 @@ with tab_pres:
             # NULL → checkbox vazio mas indeterminado
             label = f"{p['nome']}"
             if estado_atual is None:
-                label += " "
+                label += " (não marcado)"
             elif estado_atual == 0:
-                label += " "
+                label += " (ausente)"
             elif estado_atual == 1:
-                label += " "
+                label += " (presente)"
 
             col_cb, col_obs = st.columns([1, 2])
             with col_cb:
@@ -412,7 +411,7 @@ with tab_pres:
 
 st.divider()
 st.caption(
-    " Equipe é a Etapa A da Ideia 4 (Sugestão de Ordem do Dia). "
+    "Equipe é a Etapa A da Ideia 4 (Sugestão de Ordem do Dia). "
     "Próxima etapa: o algoritmo vai consumir esses dados pra pré-calcular "
     "ord_corte / ord_emb / ord_prod, considerando capacidade efetiva do dia."
 )

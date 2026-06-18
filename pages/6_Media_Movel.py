@@ -76,7 +76,7 @@ def _carregar_observacoes_45g():
     fábrica naquele dia — soma das 3 camadas:
       - embalado (estoque/venda)
       - cortado sala da Embalagem (cort1_45g)
-      - cortado pelo Joel/Produção (joel_45g, papelzinho)
+      - cortado pela Produção (joel_45g, papelzinho)
 
     Antes (até 26/05/2026) esta página usava `ord_emb_45g` — que é só a ordem
     de embalagem do dia, uma fração pequena. Resultado: mapa de calor SEMPRE
@@ -188,10 +188,10 @@ def calcular_tudo(janela=4):
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Calibração de Metas")
+st.title("Calibração de metas")
 st.caption(
     "Compara a **meta-base 45g** (tabela `metas_45g`, fixa) com o **Cortados² médio** "
-    "observado nas últimas semanas — `emb_45g + cort sala + papelzinho do Joel`. "
+    "observado nas últimas semanas — `emb_45g + cort sala + papelzinho da Produção`. "
     "Mostra onde a realidade se descolou do parâmetro e pede recalibração."
 )
 
@@ -251,7 +251,7 @@ col_d.metric(
 )
 
 st.caption(
-    "**Status:**  OK (<10%) ·  Atenção (10-20%) ·  Recalibrar (>20%)"
+    "**Status:** OK (<10%) · Atenção (10-20%) · Recalibrar (>20%)"
 )
 
 
@@ -259,7 +259,7 @@ st.caption(
 # TABELA COMPARATIVA — base × média móvel × desvio
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.header("Meta × Realidade")
+st.header("Meta × realidade")
 
 df_tab = df_mm.copy()
 df_tab["sabor"] = df_tab["sabor"].apply(lambda s: s.capitalize() if s.isupper() else s)
@@ -275,9 +275,8 @@ df_tab["desvio_fmt"] = df_tab.apply(
     axis=1,
 )
 
-# Coluna de severidade com emoji
-emoji_sev = {"OK": "OK", "Atenção": "Atenção", "Recalibrar": "Recalibrar"}
-df_tab["sev_fmt"] = df_tab["severidade"].map(emoji_sev)
+# Coluna de severidade
+df_tab["sev_fmt"] = df_tab["severidade"]
 
 df_display = df_tab[[
     "sabor", "weekday_pt", "n_observacoes",
@@ -308,7 +307,7 @@ st.dataframe(df_display, width='stretch', hide_index=True)
 st.divider()
 st.header("Mapa de calor")
 st.caption(
-    "Verde = OK · Amarelo = atenção · Vermelho = recalibrar · Branco = sem dados."
+    "Azul = OK · Âmbar = atenção · Vermelho = recalibrar · Branco = sem dados."
 )
 
 # Monta matriz wide: sabor × weekday
@@ -340,9 +339,9 @@ fig_heat = go.Figure(data=go.Heatmap(
     y=pivot.index,
     colorscale=[
         [0.0, "#B91C1C"],   # vermelho profundo (-50%)
-        [0.4, "#FCD34D"],   # amarelo (-10%)
-        [0.5, "#10B981"],   # verde (0%)
-        [0.6, "#FCD34D"],   # amarelo (+10%)
+        [0.4, "#B45309"],   # âmbar (-10%)
+        [0.5, "#0E7490"],   # azul/positivo (0%)
+        [0.6, "#B45309"],   # âmbar (+10%)
         [1.0, "#B91C1C"],   # vermelho profundo (+50%)
     ],
     zmid=0,
@@ -393,10 +392,10 @@ fig_lin = go.Figure()
 # Pontos coloridos por dia da semana
 cores_dia = {
     "Segunda": "#C05621",
-    "Terça":   "#7B341E",
+    "Terça":   "#0E7490",
     "Quarta":  "#B45309",
-    "Quinta":  "#92400E",
-    "Sexta":   "#451A03",
+    "Quinta":  "#A8A29E",
+    "Sexta":   "#991B1B",
 }
 for wd_pt, cor in cores_dia.items():
     sub = df_sabor[df_sabor["weekday_pt"] == wd_pt]
@@ -426,7 +425,7 @@ if meta_sabor:
         fig_lin.add_hline(
             y=media_semana,
             line_dash="dash",
-            line_color="#1F2937",
+            line_color="#0E7490",
             annotation_text=f"Base média semanal = {int(media_semana):,}",
             annotation_position="top left",
         )

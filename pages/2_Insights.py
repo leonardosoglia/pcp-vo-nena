@@ -234,7 +234,7 @@ st.header("Padrão detectado — possível viés por sabor (a validar)")
 
 st.markdown(
     f"<div class='insight-card-master'>"
-    f"<b style='font-size:18px;color:#7B341E;'>O sistema detectou um sinal nas {dados['n_folhas']} folhas analisadas:</b><br><br>"
+    f"<b style='font-size:18px;color:#C05621;'>O sistema detectou um sinal nas {dados['n_folhas']} folhas analisadas:</b><br><br>"
     f"Alguns sabores aparecem com Cortados ③ médio <b>persistentemente negativo</b> (produção abaixo do parâmetro real), "
     f"outros com ③ médio <b>persistentemente positivo</b> (produção acima do parâmetro real). "
     f"<br><br>"
@@ -253,7 +253,7 @@ df_h2 = df_h2.sort_values("media", ascending=True)
 
 # Gráfico de barras horizontais ordenadas
 fig_h2 = go.Figure()
-cores = ["#B91C1C" if v < -100 else ("#059669" if v > 100 else "#9CA3AF") for v in df_h2["media"]]
+cores = ["#B91C1C" if v < -100 else ("#0E7490" if v > 100 else "#A8A29E") for v in df_h2["media"]]
 fig_h2.add_trace(go.Bar(
     y=[f"{r['sabor']} {r['tamanho']}" for _, r in df_h2.iterrows()],
     x=df_h2["media"],
@@ -269,7 +269,7 @@ _x_min = float(df_h2["media"].min())
 _x_max = float(df_h2["media"].max())
 _x_folga = max(abs(_x_min), abs(_x_max), 1) * 0.15
 fig_h2.update_layout(
-    title="③ médio por sabor/tamanho — vermelho = abaixo do param_real · verde = acima",
+    title="③ médio por sabor/tamanho — vermelho = abaixo do param_real · azul = acima",
     xaxis=dict(title="Cortados ③ médio (unidades/dia útil)",
                range=[_x_min - _x_folga, _x_max + _x_folga], fixedrange=True),
     yaxis=dict(title="", fixedrange=True),
@@ -278,7 +278,7 @@ fig_h2.update_layout(
     showlegend=False,
     plot_bgcolor="white",
 )
-fig_h2.add_vline(x=0, line_width=2, line_color="#1a1a1a")
+fig_h2.add_vline(x=0, line_width=2, line_color="#0E7490")
 st.plotly_chart(fig_h2, width='stretch', config={"displayModeBar": False, "responsive": True})
 
 # Tabela com soma + média + n
@@ -293,9 +293,9 @@ with st.expander("Ver tabela completa", expanded=False):
 # Caixa "Como ler os números"
 st.markdown(
     "<div class='insight-card-info'>"
-    "<b> Como ler os números:</b><br>"
+    "<b>Como ler os números:</b><br>"
     "• Média <b>negativa</b> (vermelho) → produção média ficou <b>abaixo</b> do <code>param_real</code> nas folhas analisadas.<br>"
-    "• Média <b>positiva</b> (verde) → produção média ficou <b>acima</b> do <code>param_real</code> nas folhas analisadas.<br>"
+    "• Média <b>positiva</b> (azul) → produção média ficou <b>acima</b> do <code>param_real</code> nas folhas analisadas.<br>"
     "• O <code>param_real</code> não é fixo — varia diariamente conforme a Gestão antecipa pedidos da semana seguinte. Por isso o sinal aqui é sensível a quando o pedido foi distribuído e quando a produção alcançou."
     "</div>",
     unsafe_allow_html=True,
@@ -326,7 +326,7 @@ if h1["parciais"]:
 
 st.markdown(
     "<div class='insight-card-good'>"
-    "<b> Decisão intencional, não desperdício.</b> Tacho parcial é estratégia da Gestão pra balancear "
+    "<b>Decisão intencional, não desperdício.</b> Tacho parcial é estratégia da Gestão pra balancear "
     "bandejas (45g/Mini/Pet) <b>e</b> potes 260g/605g no mesmo dia, com a mesma massa do tacho. Sem perda de ingrediente."
     "</div>",
     unsafe_allow_html=True,
@@ -357,7 +357,7 @@ if h5["anomalias"]:
 else:
     st.markdown(
         "<div class='insight-card-good'>"
-        " Nenhuma anomalia de palha detectada no período. Tradicional continua dominando, como esperado."
+        "Nenhuma anomalia de palha detectada no período. Tradicional continua dominando, como esperado."
         "</div>",
         unsafe_allow_html=True,
     )
@@ -368,7 +368,7 @@ st.divider()
 # 4. SOBRECARGA EMBALAGEM
 # ════════════════════════════════════════════════════════════════════════════
 h4 = dados["h4"]
-st.header("Embalagem — capacidade VARIÁVEL (ajustar conforme equipe do dia)")
+st.header("Embalagem — capacidade variável (ajustar conforme equipe do dia)")
 
 # Capacidade configurável — a Gestão confirmou (15/05/2026) que não é fixa: varia
 # com quantas pessoas estão embalando e a velocidade individual de cada uma.
@@ -386,7 +386,7 @@ sobrecarga_dinamica = [r for r in h4["todas"] if r["total"] > cap]
 
 st.markdown(
     f"<div class='insight-card-info'>"
-    f"<b>Capacidade NÃO é fixa</b> — varia conforme quantas pessoas estão embalando e a velocidade de cada uma.<br><br>"
+    f"<b>Capacidade não é fixa</b> — varia conforme quantas pessoas estão embalando e a velocidade de cada uma.<br><br>"
     f"Com a capacidade atual de <b>{cap:,} und/dia</b>, <b>{len(sobrecarga_dinamica)} dia(s)</b> "
     f"do histórico passariam do limite."
     f"</div>",
@@ -405,7 +405,7 @@ if sobrecarga_dinamica:
 else:
     st.markdown(
         "<div class='insight-card-good'>"
-        " Nenhum dia do histórico ultrapassa essa capacidade. "
+        "Nenhum dia do histórico ultrapassa essa capacidade. "
         "Mova o slider pra baixo (ex: 1800) pra simular dias com equipe reduzida."
         "</div>",
         unsafe_allow_html=True,
@@ -422,7 +422,7 @@ fig_h4.add_trace(go.Bar(
 ))
 fig_h4.add_trace(go.Bar(
     x=df_emb_all["data"], y=df_emb_all["emb_mini"],
-    name="Mini (und)", marker_color="#7B341E",
+    name="Mini (und)", marker_color="#0E7490",
 ))
 fig_h4.add_hline(
     y=cap, line_dash="dash", line_color="#B91C1C",
@@ -466,18 +466,18 @@ if not df_h6_valid.empty:
         x=df_h6_valid["data"], y=df_h6_valid["T/L"],
         mode="lines+markers",
         line=dict(color="#C05621", width=3),
-        marker=dict(size=8, color="#7B341E"),
+        marker=dict(size=8, color="#C05621"),
         name="T/L observada",
     ))
     # Banda aceitável (1.8 - 2.2)
     fig_h6.add_hrect(
         y0=1.8, y1=2.2,
-        fillcolor="#059669", opacity=0.15,
+        fillcolor="#0E7490", opacity=0.15,
         line_width=0,
         annotation_text="Banda aceitável (1.8 – 2.2)", annotation_position="top left",
     )
     fig_h6.add_hline(
-        y=2.0, line_dash="dash", line_color="#059669",
+        y=2.0, line_dash="dash", line_color="#0E7490",
         annotation_text="Meta = 2.0", annotation_position="bottom right",
     )
     fig_h6.update_layout(
@@ -541,7 +541,7 @@ st.markdown(
 
 st.markdown(
     "<div class='insight-card-good'>"
-    "<b> Próximo passo:</b> manter folhas completas por 2-3 semanas seguidas. "
+    "<b>Próximo passo:</b> manter folhas completas por 2-3 semanas seguidas. "
     "Quando tiver ~15+ pares de D / D+3, esse gráfico mostra se o lead time real é 3 dias mesmo, ou se varia (e por quê)."
     "</div>",
     unsafe_allow_html=True,
@@ -558,7 +558,7 @@ st.caption(
     f"atualizada a cada 60 segundos ou quando nova folha é salva."
 )
 st.caption(
-    " Esta página mostra **sinais a investigar** — não conclusões fechadas. "
+    "Esta página mostra **sinais a investigar** — não conclusões fechadas. "
     "Conforme novas folhas entram, padrões mais ricos emergem e os falsos positivos diminuem. "
     "Achados que a Gestão confirmar viram **regras automatizadas** na Camada 2 (sugestão de corte). "
     "Achados que a Gestão refutar são marcados aqui e desligados como alerta."

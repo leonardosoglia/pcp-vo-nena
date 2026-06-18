@@ -248,9 +248,9 @@ st.markdown(
 # Resultado — quadro CONSERVADOR (amarelo claro)
 # ════════════════════════════════════════════════════════════════════════════
 st.markdown(
-    """<div style="background:#fffacd; padding: 14px 18px; border-radius: 8px; border-left: 6px solid #f0c020; margin-top: 8px;">
+    """<div class='card-info'>
     <h3 style="margin: 0 0 6px 0;">Sugestão (conservadora — evita corte com sobra grande)</h3>
-    <p style="margin: 0; font-size: 0.92em; color: #555;">
+    <p style="margin: 0; font-size: 0.92em;">
     No <strong>50g</strong>: se a necessidade líquida &lt; <strong>60 unidades</strong>, NÃO corta
     nenhuma bandeja (evita cortar 1 band só pra cobrir 50 palhas com sobra de 30).
     Acima disso, arredondamento clássico.<br>
@@ -271,10 +271,7 @@ df_c = pd.DataFrame({
     "Sobra após corte": [r_conserv["sobra"][s] for s in SABORES],
     "Produção sugerida (band)": [r_conserv["producao"][s] for s in SABORES],
 })
-st.dataframe(
-    df_c.style.set_properties(**{"background-color": "#fffacd"}),
-    width='stretch', hide_index=True,
-)
+st.dataframe(df_c, width='stretch', hide_index=True)
 
 total_corte_c = sum(r_conserv["corte_total"].values())
 total_prod_c = sum(r_conserv["producao"].values())
@@ -375,3 +372,9 @@ with st.expander("Constantes da semana (avançado)", expanded=False):
         f"- **Rendimento da bandeja:** {REND_50G_POR_BANDEJA} palhas 50g "
         f"(mínimo; rende 80-90) · {REND_PET_POR_BANDEJA} Pets."
     )
+
+_rodape_data = data_sel.strftime('%d/%m/%Y') if data_sel is not None else "sem data selecionada"
+st.caption(
+    f"Calculado para {_rodape_data} · fonte: {fonte_dados} · "
+    "dados em cache ~1 min."
+)

@@ -105,7 +105,7 @@ def _features_de_folha(d):
 
     # ── FEATURES DE FLUXO (Ordens — demanda do dia) ───────────────────────
     # Captura anomalias de DEMANDA (dia atípico de pedido, mudança de mix)
-    # Adicionado 17/05/2026 após insight do Leonardo: estoque e fluxo são
+    # Adicionado 17/05/2026 após insight de Gestão: estoque e fluxo são
     # variáveis complementares — capturam tipos diferentes de anomalia.
 
     # Ordens de produção (band) por sabor cocada
@@ -269,7 +269,7 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 st.title("Folhas Atípicas")
 st.caption(
     "Detecção automática via Machine Learning (Isolation Forest). "
-    " [Saiba mais](/Ajuda) na página de Ajuda."
+    "[Saiba mais](/Ajuda) na página de Ajuda."
 )
 
 
@@ -352,7 +352,7 @@ df_plot["data_dt"] = pd.to_datetime(df_plot["data"])
 df_plot["status"] = df_plot["is_anomaly"].map({-1: "Anomalia", 1: "Normal"})
 
 fig = go.Figure()
-for status_val, cor in [("Anomalia", "#B91C1C"), ("Normal", "#9CA3AF")]:
+for status_val, cor in [("Anomalia", "#B91C1C"), ("Normal", "#A8A29E")]:
     sub = df_plot[df_plot["status"] == status_val].sort_values("data_dt")
     fig.add_trace(go.Bar(
         x=sub["data_dt"],
@@ -394,8 +394,8 @@ anomalias = df_result[df_result["is_anomaly"] == -1]
 
 if anomalias.empty:
     st.markdown(
-        "<div class='didatica'>"
-        " Nenhuma folha foi marcada como atípica com o critério atual. "
+        "<div class='card-info'>"
+        "Nenhuma folha foi marcada como atípica com o critério atual. "
         "Mova o slider acima pra um valor maior se quiser forçar mais detecções."
         "</div>",
         unsafe_allow_html=True,
@@ -430,7 +430,7 @@ else:
 
         st.markdown(
             f"<div class='anomaly-card'>"
-            f"<b style='font-size:18px;color:#7B341E;'> {data_fmt}</b><br>"
+            f"<b style='font-size:18px;color:#C05621;'>{data_fmt}</b><br>"
             f"<span style='color:#991B1B;font-weight:600;'>Score de anomalia: {score:.3f}</span>"
             f"<hr style='border-color:#FECACA;margin:10px 0;'>"
             f"<b>O que mais contribuiu (top 3 features):</b><br>"
@@ -442,7 +442,7 @@ else:
         # ── Botão " Explicar via IA" + área de exibição ────────────────
         col_btn, col_status = st.columns([1, 3])
         with col_btn:
-            btn_label = " Explicar via IA"
+            btn_label = "Explicar via IA"
             btn_key = f"explicar_{data_iso}_{i}"
             btn_clicked = st.button(
                 btn_label, key=btn_key, width='stretch',
@@ -458,7 +458,7 @@ else:
         with col_status:
             if not api_key_disponivel:
                 st.caption(
-                    " *Explicação via IA requer `ANTHROPIC_API_KEY` configurada "
+                    "*Explicação via IA requer `ANTHROPIC_API_KEY` configurada "
                     "no HF Spaces (Settings > Variables and secrets).*"
                 )
 
@@ -468,7 +468,7 @@ else:
             if resultado.get("erro"):
                 st.markdown(
                     f"<div class='anomaly-card' style='background:#FEF2F2;border-color:#B91C1C;'>"
-                    f"<b> Erro ao consultar Claude:</b><br>"
+                    f"<b>Erro ao consultar Claude:</b><br>"
                     f"<code>{resultado['erro']}</code>"
                     f"</div>",
                     unsafe_allow_html=True,
@@ -477,14 +477,14 @@ else:
                 cache_info = ""
                 if resultado.get("tokens_cache_read", 0) > 0:
                     pct = (resultado["tokens_cache_read"] / max(resultado["tokens_input"], 1)) * 100
-                    cache_info = f" ·  cache hit: {pct:.0f}%"
+                    cache_info = f" · cache hit: {pct:.0f}%"
                 st.markdown(
                     f"<div class='anomaly-card' style='background:linear-gradient(135deg,#FFF8F2 0%,#FEF3C7 100%);border-color:#C05621;'>"
-                    f"<b> Análise do Claude ({resultado.get('modelo', '?')}):</b><br><br>"
+                    f"<b>Análise do Claude ({resultado.get('modelo', '?')}):</b><br><br>"
                     f"{resultado.get('explicacao', '').replace(chr(10), '<br>')}"
                     f"<hr style='border-color:#FED7AA;margin:10px 0;'>"
-                    f"<span style='font-size:11px;color:#7B341E;'>"
-                    f" {resultado['tokens_input']} tokens in + {resultado['tokens_output']} out = "
+                    f"<span style='font-size:11px;color:#C05621;'>"
+                    f"{resultado['tokens_input']} tokens in + {resultado['tokens_output']} out = "
                     f"<b>~R$ {resultado['custo_brl']:.3f}</b>{cache_info}"
                     f"</span>"
                     f"</div>",

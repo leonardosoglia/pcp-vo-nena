@@ -68,7 +68,7 @@ data_sel = col_data.date_input(
     format="DD/MM/YYYY",
     help=(
         "Selecione uma data com folha lançada — o sistema preenche emb, cortados, "
-        "papelzinho do Joel, potes em estoque e parâmetro real do dia automaticamente. "
+        "papelzinho da Produção, potes em estoque e parâmetro real do dia automaticamente. "
         "Deixe vazio pra preencher manualmente."
     ),
 )
@@ -130,7 +130,7 @@ if data_sel is not None:
             dados['joel_pv'][s] = p.get('joel_pv') or 0
         dados['weekday'] = data_sel.weekday()
         ks = data_sel.isoformat()
-        msg_papel = "" if papel_rows else " ⚠ Papelzinho do Joel não lançado pra este dia (joel_v e joel_pv = 0)."
+        msg_papel = "" if papel_rows else " Papelzinho não lançado pra este dia (joel_v e joel_pv = 0)."
         st.success(
             f"Folha de **{data_sel.strftime('%d/%m/%Y')}** carregada do banco — "
             "todos os estoques abaixo vieram da folha lançada. Edite se quiser testar um cenário."
@@ -293,7 +293,7 @@ st.header("Estoque do dia")
 st.caption(
     "Edite os valores. **Embalado** = pronto pra venda (sala de venda/estoque). "
     "**Cortado** = já cortado mas ainda não embalado (sala da Embalagem). "
-    "**joel_45g / joel_mini / joel_pet** = contagem matinal do papelzinho do Joel "
+    "**joel_45g / joel_mini / joel_pet** = contagem matinal do papelzinho da Produção "
     "(produto cortado na Produção). joel_pet em BANDEJAS, os outros em unidades. "
     "**joel_v / joel_pv** = bandejas viradas / pra virar. "
     "**Potes** = unidades já produzidas."
@@ -383,13 +383,13 @@ r = sugerir_cocada(
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Resultado — sugestão CONSERVADORA (fórmula `param − Cortados²` com horizonte)
+# Resultado — sugestão conservadora (fórmula `param − Cortados²` com horizonte)
 # ════════════════════════════════════════════════════════════════════════════
-st.header("Sugestão CONSERVADORA — fórmula (param − Cortados²)")
+st.header("Sugestão conservadora — fórmula (param − Cortados²)")
 st.caption(
     "Calculada pelo algoritmo: pega o param do dia, desconta o que já está cortado "
-    "(emb + cort sala + papelzinho do Joel), divide pelo horizonte. **Tende a sugerir "
-    "POUCO ou ZERO quando o estoque já cobre o param.**"
+    "(emb + cort sala + papelzinho da Produção), divide pelo horizonte. **Tende a sugerir "
+    "pouco ou zero quando o estoque já cobre o param.**"
 )
 df_sug = pd.DataFrame({
     "Sabor": SABORES,
@@ -432,12 +432,12 @@ df_pote = pd.DataFrame({
     "Sobra band (tacho)": [r['sobra_band_tacho'][s] for s in SABORES],
     "260g alvo": [r['pote_260g_alvo'][s] for s in SABORES],
     "260g da sobra": [r['pote_260g_da_sobra'][s] for s in SABORES],
-    "260g TOTAL": [r['producao_pote_260g'][s] for s in SABORES],
+    "260g total": [r['producao_pote_260g'][s] for s in SABORES],
     "Estoque 605g": [inputs['estoque_pote_605g'][s] for s in SABORES],
     "Alvo 605g": [ALVO_POTE_605G_PADRAO[s] for s in SABORES],
     "605g alvo": [r['pote_605g_alvo'][s] for s in SABORES],
     "605g da sobra": [r['pote_605g_da_sobra'][s] for s in SABORES],
-    "605g TOTAL": [r['producao_pote_605g'][s] for s in SABORES],
+    "605g total": [r['producao_pote_605g'][s] for s in SABORES],
 })
 st.dataframe(df_pote, width='stretch', hide_index=True)
 
@@ -528,12 +528,11 @@ if data_sel is not None:
         nome_dia = WEEKDAYS_PT[data_sel.weekday()]
         datas_usadas = ", ".join(h['data'].strftime('%d/%m') for h in historico)
 
-        # Cabeçalho destacado em azul claro
+        # Cabeçalho destacado (card-info)
         st.markdown(
-            f"""<div style="background:#e6f3ff; padding: 14px 18px; border-radius: 8px;
-            border-left: 6px solid #1f6feb; margin-top: 8px;">
-            <h3 style="margin: 0 0 6px 0;">Sugestão HISTÓRICA — o que a Gestão tipicamente faz</h3>
-            <p style="margin: 0; font-size: 0.92em; color: #555;">
+            f"""<div class='card-info'>
+            <h3 style="margin: 0 0 6px 0;">Sugestão histórica — o que a Gestão tipicamente faz</h3>
+            <p style="margin: 0; font-size: 0.92em;">
             Mediana das últimas <strong>{len(historico)}</strong> {nome_dia.lower()}s
             disponíveis no banco ({datas_usadas}). Reflete a "mão" da Gestão — captura
             a <strong>não-acomodação</strong> (ela pede corte/produção mesmo com estoque
@@ -590,10 +589,7 @@ if data_sel is not None:
             "Pote 260g (und)": [_fmt_mediana(epp260[s]) for s in SABORES],
             "Pote 605g (und)": [_fmt_mediana(epp605[s]) for s in SABORES],
         })
-        st.dataframe(
-            df_hist.style.set_properties(**{"background-color": "#e6f3ff"}),
-            width='stretch', hide_index=True,
-        )
+        st.dataframe(df_hist, width='stretch', hide_index=True)
 
         # Sumário
         total_corte_h = sum(_fmt_mediana(ec45[s]) + _fmt_mediana(ecmi[s]) + _fmt_mediana(ecpe[s]) for s in SABORES)
@@ -778,3 +774,6 @@ with st.expander("Notas e limitações desta v3", expanded=False):
         - **Diferenças vs decisão real geralmente vêm de:** pedidos antecipados não no `param_real`, capacidade variável do dia, e julgamento de prioridade. Não é bug.
         """
     )
+
+st.divider()
+st.caption("Camada 2 — o sistema sugere, a Gestão decide. PCP Vó Nena.")

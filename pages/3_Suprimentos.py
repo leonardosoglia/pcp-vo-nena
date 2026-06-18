@@ -6,10 +6,10 @@ Aplica MRP simplificado: ordem de produção × BOM (receita) × estoque atual �
 necessidade de compra.
 
 4 abas internas:
-     Insumos        — catálogo (CRUD + alertas de estoque mínimo)
-     Receitas (BOM) — pra cada produto, quanto consome de cada insumo
+    Insumos        — catálogo (CRUD + alertas de estoque mínimo)
+    Receitas (BOM) — pra cada produto, quanto consome de cada insumo
     Movimentações  — entradas (compras) e saídas (perdas/ajustes/produção)
-     Necessidades   — cruzamento com folha do dia → o que vai faltar/sobrar
+    Necessidades   — cruzamento com folha do dia → o que vai faltar/sobrar
 
 Conecta com a folha de produção: quando a Etapa E for implementada (22-29/05),
 o salvar_folha_completa vai disparar `registrar_movimento_insumo` automático
@@ -68,15 +68,32 @@ init_db()
 
 # ── Helpers locais ─────────────────────────────────────────────────────────────
 def _status_estoque(ins: dict) -> tuple[str, str]:
-    """Retorna (emoji, label) baseado em estoque_atual vs estoque_minimo."""
+    """Retorna (codigo_status, label) baseado em estoque_atual vs estoque_minimo.
+
+    codigo_status: 'critico' (< segurança) · 'alerta' (< mínimo) · 'ok'.
+    """
     atual = float(ins.get("estoque_atual") or 0)
     minimo = float(ins.get("estoque_minimo") or 0)
     seguranca = float(ins.get("estoque_seguranca") or 0)
     if seguranca > 0 and atual < seguranca:
-        return ("", "Crítico")
+        return ("critico", "Crítico")
     if minimo > 0 and atual < minimo:
-        return ("", "Abaixo do mínimo")
-    return ("", "OK")
+        return ("alerta", "Abaixo do mínimo")
+    return ("ok", "OK")
+
+
+# Cores Vó Nena por status (palavra colorida, sem emoji)
+_COR_STATUS = {
+    "critico": "#B91C1C",
+    "alerta": "#B45309",
+    "ok": "#A8A29E",
+}
+
+
+def _status_html(codigo: str, label: str) -> str:
+    """Renderiza o status como palavra colorida (HTML inline)."""
+    cor = _COR_STATUS.get(codigo, "#A8A29E")
+    return f"<span style='color:{cor};font-weight:600'>{label}</span>"
 
 
 def _formatar_qtd(qtd: float, unidade: str) -> str:
@@ -84,6 +101,11 @@ def _formatar_qtd(qtd: float, unidade: str) -> str:
     if qtd == int(qtd):
         return f"{int(qtd):,} {unidade}".replace(",", ".")
     return f"{qtd:,.1f} {unidade}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _brl(valor: float) -> str:
+    """Formata valor monetário no padrão BR: R$ 1.234,56."""
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
@@ -139,15 +161,15 @@ with aba_insumos:
         bq = filtro_busca.lower().strip()
         insumos = [i for i in insumos if bq in i["nome"].lower() or bq in i["codigo"].lower()]
 
-    # Filtro de alerta
+    # Filtro de alerta (qualquer status != ok = em alerta)
     if so_alertas:
-        insumos = [i for i in insumos if _status_estoque(i)[0] != ""]
+        insumos = [i for i in insumos if _status_estoque(i)[0] != "ok"]
 
     # Métricas no topo
     todos = get_insumos(somente_ativos=True)
     qtd_total = len(todos)
-    qtd_alerta = sum(1 for i in todos if _status_estoque(i)[0] != "")
-    qtd_critico = sum(1 for i in todos if _status_estoque(i)[0] == "")
+    qtd_alerta = sum(1 for i in todos if _status_estoque(i)[0] != "ok")
+    qtd_critico = sum(1 for i in todos if _status_estoque(i)[0] == "critico")
     c1, c2, c3 = st.columns(3)
     c1.metric("Total cadastrados", qtd_total)
     c2.metric("Em alerta", qtd_alerta)
@@ -161,14 +183,14 @@ with aba_insumos:
 
     # Tabela de insumos
     if not insumos:
-        st.info("Nenhum insumo cadastrado ainda. Clique em ** Adicionar insumo** acima pra começar.")
+        st.info("Nenhum insumo cadastrado ainda. Clique em **Adicionar insumo** acima pra começar.")
     else:
         rows = []
         for i in insumos:
-            emoji, label = _status_estoque(i)
+            codigo_status, label = _status_estoque(i)
             rows.append({
                 "ID": i["id"],
-                "Status": emoji,
+                "Status": label,
                 "Código": i["codigo"],
                 "Nome": i["nome"],
                 "Categoria": i["categoria"],
@@ -178,7 +200,27 @@ with aba_insumos:
                 "Lead time": f"{i['lead_time_dias']}d" if i["lead_time_dias"] else "—",
             })
         df_ins = pd.DataFrame(rows)
-        st.dataframe(df_ins, width='stretch', hide_index=True)
+        st.dataframe(
+            df_ins,
+            width='stretch',
+            hide_index=True,
+            column_config={
+                "Status": st.column_config.TextColumn(
+                    "Status",
+                    help="Crítico = abaixo do estoque de segurança · "
+                         "Abaixo do mínimo = abaixo do mínimo de alerta · OK = suficiente.",
+                ),
+            },
+        )
+
+        # Legenda de status (palavra colorida, sem emoji)
+        st.markdown(
+            "Status: "
+            + _status_html("critico", "Crítico") + " · "
+            + _status_html("alerta", "Abaixo do mínimo") + " · "
+            + _status_html("ok", "OK"),
+            unsafe_allow_html=True,
+        )
 
         # Seletor pra editar/excluir
         st.markdown("##### Editar / Excluir insumo")
@@ -235,12 +277,12 @@ with aba_insumos:
                 estoque_minimo = st.number_input(
                     "Estoque mínimo (alerta)", value=float(atual.get("estoque_minimo") or 0),
                     min_value=0.0, step=0.5,
-                    help="Quando atual < mínimo, fica  amarelo.",
+                    help="Quando atual < mínimo, fica em alerta (âmbar).",
                 )
                 estoque_seguranca = st.number_input(
                     "Estoque segurança (crítico)", value=float(atual.get("estoque_seguranca") or 0),
                     min_value=0.0, step=0.5,
-                    help="Quando atual < segurança, fica  vermelho. Geralmente menor que o mínimo.",
+                    help="Quando atual < segurança, fica crítico (vermelho). Geralmente menor que o mínimo.",
                 )
                 lead_time = st.number_input(
                     "Lead time (dias)", value=int(atual.get("lead_time_dias") or 0),
@@ -542,7 +584,7 @@ with aba_movs:
                         )
                         invalidar_suprimentos()
                         st.success(
-                            f" {'Entrada' if tipo_mov == 'entrada' else 'Saída'} registrada: "
+                            f"{'Entrada' if tipo_mov == 'entrada' else 'Saída'} registrada: "
                             f"{qtd_mov} {ins_mov_obj['unidade']} de {ins_mov_obj['nome']}"
                         )
                         st.rerun()
@@ -590,11 +632,11 @@ with aba_necessidades:
         st.divider()
 
         # Tabela detalhada
+        _LABEL_NEC = {"falta": "Vai faltar", "critico": "Pouca folga", "ok": "Suficiente"}
         rows = []
         for n in necess:
-            emoji = {"falta": "", "critico": "", "ok": ""}[n["status"]]
             rows.append({
-                "Status": emoji,
+                "Status": _LABEL_NEC.get(n["status"], n["status"]),
                 "Insumo": n["insumo_nome"],
                 "Necessidade": _formatar_qtd(n["necessidade"], n["unidade"]),
                 "Estoque atual": _formatar_qtd(n["estoque_atual"], n["unidade"]),
@@ -609,7 +651,7 @@ with aba_necessidades:
             for n in faltas:
                 deficit = -n["saldo"]  # quantidade a comprar
                 st.markdown(
-                    f"<div class='alerta-falta'>"
+                    f"<div class='card-info'>"
                     f"<b>{n['insumo_nome']}</b><br>"
                     f"Necessidade: {_formatar_qtd(n['necessidade'], n['unidade'])} · "
                     f"Tem: {_formatar_qtd(n['estoque_atual'], n['unidade'])} · "
@@ -643,7 +685,7 @@ with aba_importar:
     st.info(
         f"Hoje há **{n_matches} de {len(MATCHES_CONFIRMADOS)}** insumos com "
         "correspondência confirmada no SIGE. Os demais aguardam a Suprimentos "
-        "decidir o produto certo (ver `suprimentos_sigee/01_matches_para_mariana.md`)."
+        "decidir o produto certo (ver matches em `suprimentos_sigee/`)."
     )
 
     arquivo = st.file_uploader(
@@ -682,7 +724,7 @@ with aba_importar:
                 df_prev = pd.DataFrame([{
                     "Insumo (PCP)": d["codigo_nosso"],
                     "Produto (SIGE)": (d["nome_sigee"] or "")[:45],
-                    "Custo (R$)": f"{d['custo']:.2f}" if d.get("custo") is not None else "—",
+                    "Custo": _brl(d["custo"]) if d.get("custo") is not None else "—",
                     "Fornecedor": (d.get("fornecedor") or "—")[:30],
                 } for d in casados])
                 st.dataframe(df_prev, width="stretch", hide_index=True)

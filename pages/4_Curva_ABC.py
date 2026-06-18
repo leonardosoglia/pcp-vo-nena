@@ -211,7 +211,7 @@ st.divider()
 col_a, col_b, col_c = st.columns(3)
 
 for col, classe, descricao, cor in [
-    (col_a, "A", "Carros-chefe (80% do volume)", "#059669"),
+    (col_a, "A", "Carros-chefe (80% do volume)", "#C05621"),
     (col_b, "B", "Intermediários (+15%)", "#B45309"),
     (col_c, "C", "Cauda longa (últimos 5%)", "#991B1B"),
 ]:
@@ -246,7 +246,7 @@ st.caption(
 fig = go.Figure()
 
 # Cores por classe
-cor_por_classe = {"A": "#059669", "B": "#B45309", "C": "#991B1B"}
+cor_por_classe = {"A": "#C05621", "B": "#B45309", "C": "#991B1B"}
 cores_barras = [cor_por_classe[c] for c in df_abc["classe"]]
 
 fig.add_trace(go.Bar(
@@ -269,8 +269,8 @@ fig.add_trace(go.Scatter(
     name="% acumulado",
     yaxis="y2",
     mode="lines+markers",
-    line=dict(color="#1F2937", width=3),
-    marker=dict(size=8, color="#1F2937"),
+    line=dict(color="#0E7490", width=3),
+    marker=dict(size=8, color="#0E7490"),
     hovertemplate=(
         "<b>%{x}</b><br>"
         "Acumulado: %{y:.1f}%<br>"
@@ -281,7 +281,7 @@ fig.add_trace(go.Scatter(
 # Linhas horizontais de referência: 80% (corte A) e 95% (corte B)
 fig.add_hline(
     y=80, yref="y2",
-    line_dash="dash", line_color="#059669", line_width=1.5,
+    line_dash="dash", line_color="#C05621", line_width=1.5,
     annotation_text="80% (fim da Classe A)", annotation_position="top left",
 )
 fig.add_hline(

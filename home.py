@@ -38,12 +38,7 @@ data_fmt = f"{hoje.day} de {MESES_PT[hoje.month]} de {hoje.year}"
 
 
 st.title("PCP Vó Nena")
-st.markdown(
-    f"<div style='font-size: 1.1em; color: #555; margin-bottom: 1.5rem;'>"
-    f"Hoje é <strong>{saudacao_dia}</strong>, {data_fmt}."
-    "</div>",
-    unsafe_allow_html=True,
-)
+st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
 
 
 # ════════════════════════════════════════════════════════════════════════════

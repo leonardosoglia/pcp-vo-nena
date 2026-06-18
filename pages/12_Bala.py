@@ -57,7 +57,7 @@ BALAS_POR_TACHO = 30
 LEAD_TIME_DIAS = 8
 WEEKDAY_PT = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
-COR_PRODUCAO = "#B45309"   # caramelo (doce de leite)
+COR_PRODUCAO = "#C05621"   # laranja Vó Nena (série principal de produção)
 COR_ESTOQUE = "#0E7490"    # azul-petróleo (contraste com a produção)
 COR_ALERTA = "#B91C1C"     # vermelho
 COR_MEDIA = "#1F2937"      # cinza escuro (linha de tendência)
