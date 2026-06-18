@@ -30,6 +30,7 @@ Referência clássica: Pareto / Juran (1951).
 """
 import os
 import sys
+import calendar
 from datetime import date, datetime, timedelta
 
 import streamlit as st
@@ -99,6 +100,49 @@ def carregar_vendas(d_ini: str, d_fim: str):
 def _n_faturados(por_status: dict) -> int:
     """Conta os pedidos cujo status é 'Faturado' (os que entram na agregação)."""
     return sum(n for s, n in por_status.items() if "fatur" in str(s).lower())
+
+
+# ── Histórico mensal (lido mês a mês p/ caber no limite do SIGE e cachear) ────
+MESES_PT = ["", "jan", "fev", "mar", "abr", "mai", "jun",
+            "jul", "ago", "set", "out", "nov", "dez"]
+
+
+def _ler_mes(ano: int, mes: int) -> dict:
+    """Receita faturada de UM mês (mesma base do resto da tela: soma dos itens).
+    Mês corrente vai só até hoje (parcial). Read-only."""
+    ult = calendar.monthrange(ano, mes)[1]
+    hj = date.today()
+    fim = hj.day if (ano == hj.year and mes == hj.month) else ult
+    d_ini = f"{ano:04d}-{mes:02d}-01"
+    d_fim = f"{ano:04d}-{mes:02d}-{fim:02d}"
+    try:
+        pedidos = sige.listar_todos_pedidos(d_ini, d_fim)
+    except Exception:
+        return {"receita": None, "n_fat": 0}
+    ag = vsige.agregar_vendas(pedidos)
+    return {"receita": ag["total_receita"], "n_fat": _n_faturados(ag["por_status"])}
+
+
+@st.cache_data(ttl=7 * 86400, show_spinner=False)   # mês fechado não muda mais
+def _mes_fechado(ano: int, mes: int) -> dict:
+    return _ler_mes(ano, mes)
+
+
+@st.cache_data(ttl=1800, show_spinner=False)         # mês corrente ainda cresce
+def _mes_corrente(ano: int, mes: int) -> dict:
+    return _ler_mes(ano, mes)
+
+
+def _ultimos_meses(n: int):
+    """Lista de (ano, mes) dos últimos n meses, incluindo o atual, em ordem."""
+    hj = date.today()
+    y, m, out = hj.year, hj.month, []
+    for _ in range(n):
+        out.append((y, m))
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+    return list(reversed(out))
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -176,6 +220,59 @@ k4.metric("Ticket médio", _brl(ticket))
 st.caption(f"Período {periodo[0].strftime('%d/%m/%Y')} – {periodo[1].strftime('%d/%m/%Y')} "
            f"· {n_dias} dias · {n_pedidos:,} pedidos lidos (todos os status), "
            f"{n_fat} faturados.".replace(",", "."))
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# HISTÓRICO MENSAL (tendência de receita mês a mês)
+# ════════════════════════════════════════════════════════════════════════════
+st.divider()
+st.header("Histórico mensal de vendas")
+st.caption("Receita faturada mês a mês — a **tendência**. O mês atual é parcial (só "
+           "até hoje). A 1ª leitura busca vários meses no SIGE e pode demorar; "
+           "depois fica em cache.")
+
+colh1, colh2 = st.columns([3, 1])
+with colh1:
+    n_meses = st.select_slider("Meses a mostrar", options=[3, 6, 12], value=6)
+with colh2:
+    st.write("")
+    if st.button("🔄 Atualizar histórico", use_container_width=True):
+        _mes_fechado.clear()
+        _mes_corrente.clear()
+
+_meses = _ultimos_meses(n_meses)
+_hj = date.today()
+_hist = []
+_prog = st.progress(0.0, text="Lendo o histórico no SIGE...")
+for _i, (_y, _m) in enumerate(_meses):
+    _corr = (_y == _hj.year and _m == _hj.month)
+    _d = (_mes_corrente if _corr else _mes_fechado)(_y, _m)
+    _hist.append({"rotulo": f"{MESES_PT[_m]}/{str(_y)[2:]}",
+                  "receita": _d.get("receita") or 0.0, "corrente": _corr})
+    _prog.progress((_i + 1) / len(_meses), text=f"Lendo {MESES_PT[_m]}/{_y}…")
+_prog.empty()
+
+_rotulos = [h["rotulo"] for h in _hist]
+_valores = [h["receita"] for h in _hist]
+_cores = ["#E8A87C" if h["corrente"] else "#C05621" for h in _hist]
+fig_h = go.Figure(go.Bar(
+    x=_rotulos, y=_valores, marker_color=_cores,
+    text=[_brl(v) for v in _valores], textposition="outside",
+    hovertemplate="<b>%{x}</b><br>%{text}<extra></extra>",
+))
+_fechados = [h["receita"] for h in _hist if not h["corrente"] and h["receita"]]
+if len(_fechados) >= 2:
+    _media = sum(_fechados) / len(_fechados)
+    fig_h.add_hline(y=_media, line_dash="dash", line_color="#6B7280", line_width=1.5,
+                    annotation_text=f"média dos meses fechados: {_brl(_media)}",
+                    annotation_position="top left")
+fig_h.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10),
+                    plot_bgcolor="white", xaxis=dict(title=""),
+                    yaxis=dict(title="receita faturada (R$)"))
+fig_h.update_xaxes(fixedrange=True)
+fig_h.update_yaxes(fixedrange=True)
+st.plotly_chart(fig_h, width="stretch", config={"displayModeBar": False, "responsive": True})
+st.caption("Barra mais clara = mês atual (em andamento, parcial).")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -347,12 +444,11 @@ st.dataframe(
 st.divider()
 st.markdown(
     "<div class='card-info'>"
-    "<b>Em breve: Curva ABC por LUCRO.</b> Esta tela mostra por receita e volume. "
-    "Cruzar com o custo de produção daria a <b>contribuição por produto</b> — o "
-    "que realmente importa (vender muito ≠ lucrar muito). O motor já existe, mas "
-    "hoje só cobre os formatos cujo custo está fechado; falta o rendimento dos "
-    "campeões (Cubos 160g, Bala) — <b>quantas unidades saem de cada tacho</b>. "
-    "Assim que a Gestão confirmar esses números, a Curva ABC por lucro entra aqui."
+    "<b>Quer ver o que cada produto LUCRA?</b> Esta tela mostra receita e volume "
+    "(o que mais <b>vende</b>). O que cada produto <b>deixa depois do custo do "
+    "material</b> — a contribuição por produto — está na tela <b>Lucratividade</b> "
+    "(menu Análises), já cobrindo a maior parte das vendas. Lembrete: vender muito "
+    "≠ lucrar muito."
     "</div>",
     unsafe_allow_html=True,
 )

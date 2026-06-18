@@ -79,6 +79,22 @@ def _categoria(desc: str) -> str:
     return "Cubos / pedaço"
 
 
+def _nome_curto(desc, n=38) -> str:
+    """Nome do produto sem o código, encurtado preservando a gramatura (evita que
+    'Tablete Leite Condensado 30g' e '45g' fiquem com o mesmo rótulo cortado)."""
+    s = str(desc or "").split(" - ")[-1].strip()
+    return s if len(s) <= n else s[:n - 1] + "…"
+
+
+def _percentil(valores_ordenados, p):
+    """Percentil simples (sem numpy) de uma lista JÁ ordenada."""
+    if not valores_ordenados:
+        return 0.0
+    i = min(len(valores_ordenados) - 1,
+            int(round((p / 100) * (len(valores_ordenados) - 1))))
+    return valores_ordenados[i]
+
+
 @st.cache_data(ttl=1800, show_spinner="Calculando a lucratividade...")
 def carregar(d_ini: str, d_fim: str):
     """Lê vendas (SIGE) + custos (banco) e calcula a contribuição. Read-only."""
@@ -168,7 +184,7 @@ st.caption("Quanto cada produto deixa depois do custo do material, no período. 
            "É a Curva ABC por **retorno**, não por volume.")
 
 top = sorted(mapeados, key=lambda l: l["contrib"])[-12:]  # ascendente p/ maior no topo
-nomes = [str(l["descricao"]).split(" - ")[-1][:30] for l in top]
+nomes = [_nome_curto(l["descricao"]) for l in top]
 vals = [l["contrib"] for l in top]
 fig1 = go.Figure(go.Bar(
     x=vals, y=nomes, orientation="h", marker_color=COR_CONTRIB,
@@ -218,29 +234,44 @@ st.caption("Direita = vende muita unidade (giro). Topo = deixa mais por unidade 
            "(ticket). Tamanho da bolha = contribuição total.")
 
 cores_cat = {"Cubos / pedaço": COR_CUBOS, "Tablete": COR_CONTRIB, "Pão de mel": COR_PM}
+
+# Escala robusta no eixo Y: um produto de altíssima contribuição/unidade (ex.: um
+# pote grande de baixo giro) estica a escala e espreme todo o resto lá embaixo.
+# Limitamos o eixo ao percentil 90 (×1,25); os pontos acima ficam no TOPO da escala
+# (com o valor real no toque) em vez de sumir ou achatar os demais.
+mat_pts = [l for l in mapeados if l["qtd"] > 0]
+cpu_ord = sorted(l["contrib"] / l["qtd"] for l in mat_pts)
+cap = max(1.0, _percentil(cpu_ord, 90) * 1.25) if cpu_ord else 1.0
+n_acima = sum(1 for v in cpu_ord if v > cap)
+
 fig3 = go.Figure()
 for cat, cor in cores_cat.items():
-    pts = [l for l in mapeados if _categoria(l["descricao"]) == cat and l["qtd"] > 0]
+    pts = [l for l in mat_pts if _categoria(l["descricao"]) == cat]
     if not pts:
         continue
     fig3.add_trace(go.Scatter(
         x=[l["qtd"] for l in pts],
-        y=[l["contrib"] / l["qtd"] for l in pts],
+        y=[min(l["contrib"] / l["qtd"], cap) for l in pts],
         mode="markers", name=cat,
         marker=dict(size=[max(10, (l["contrib"] ** 0.5) / 9) for l in pts],
                     color=cor, opacity=0.65, line=dict(width=1, color=cor)),
-        customdata=[[str(l["descricao"]).split(" - ")[-1][:30], l["contrib"]] for l in pts],
+        customdata=[[_nome_curto(l["descricao"]), l["contrib"], l["contrib"] / l["qtd"]]
+                    for l in pts],
         hovertemplate=("<b>%{customdata[0]}</b><br>%{x:,.0f} un · "
-                       "R$ %{y:.2f}/un<br>contribui R$ %{customdata[1]:,.0f}<extra></extra>"),
+                       "R$ %{customdata[2]:.2f}/un<br>contribui R$ %{customdata[1]:,.0f}"
+                       "<extra></extra>"),
     ))
 fig3.update_layout(
     height=380, margin=dict(l=10, r=10, t=10, b=10), plot_bgcolor="white",
     xaxis=dict(title="unidades vendidas no período", rangemode="tozero"),
-    yaxis=dict(title="contribuição por unidade (R$)", rangemode="tozero"),
+    yaxis=dict(title="contribuição por unidade (R$)", range=[0, cap]),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0))
 fig3.update_xaxes(fixedrange=True)
 fig3.update_yaxes(fixedrange=True)
 st.plotly_chart(fig3, width="stretch", config={"displayModeBar": False, "responsive": True})
+if n_acima:
+    st.caption(f"{n_acima} produto(s) de contribuição/unidade muito alta estão no topo "
+               f"da escala (acima de {_brl(cap)}/un) — passe o mouse para ver o valor real.")
 
 
 # ════════════════════════════════════════════════════════════════════════════
