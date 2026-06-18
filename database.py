@@ -731,6 +731,23 @@ def _ensure_v2_schema(c):
         )
     """)
 
+    # Histórico mensal de vendas (cache do que vem do SIGE). Ler todos os pedidos de
+    # vários meses do SIGE é lento (~minutos); aqui guardamos só o TOTAL faturado por
+    # mês, calculado uma vez. Meses fechados não mudam; o mês corrente (parcial=1) é
+    # recalculado sob demanda. PK composta (ano, mes). Não é fonte da verdade do SIGE,
+    # é um resumo nosso pra a tela de Vendas abrir instantânea.
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS vendas_mensais (
+            ano INTEGER NOT NULL,
+            mes INTEGER NOT NULL,
+            receita REAL DEFAULT 0,
+            n_faturados INTEGER DEFAULT 0,
+            parcial INTEGER DEFAULT 0,
+            atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (ano, mes)
+        )
+    """)
+
     # Movimentações de estoque (histórico). Rastreabilidade: toda mudança de
     # estoque_atual passa por aqui. estoque_atual em `insumos` é cache;
     # soma dos movimentos por insumo deve bater.
@@ -1280,6 +1297,36 @@ def get_insumo_por_codigo(codigo: str) -> dict | None:
     row = conn.execute(_sql("SELECT * FROM insumos WHERE codigo = ?"), (codigo,)).fetchone()
     conn.close()
     return dict(row) if row else None
+
+
+# ── Histórico mensal de vendas (cache local do total faturado por mês) ─────────
+def get_vendas_mensais() -> list[dict]:
+    """Todos os totais mensais guardados, ordenados por (ano, mes)."""
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT ano, mes, receita, n_faturados, parcial, atualizado_em "
+        "FROM vendas_mensais ORDER BY ano, mes"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_vendas_mes(ano: int, mes: int, receita: float,
+                      n_faturados: int = 0, parcial: int = 0) -> None:
+    """Insere/atualiza o total faturado de um mês. Idempotente (PK ano, mes)."""
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute(_sql(
+            "INSERT INTO vendas_mensais (ano, mes, receita, n_faturados, parcial, atualizado_em) "
+            "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP) "
+            "ON CONFLICT(ano, mes) DO UPDATE SET "
+            "receita = excluded.receita, n_faturados = excluded.n_faturados, "
+            "parcial = excluded.parcial, atualizado_em = CURRENT_TIMESTAMP"),
+            (int(ano), int(mes), float(receita), int(n_faturados), int(parcial)))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def criar_insumo(dados: dict) -> int:

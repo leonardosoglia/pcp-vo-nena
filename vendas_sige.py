@@ -12,7 +12,9 @@ REVENDA/PADRÃO). Considera só pedidos FATURADOS (vendas confirmadas) por padr�
 
 PURO: não importa Streamlit.
 """
+import calendar
 from collections import Counter
+from datetime import date
 
 
 def _num(v):
@@ -74,6 +76,41 @@ def curva_abc(por_produto: dict, chave="receita") -> list[dict]:
                     "receita": round(d["receita"], 2), "pct_acum": round(pct, 1),
                     "classe": classe})
     return out
+
+
+# ── Histórico mensal (persistido no NOSSO banco p/ não reler o SIGE toda hora) ──
+def ultimos_meses(n: int):
+    """Lista de (ano, mes) dos últimos n meses, incluindo o atual, em ordem."""
+    hj = date.today()
+    y, m, out = hj.year, hj.month, []
+    for _ in range(n):
+        out.append((y, m))
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+    return list(reversed(out))
+
+
+def _mes_intervalo(ano: int, mes: int):
+    """(data_inicial, data_final, parcial). O mês corrente vai só até hoje."""
+    ult = calendar.monthrange(ano, mes)[1]
+    hj = date.today()
+    corrente = (ano == hj.year and mes == hj.month)
+    fim = hj.day if corrente else ult
+    return f"{ano:04d}-{mes:02d}-01", f"{ano:04d}-{mes:02d}-{fim:02d}", corrente
+
+
+def atualizar_vendas_mes(db, sige, ano: int, mes: int) -> dict:
+    """Lê UM mês do SIGE (read-only no SIGE) e grava o total faturado em
+    `vendas_mensais` do nosso banco. Faz o cálculo na MESMA base do resto da tela
+    (soma dos itens dos pedidos faturados). Retorna o registro gravado."""
+    d_ini, d_fim, parcial = _mes_intervalo(ano, mes)
+    pedidos = sige.listar_todos_pedidos(d_ini, d_fim)
+    ag = agregar_vendas(pedidos)
+    n_fat = sum(n for s, n in ag["por_status"].items() if "fatur" in str(s).lower())
+    db.upsert_vendas_mes(ano, mes, ag["total_receita"], n_fat, 1 if parcial else 0)
+    return {"ano": ano, "mes": mes, "receita": ag["total_receita"],
+            "n_faturados": n_fat, "parcial": 1 if parcial else 0}
 
 
 # ── CLI (read-only) ──────────────────────────────────────────────────────────
