@@ -103,8 +103,17 @@ if not sige.credenciais_configuradas():
     st.stop()
 
 col_btn, _ = st.columns([1, 4])
-if col_btn.button("🔄 Atualizar do SIGE"):
+if col_btn.button("🔄 Carregar / atualizar do SIGE"):
+    st.session_state["recon_go"] = True
+
+# Carregamento preguiçoso: a tela abre na hora; só lê o SIGE quando você clica.
+if st.session_state.pop("recon_go", False):
+    st.session_state["recon_loaded"] = True
     carregar_reconciliacao.clear()
+if not st.session_state.get("recon_loaded"):
+    st.info("A tela abre na hora. Clique em **Carregar / atualizar do SIGE** para ler o "
+            "estoque e reconciliar (leva ~1 min; depois fica em cache).")
+    st.stop()
 
 linhas, resumo, erro = carregar_reconciliacao()
 

@@ -102,14 +102,25 @@ with c_data:
                             max_value=hoje, format="DD/MM/YYYY")
 with c_btn:
     st.write("")
-    if st.button("🔄 Atualizar do SIGE", use_container_width=True):
-        carregar.clear()
+    if st.button("🔄 Carregar / atualizar do SIGE", use_container_width=True):
+        st.session_state["pxd_go"] = True
 
 if not isinstance(periodo, (tuple, list)) or len(periodo) != 2:
     st.info("Escolha a data **final** do período para calcular.")
     st.stop()
 
 d_ini, d_fim = periodo[0].strftime("%Y-%m-%d"), periodo[1].strftime("%Y-%m-%d")
+
+# Carregamento preguiçoso: a tela abre na hora; só lê o SIGE quando você clica.
+_chave = f"{d_ini}_{d_fim}"
+if st.session_state.pop("pxd_go", False):
+    st.session_state["pxd_loaded"] = _chave
+    carregar.clear()
+if st.session_state.get("pxd_loaded") != _chave:
+    st.info("A tela abre na hora. Escolha o período e clique em **Carregar / atualizar "
+            "do SIGE** para puxar os dados (leva ~1 min na 1ª vez; depois fica em cache).")
+    st.stop()
+
 linhas, erro = carregar(d_ini, d_fim)
 if erro:
     st.error(f"Não consegui calcular agora: {erro}")

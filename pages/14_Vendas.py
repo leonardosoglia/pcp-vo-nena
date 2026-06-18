@@ -233,8 +233,8 @@ with c_data:
     )
 with c_btn:
     st.write("")  # alinha o botão com o input
-    if st.button("🔄 Atualizar do SIGE", use_container_width=True):
-        carregar_vendas.clear()
+    if st.button("🔄 Carregar / atualizar do SIGE", use_container_width=True):
+        st.session_state["vdet_go"] = True
 
 # st.date_input devolve 1 data enquanto o usuário escolhe a 2ª — espera as duas.
 if not isinstance(periodo, (tuple, list)) or len(periodo) != 2:
@@ -243,6 +243,18 @@ if not isinstance(periodo, (tuple, list)) or len(periodo) != 2:
 
 d_ini, d_fim = periodo[0].strftime("%Y-%m-%d"), periodo[1].strftime("%Y-%m-%d")
 n_dias = (periodo[1] - periodo[0]).days + 1
+
+# Carregamento preguiçoso: o detalhe abre na hora; só lê o SIGE quando você clica.
+_chave_det = f"{d_ini}_{d_fim}"
+if st.session_state.pop("vdet_go", False):
+    st.session_state["vdet_loaded"] = _chave_det
+    carregar_vendas.clear()
+if st.session_state.get("vdet_loaded") != _chave_det:
+    st.info("Escolha o período e clique em **Carregar / atualizar do SIGE** para ver o "
+            "detalhe por canal, empresa e a Curva ABC (leva ~1 min na 1ª vez; depois "
+            "fica em cache). O histórico mensal acima já está pronto.")
+    st.stop()
+
 if n_dias > 31:
     st.caption(f"Período longo ({n_dias} dias) — a 1ª leitura pode levar até "
                "~1 min (paginação do SIGE). Depois fica em cache por 30 min.")

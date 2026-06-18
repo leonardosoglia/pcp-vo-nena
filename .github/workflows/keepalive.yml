@@ -1,27 +1,28 @@
-name: Keep Streamlit App Awake
+name: Keep Hugging Face Space Awake
 
-# Objetivo: mantém o app pcp-vo-nena.streamlit.app "acordado" durante o horário
-# comercial da Doces Vó Nena (7h-19h horário Brasil, seg a sab).
+# Objetivo: mantém o app (Hugging Face Space) "acordado" durante o horário
+# comercial da Doces Vó Nena (7h-19h horário Brasil, seg a sáb).
 #
-# Streamlit Community Cloud free tier coloca apps em "sleep" após ~30 min sem
-# acesso — quando alguém abre depois disso, paga cold start de 20-40 segundos
-# (recarregar Python, importar libs, criar pool Postgres, etc).
+# O app foi migrado do Streamlit Community Cloud para o Hugging Face Spaces.
+# Spaces no free tier hibernam após um período sem acesso — quando alguém abre
+# depois disso, paga um "cold start" (o container precisa subir de novo: carregar
+# Python, importar libs, pré-aquecer o pool Postgres, etc), que leva dezenas de
+# segundos. Um GET periódico no endereço do Space conta como atividade e evita
+# que ele durma durante o expediente.
 #
-# Este workflow faz um HTTP GET no app a cada 10-15 minutos durante o horário
-# útil, evitando que ele durma. Domingo deixamos dormir mesmo (sem fábrica).
+# IMPORTANTE: o endereço abaixo é o do Space no HF (…hf.space), NÃO mais o antigo
+# pcp-vo-nena.streamlit.app (que está morto). Se o Space for renomeado/movido,
+# atualizar APP_URL aqui.
 #
-# Custo: GitHub Actions é GRATUITO para repositórios públicos (ilimitado).
-# Pra repo privado: até 2.000 minutos/mês free — cada execução leva ~10s,
-# muito abaixo do limite.
+# Custo: GitHub Actions é gratuito para repositórios públicos. Para repo privado:
+# até 2.000 minutos/mês free — cada execução leva ~10-30s, bem abaixo do limite.
 #
 # Limitações conhecidas:
-# - GitHub pode atrasar workflows agendados em 5-15 min (especialmente em horários
-#   de pico do GitHub). Não é crítico — Streamlit dorme só após 30 min de silêncio.
-# - O cron schedule é em UTC. Brasil é UTC-3 (sem horário de verão atualmente).
+# - GitHub pode atrasar workflows agendados em 5-15 min (não é crítico).
+# - O cron é em UTC. Brasil = UTC-3 (sem horário de verão atualmente).
 #
-# Como pausar este keepalive:
-# - Vá em github.com/leonardosoglia/pcp-vo-nena → Actions → "Keep Streamlit App
-#   Awake" → "..." → Disable workflow. Ou delete este arquivo no repo.
+# Como pausar: github.com/leonardosoglia/pcp-vo-nena → Actions → este workflow →
+# "..." → Disable workflow. Ou deletar este arquivo.
 
 on:
   schedule:
@@ -29,11 +30,11 @@ on:
     # Roda a cada 15 minutos, das 10h às 22h UTC, segunda a sábado.
     - cron: '*/15 10-21 * * 1-6'
 
-  # Permite disparar manualmente pela interface do GitHub (Actions → Run workflow).
-  # Útil pra testar ou acordar o app fora do horário agendado.
+  # Permite disparar manualmente (Actions → Run workflow) pra testar ou acordar o
+  # app fora do horário agendado.
   workflow_dispatch:
 
-# Cancela execuções pendentes se uma nova for disparada (evita acúmulo)
+# Cancela execuções pendentes se uma nova for disparada (evita acúmulo).
 concurrency:
   group: keepalive
   cancel-in-progress: false
@@ -41,25 +42,21 @@ concurrency:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 2  # se travar, não fica pendurado
+    timeout-minutes: 3  # se travar, não fica pendurado
 
     steps:
-      - name: Ping app
+      - name: Ping Space
         run: |
-          APP_URL="https://pcp-vo-nena.streamlit.app/"
-          echo "🍬 Pingando $APP_URL em $(date -u +%FT%TZ)"
+          APP_URL="https://leonardosoglia-pcp-vo-nena.hf.space/"
+          echo "Pingando $APP_URL em $(date -u +%FT%TZ)"
 
           # Notas técnicas:
-          # - NÃO seguimos redirects (-L removido) — Streamlit Cloud pode ter
-          #   redirect circular interno (curl exit 47 = too many redirects).
-          #   Pro keepalive, qualquer resposta HTTP do servidor já basta como
-          #   "atividade" e mantém o app acordado.
-          # - -s: silent · -o /dev/null: descarta corpo · -w: imprime status
-          # - --max-time 45: cold start de Streamlit Cloud pode levar até 40s
-          # - --max-redirs 0: zero redirect (defensivo)
-          RESULT=$(curl -s -o /dev/null \
-            --max-time 45 \
-            --max-redirs 0 \
+          # - -L segue redirect (o HF pode redirecionar pro app embutido).
+          # - -s silent · -o /dev/null descarta corpo · -w imprime status/tempo.
+          # - --max-time 90: o cold start do HF (subir container) pode levar
+          #   bastante; damos folga pra a requisição efetivamente acordar o Space.
+          RESULT=$(curl -sL -o /dev/null \
+            --max-time 90 \
             -w "HTTP=%{http_code} TIME=%{time_total}s" \
             "$APP_URL" || true)
 
@@ -67,21 +64,18 @@ jobs:
 
           STATUS=$(echo "$RESULT" | grep -oE 'HTTP=[0-9]+' | grep -oE '[0-9]+')
 
-          # 200 (OK), 303 (redirect — Streamlit padrão), 302 (redirect alt) — todos
-          # significam que o servidor respondeu = atividade registrada = não dorme.
           case "$STATUS" in
             200|301|302|303|307|308)
-              echo "✅ App está acordado (HTTP $STATUS)"
+              echo "App respondeu (HTTP $STATUS) — atividade registrada, Space acordado."
               ;;
             "")
-              echo "⚠️ Sem resposta (timeout ou erro de rede)"
+              echo "Sem resposta (timeout ou rede). Próxima execução tenta de novo."
               ;;
             *)
-              echo "⚠️ Status inesperado: $STATUS"
+              echo "Status inesperado: $STATUS"
               ;;
           esac
 
-          # Sempre exit 0 — falha de keepalive não é crítica, próxima execução
-          # em 15 min tenta de novo. Falhas acumuladas geram email automático
-          # do GitHub se quiser monitorar.
+          # Sempre exit 0 — falha de keepalive não é crítica; a próxima execução
+          # (em ~15 min) tenta de novo.
           exit 0
