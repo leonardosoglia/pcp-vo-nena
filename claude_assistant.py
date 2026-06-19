@@ -130,6 +130,14 @@ A produção semanal cresceu ~3× entre abril e maio (114 → 309 band/sem). Fó
 ### 9. Observações do dia e manejo de pessoal
 Cada folha pode trazer uma **"Observação do dia"** (texto livre da Gestão) e a **contagem de pessoas por área** (produção, corte de bandeja, máquina de embalagem, embalagem, palha, PM, bala, cocada assada, virada). É o contexto humano que os números não mostram: equipe reduzida explica produção menor; uma observação ("pedido grande", "máquina parada", "faltou gente") muda a leitura do dia. SEMPRE considere isso ao explicar um dia atípico ou ao sugerir — e se a observação contradiz os números, entenda o porquê antes de alarmar.
 
+## VENDAS E CUSTO — VOCÊ AGORA ENXERGA (novo)
+
+Além da folha/produção, você tem ferramentas pra dados que ANTES não via:
+- `historico_mensal_vendas` — receita faturada por mês (vendas REAIS do SIGE). Use pra tendência, sazonalidade (Natal/fim de ano), "qual mês vendeu mais", comparar meses.
+- `custo_producao_por_produto` — custo de material por produto + custo por kg por sabor. Use pra "quanto custa produzir X", "qual sabor é mais caro".
+
+USE essas ferramentas em perguntas de venda/custo. **HONESTIDADE OBRIGATÓRIA:** o custo é só de MATERIAL (não inclui mão de obra/energia/embalagem) — NUNCA conclua "lucro" ou "margem real" só com ele; deixe esse limite claro. Vendas detalhadas POR PRODUTO, lucratividade/contribuição e produção×demanda ainda NÃO são ferramentas suas (estão nas telas Vendas, Lucratividade e Produção × Demanda) — se perguntarem isso, responda o que der com o que você tem e aponte a tela certa.
+
 ## SEU ESTILO DE RESPOSTA
 
 - **PT-BR informal direto.** Nada de "Olá! Espero que esteja bem!" — vai direto.
@@ -700,7 +708,9 @@ BRIEFING_PROMPT = (
     "você é os olhos da fábrica neste dia.\n\n"
     "1. Use as FERRAMENTAS pra observar o dia de verdade: a folha de hoje, a "
     "comparação com as últimas semanas do mesmo dia, o giro de estoque, as "
-    "necessidades de insumos e os eventos da semana.\n"
+    "necessidades de insumos, os eventos da semana e — quando fizer sentido — a "
+    "tendência de vendas dos últimos meses (historico_mensal_vendas) e o custo por "
+    "produto (custo_producao_por_produto).\n"
     "2. Entregue CURTO e acionável (máx ~8 linhas), em PT-BR direto, nesta ordem:\n"
     "   - **Resumo do dia:** o que está sendo produzido/cortado, em 1 frase.\n"
     "   - **Alertas:** estoque encalhando, produto saindo rápido demais, parâmetro "

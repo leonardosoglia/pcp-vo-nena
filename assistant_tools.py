@@ -229,6 +229,29 @@ TOOLS = [
             },
         }
     },
+    {
+        "name": "historico_mensal_vendas",
+        "description": (
+            "Receita faturada por MÊS — vendas REAIS do SIGE, já calculadas e "
+            "guardadas no nosso banco (resposta RÁPIDA). Use pra tendência de "
+            "vendas, qual mês vendeu mais, comparar meses, sazonalidade (ex.: "
+            "Natal/fim de ano). É o TOTAL por mês (não por produto). O mês "
+            "corrente é parcial (só até hoje)."
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "custo_producao_por_produto",
+        "description": (
+            "Custo de PRODUÇÃO (material) por produto + o custo por kg por sabor "
+            "de cocada, calculado do BOM (receitas) × custo dos insumos vindo do "
+            "SIGE. Resposta RÁPIDA (lê o banco). Use pra 'quanto custa produzir "
+            "X', 'qual sabor é mais caro de produzir', 'custo por kg'. ATENÇÃO: é "
+            "custo de MATERIAL só — NÃO inclui mão de obra/energia/embalagem, "
+            "então NÃO é o custo total nem dá pra concluir lucro/margem só com isso."
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
 ]
 
 
@@ -503,8 +526,62 @@ def _tool_giro_estoque(data_inicio: str = None, data_fim: str = None) -> dict:
 # ════════════════════════════════════════════════════════════════════════════
 # DISPATCHER
 # ════════════════════════════════════════════════════════════════════════════
+def _tool_historico_mensal_vendas() -> dict:
+    """Receita faturada por mês (do nosso banco — rápido, sem ler o SIGE ao vivo)."""
+    import database as _dbmod
+    try:
+        rows = _dbmod.get_vendas_mensais()
+    except Exception as e:
+        return {"erro": f"não consegui ler o histórico mensal: {e}"}
+    if not rows:
+        return {"erro": "Histórico mensal de vendas ainda não calculado "
+                        "(abra a tela de Vendas e clique em Atualizar do SIGE)."}
+    meses = [{
+        "mes": f"{int(r['mes']):02d}/{int(r['ano'])}",
+        "receita": round(float(r['receita'] or 0), 2),
+        "faturados": int(r['n_faturados'] or 0),
+        "parcial": bool(r['parcial']),
+    } for r in rows]
+    return {"fonte": "vendas reais faturadas do SIGE, somadas por mês",
+            "meses": meses}
+
+
+def _tool_custo_producao_por_produto() -> dict:
+    """Custo de material por produto + custo/kg por sabor (do BOM — rápido)."""
+    import database as _dbmod
+    try:
+        import custo_producao as cp
+        import contribuicao_produto as cpr
+        produtos = cp.custo_todos(_dbmod)
+        ckg = cpr.custo_kg_cocada(_dbmod)
+    except Exception as e:
+        return {"erro": f"não consegui calcular o custo: {e}"}
+    prod = []
+    for p in produtos:
+        if p.get("erro"):
+            continue
+        prod.append({
+            "produto": p["nome"],
+            "custo_receita": p.get("custo_receita"),
+            "rende": (f"{p['rend_qtd']} {p['rend_unidade']}" if p.get("rend_qtd") else None),
+            "custo_por_unidade": p.get("custo_por_unidade"),
+            "parcial": p.get("parcial"),
+            "falta_custo_de": p.get("sem_custo") or [],
+        })
+    custo_kg = {d["label"]: round(d["custo_kg"], 2)
+                for d in ckg.values() if d.get("custo_kg")}
+    return {
+        "obs": ("Custo de MATERIAL (insumos do BOM × custo do SIGE). NÃO inclui "
+                "mão de obra/energia/embalagem — não é custo total nem lucro."),
+        "produtos": prod,
+        "custo_por_kg_cocada": custo_kg,
+    }
+
+
 _TOOL_REGISTRY = {
     "buscar_folha": _tool_buscar_folha,
+    "historico_mensal_vendas": _tool_historico_mensal_vendas,
+    "custo_producao_por_produto": _tool_custo_producao_por_produto,
     "listar_folhas_no_periodo": _tool_listar_folhas_no_periodo,
     "comparar_dia_da_semana": _tool_comparar_dia_da_semana,
     "metricas_agregadas": _tool_metricas_agregadas,

@@ -79,9 +79,10 @@ with st.expander("Como funciona (clica pra entender)", expanded=False):
 - **Mês típico (10 perguntas/dia):** ~R$5-10
 
 **Limitações honestas:**
-- Não substitui o julgamento do Eraldo
+- Não substitui o julgamento da Gestão
 - Pode errar em perguntas muito específicas se o dado não está estruturado
-- Não tem acesso a vendas reais (só produção/embalagem)
+- **Agora enxerga vendas reais por mês e o custo de produção (material) por produto.** Vendas por produto / lucratividade ainda ficam nas telas Vendas e Lucratividade
+- O custo que ele vê é só de **material** — não inclui mão de obra/energia, então não é lucro líquido
 - Quanto mais dados acumular (folhas), melhor a qualidade da resposta
 
 **Referência (vai pro TCC):** Brown, T. B. et al. (2020). "Language Models
