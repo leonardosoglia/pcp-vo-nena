@@ -61,10 +61,18 @@ def agregar_vendas(pedidos: list[dict], filtro_status=("Fatur",)) -> dict:
             "total_receita": round(total, 2)}
 
 
+# Cadastros do SIGE que NÃO são produto da fábrica (poluem a Curva ABC de demanda).
+# cod 66 = "DIVERSOS E EMBALAGENS": coringa de caixa (R$0,01) p/ itens avulsos/embalagens —
+# aparecia 2º em VOLUME mas é centavos de receita. Lista extensível.
+CODIGOS_NAO_PRODUTO = {"66"}
+
+
 def curva_abc(por_produto: dict, chave="receita") -> list[dict]:
     """Ordena por receita (ou 'qtd') e classifica A (até 80% acum.), B (80-95%),
-    C (95-100%) — Curva ABC."""
-    itens = sorted(por_produto.items(), key=lambda x: -x[1][chave])
+    C (95-100%) — Curva ABC. Ignora itens não-produto (CODIGOS_NAO_PRODUTO)."""
+    itens = sorted(((c, d) for c, d in por_produto.items()
+                    if str(c).strip() not in CODIGOS_NAO_PRODUTO),
+                   key=lambda x: -x[1][chave])
     total = sum(d[chave] for _, d in itens) or 1.0
     acum = 0.0
     out = []

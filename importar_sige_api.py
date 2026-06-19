@@ -58,7 +58,7 @@ DEPARA = [
     ("DOCE_DE_LEITE",            "409000198",              4.8,  "kg",  "FATOR_INCERTO"),
     ("ACUCAR_CRISTAL",           "409000200",              5.0,  "kg",  "FATOR_INCERTO"),
     ("ACUCAR_CONFEITEIRO",       "409001130",             10.0,  "kg",  "CONFIRMADO"),
-    ("ACUCAR_MASCAVO",           None,                    None,  "kg",  "NAO_CADASTRADO"),
+    ("ACUCAR_MASCAVO",           "7908089414219",          1.0,  "kg",  "CONFIRMADO"),
     ("ADOCANTE_LOWCUCAR_STEVIA", "409000415",              1.0,  "kg",  "CONFIRMADO"),
     ("ERITRITOL",                "409000463",              1.0,  "kg",  "CONFIRMADO"),
     ("XILITOL",                  "XILITOL",               25.0,  "kg",  "AMBIGUO"),

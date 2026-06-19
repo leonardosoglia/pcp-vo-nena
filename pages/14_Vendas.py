@@ -275,7 +275,8 @@ if not ag or not ag["por_produto"]:
 # ════════════════════════════════════════════════════════════════════════════
 n_fat = _n_faturados(ag["por_status"])
 receita = ag["total_receita"]
-n_produtos = len(ag["por_produto"])
+n_produtos = len([c for c in ag["por_produto"]
+                  if str(c).strip() not in vsige.CODIGOS_NAO_PRODUTO])
 ticket = (receita / n_fat) if n_fat else 0.0
 
 st.divider()
@@ -353,6 +354,9 @@ with col_emp:
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
 st.header("Curva ABC de demanda")
+st.caption("Itens que **não são produto da fábrica** ficam **fora** desta análise — "
+           "ex.: \"Diversos e Embalagens\", um registro de caixa de R$ 0,01 que inflava "
+           "o volume. Revenda real (produtos comprados para revender) ainda aparece.")
 
 metrica = st.radio(
     "Classificar por:",
