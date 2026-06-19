@@ -68,7 +68,8 @@ pg = st.navigation({
     "": [home],                                       # Início sem rótulo de grupo
     "Operação do dia": [lancamento_pg, painel_pg],
     "Sugestão": [sugestao_palha_pg, sugestao_cocada_pg],
-    "Análises": [insights_pg, vendas_pg, lucratividade_pg, producao_demanda_pg, curva_abc_pg, anomalias_pg, media_movel_pg, bala_pg],
+    "Vendas & resultado": [vendas_pg, lucratividade_pg, producao_demanda_pg],
+    "Análise da produção": [curva_abc_pg, media_movel_pg, anomalias_pg, insights_pg, bala_pg],
     "Cadastros": [suprimentos_pg, reconciliacao_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
