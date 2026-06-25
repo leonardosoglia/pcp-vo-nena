@@ -222,10 +222,10 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a {{
     color: {t['sb_text']} !important;
     font-size: 12px !important;
     font-weight: 500 !important;
-    border-radius: 4px !important;
-    padding: 5px 10px !important;
+    border-radius: 7px !important;
+    padding: 6px 11px !important;
     display: block;
-    transition: background-color 0.15s;
+    transition: all 0.15s ease;
     text-decoration: none !important;
 }}
 
@@ -233,15 +233,23 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a:hover {{
     background-color: {t['sb_surface']} !important;
 }}
 
-/* Item ativo (página atual) — realce forte com a barra laranja */
+/* Item ativo (página atual) — pílula com brilho laranja suave */
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li[aria-current="page"] a,
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li.active a {{
-    background-color: {t['sb_surface_2']} !important;
+    background-color: rgba(192, 86, 33, 0.16) !important;
     color: #FFFFFF !important;
-    font-weight: 700 !important;
-    border-left: 4px solid {t['brand']} !important;
-    border-radius: 0 6px 6px 0 !important;
+    font-weight: 600 !important;
+    border-left: 3px solid {t['brand']} !important;
+    border-radius: 0 8px 8px 0 !important;
     padding-left: 9px !important;
+}}
+
+/* Ícones dos itens do menu: discretos (cinza); o do item ATIVO fica laranja */
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] [data-testid="stIconMaterial"] {{
+    color: {t['sb_text_muted']} !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li[aria-current="page"] a [data-testid="stIconMaterial"] {{
+    color: {t['brand']} !important;
 }}
 
 /* Títulos de grupo do menu (Operação do dia, Sugestão, ...) — hierarquia */

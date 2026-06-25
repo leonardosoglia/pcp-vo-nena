@@ -30,35 +30,35 @@ except Exception:
 # ════════════════════════════════════════════════════════════════════════════
 # DEFINIÇÃO DAS PÁGINAS
 # ════════════════════════════════════════════════════════════════════════════
-home = st.Page("home.py", title="Início", default=True)
+home = st.Page("home.py", title="Início", icon=":material/home:", default=True)
 
 # Operação do dia — o fluxo principal da Gestão
-lancamento_pg = st.Page("lancamento.py", title="Lançamento")
-painel_pg = st.Page("pages/1_Painel.py", title="Painel")
-sugestao_palha_pg = st.Page("pages/10_Sugestao_Palha.py", title="Palha")
-sugestao_cocada_pg = st.Page("pages/11_Sugestao_Cocada.py", title="Cocada")
+lancamento_pg = st.Page("lancamento.py", title="Lançamento", icon=":material/edit_note:")
+painel_pg = st.Page("pages/1_Painel.py", title="Painel", icon=":material/dashboard:")
+sugestao_palha_pg = st.Page("pages/10_Sugestao_Palha.py", title="Palha", icon=":material/bakery_dining:")
+sugestao_cocada_pg = st.Page("pages/11_Sugestao_Cocada.py", title="Cocada", icon=":material/cake:")
 
 # Análises — investigação dos dados
-insights_pg = st.Page("pages/2_Insights.py", title="Insights")
-vendas_pg = st.Page("pages/14_Vendas.py", title="Vendas")
-lucratividade_pg = st.Page("pages/15_Lucratividade.py", title="Lucratividade")
-producao_demanda_pg = st.Page("pages/16_Producao_x_Demanda.py", title="Produção × Demanda")
-curva_abc_pg = st.Page("pages/4_Curva_ABC.py", title="Curva ABC")
-anomalias_pg = st.Page("pages/5_Anomalias_ML.py", title="Anomalias ML")
-media_movel_pg = st.Page("pages/6_Media_Movel.py", title="Média Móvel")
-bala_pg = st.Page("pages/12_Bala.py", title="Bala")
+insights_pg = st.Page("pages/2_Insights.py", title="Insights", icon=":material/lightbulb:")
+vendas_pg = st.Page("pages/14_Vendas.py", title="Vendas", icon=":material/shopping_cart:")
+lucratividade_pg = st.Page("pages/15_Lucratividade.py", title="Lucratividade", icon=":material/trending_up:")
+producao_demanda_pg = st.Page("pages/16_Producao_x_Demanda.py", title="Produção × Demanda", icon=":material/compare_arrows:")
+curva_abc_pg = st.Page("pages/4_Curva_ABC.py", title="Curva ABC", icon=":material/bar_chart:")
+anomalias_pg = st.Page("pages/5_Anomalias_ML.py", title="Anomalias ML", icon=":material/warning:")
+media_movel_pg = st.Page("pages/6_Media_Movel.py", title="Média Móvel", icon=":material/show_chart:")
+bala_pg = st.Page("pages/12_Bala.py", title="Bala", icon=":material/cookie:")
 
 # Cadastros — gestão de dados mestres
-suprimentos_pg = st.Page("pages/3_Suprimentos.py", title="Suprimentos")
-reconciliacao_pg = st.Page("pages/13_Reconciliacao_SIGE.py", title="Reconciliação SIGE")
-equipe_pg = st.Page("pages/8_Equipe.py", title="Equipe")
+suprimentos_pg = st.Page("pages/3_Suprimentos.py", title="Suprimentos", icon=":material/inventory_2:")
+reconciliacao_pg = st.Page("pages/13_Reconciliacao_SIGE.py", title="Reconciliação SIGE", icon=":material/sync:")
+equipe_pg = st.Page("pages/8_Equipe.py", title="Equipe", icon=":material/group:")
 
 # Suporte — ajuda ao usuário
-assistente_pg = st.Page("pages/7_Assistente_IA.py", title="Assistente IA")
-ajuda_pg = st.Page("pages/9_Ajuda.py", title="Ajuda")
+assistente_pg = st.Page("pages/7_Assistente_IA.py", title="Assistente IA", icon=":material/smart_toy:")
+ajuda_pg = st.Page("pages/9_Ajuda.py", title="Ajuda", icon=":material/help:")
 
 # Admin — operações raras
-admin_seed_pg = st.Page("pages/0_Admin_Seed.py", title="Cadastrar BOM (setup)")
+admin_seed_pg = st.Page("pages/0_Admin_Seed.py", title="Cadastrar BOM (setup)", icon=":material/settings:")
 
 
 # ════════════════════════════════════════════════════════════════════════════
