@@ -1,8 +1,9 @@
 """
-home.py — Página Início.
+home.py — Página Início (redesenho visual 25/06/2026).
 
-Saudação do dia + atalhos pras ações principais + status resumido.
-Substitui a entrada direta no Lançamento.
+Cabeçalho com a ação principal · status do dia em cartões · alertas de estoque
+numa caixa de aviso padronizada · atalhos em cartões com ícone.
+Usa as peças reutilizáveis de `componentes.py` (kit da reforma visual).
 """
 import os
 import sys
@@ -21,8 +22,9 @@ if _RAIZ not in sys.path:
     sys.path.insert(0, _RAIZ)
 
 import cached_db
-
 from ui_theme import aplicar_tema
+from componentes import cartao_atalho, status_badge
+
 aplicar_tema()
 
 
@@ -31,14 +33,22 @@ WEEKDAYS_PT = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira",
 MESES_PT = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho",
             "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
 
-
 hoje = date.today()
 saudacao_dia = WEEKDAYS_PT[hoje.weekday()]
 data_fmt = f"{hoje.day} de {MESES_PT[hoje.month]} de {hoje.year}"
 
 
-st.title("PCP Vó Nena")
-st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
+# ════════════════════════════════════════════════════════════════════════════
+# Cabeçalho com a ação principal do dia
+# ════════════════════════════════════════════════════════════════════════════
+cab_esq, cab_dir = st.columns([3, 1.3], vertical_alignment="center")
+with cab_esq:
+    st.title("PCP Vó Nena")
+    st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
+with cab_dir:
+    if st.button("Lançar folha de hoje", type="primary",
+                 icon=":material/note_add:", use_container_width=True):
+        st.switch_page("lancamento.py")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -53,26 +63,25 @@ except Exception:
     ultima_folha = None
     datas_existentes = []
 
+ultima_fmt = "—"
+if ultima_folha:
+    try:
+        ultima_fmt = date.fromisoformat(ultima_folha).strftime("%d/%m")
+    except Exception:
+        ultima_fmt = str(ultima_folha)
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
+s1, s2, s3 = st.columns(3)
+with s1:
     if folha_hoje_existe:
-        st.success(f"**Folha de hoje** ({hoje.strftime('%d/%m')}) já lançada.")
+        status_badge("Folha de hoje", "Já lançada", "success")
+    elif ultima_folha:
+        status_badge("Folha de hoje", "Ainda não lançada", "warning")
     else:
-        if ultima_folha:
-            st.warning(
-                f"**Folha de hoje** ({hoje.strftime('%d/%m')}) ainda não foi lançada. "
-                f"Última: {ultima_folha}."
-            )
-        else:
-            st.info(f"Nenhuma folha lançada ainda no banco.")
-
-with col2:
+        status_badge("Folha de hoje", "Nenhuma no banco", "info")
+with s2:
     st.metric("Folhas no histórico", len(datas_existentes))
-
-with col3:
-    st.metric("Última lançada", ultima_folha or "—")
+with s3:
+    st.metric("Última lançada", ultima_fmt)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -94,93 +103,78 @@ if insumos_todos:
     minimos_cadastrados = sum(1 for i in insumos_todos if (i.get("estoque_minimo") or 0) > 0)
 
     if negativos or abaixo_min:
-        st.divider()
-        st.subheader("Alertas de estoque")
-        n_card, lista_card = st.columns([1, 3])
-        with n_card:
-            if negativos:
-                st.metric(
-                    "Estoque negativo",
-                    len(negativos),
-                    help="Consumido mais do que o cadastrado. Lançar entrada de compra ou ajuste.",
-                )
-            st.metric("Abaixo do mínimo", len(abaixo_min))
-        with lista_card:
-            piores = sorted(
-                negativos + abaixo_min,
-                key=lambda i: (i.get("estoque_atual") or 0) - (i.get("estoque_minimo") or 0),
-            )[:8]
-            linhas = []
-            for i in piores:
-                atual = i.get("estoque_atual") or 0
-                minimo = i.get("estoque_minimo") or 0
-                unid = i.get("unidade") or ""
-                if atual < 0:
-                    rotulo = f"**{i['nome']}** — estoque {atual:.2f} {unid} (NEGATIVO)"
-                else:
-                    rotulo = f"**{i['nome']}** — {atual:.2f} {unid} (mínimo {minimo:.2f})"
-                linhas.append(f"- {rotulo}")
-            st.markdown("\n".join(linhas))
-            st.caption("Ver tudo em **Cadastros → Suprimentos**.")
+        piores = sorted(
+            negativos + abaixo_min,
+            key=lambda i: (i.get("estoque_atual") or 0) - (i.get("estoque_minimo") or 0),
+        )[:6]
+        partes = []
+        for i in piores:
+            atual = i.get("estoque_atual") or 0
+            minimo = i.get("estoque_minimo") or 0
+            unid = i.get("unidade") or ""
+            if atual < 0:
+                partes.append(f"<strong>{i['nome']}</strong> — {atual:.2f} {unid} (negativo)")
+            else:
+                partes.append(f"<strong>{i['nome']}</strong> — {atual:.2f} {unid} (mínimo {minimo:.2f})")
+        n = len(negativos) + len(abaixo_min)
+        st.markdown(
+            f"""<div class="card-warning">
+<strong>Alertas de estoque — {n} insumo(s) precisam de atenção</strong><br>
+<span style="font-size:13px">{' · '.join(partes)}</span>
+</div>""",
+            unsafe_allow_html=True,
+        )
+        st.page_link("pages/3_Suprimentos.py", label="Ver tudo em Suprimentos",
+                     icon=":material/arrow_forward:")
     elif minimos_cadastrados == 0:
-        # Ninguém tem mínimo configurado — aviso discreto pra ativar a feature
         st.info(
-            "Dica: configure **estoque mínimo** em Cadastros → Suprimentos pra ativar "
-            "alertas automáticos aqui na Home."
+            "Dica: configure **estoque mínimo** em Suprimentos pra ativar "
+            "alertas automáticos aqui na Início."
         )
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Atalhos principais
+# Atalhos principais — em cartões com ícone
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
-st.subheader("O que você quer fazer agora?")
+st.subheader("O que você quer fazer?")
 
-cA, cB, cC = st.columns(3)
+GRUPOS_ATALHOS = [
+    ("Operação do dia", [
+        ("lancamento.py", "Lançamento", "preencher a folha de hoje", ":material/edit_document:"),
+        ("pages/1_Painel.py", "Painel", "o que está acontecendo na fábrica", ":material/dashboard:"),
+        ("pages/11_Sugestao_Cocada.py", "Sugestão", "corte e produção do dia", ":material/lightbulb:"),
+    ]),
+    ("Vendas & análise", [
+        ("pages/14_Vendas.py", "Vendas", "faturamento por mês e canal", ":material/shopping_cart:"),
+        ("pages/15_Lucratividade.py", "Lucratividade", "quem dá mais retorno", ":material/trending_up:"),
+        ("pages/7_Assistente_IA.py", "Assistente", "perguntar em português", ":material/smart_toy:"),
+    ]),
+    ("Planejamento & cadastros", [
+        ("pages/3_Suprimentos.py", "Suprimentos", "insumos, receitas, necessidades", ":material/inventory_2:"),
+        ("pages/8_Equipe.py", "Equipe", "presença e capacidades", ":material/group:"),
+        ("pages/2_Insights.py", "Insights", "diagnóstico automático do dia", ":material/auto_awesome:"),
+    ]),
+]
 
-with cA:
-    st.markdown(
-        """
-        ### Operação do dia
-
-        - **Lançamento** — preencher a folha de produção de hoje
-        - **Painel** — ver o que está acontecendo na fábrica
-        - **Sugestão** — corte e produção de palha / cocada
-        """
-    )
-with cB:
-    st.markdown(
-        """
-        ### Planejamento
-
-        - **Suprimentos** — insumos, receitas (BOM), necessidades
-        - **Equipe** — funcionários, capacidades, presença
-        - **Insights** — diagnóstico automático do dia
-        """
-    )
-with cC:
-    st.markdown(
-        """
-        ### Análise
-
-        - **Curva ABC** — sabores que mais giram
-        - **Anomalias ML** — dias atípicos detectados
-        - **Média Móvel** — calibração de metas
-        - **Assistente IA** — perguntar em PT-BR
-        """
-    )
+for titulo_grupo, atalhos in GRUPOS_ATALHOS:
+    st.markdown(f"<div class='grupo-atalho'>{titulo_grupo}</div>", unsafe_allow_html=True)
+    colunas = st.columns(3)
+    for coluna, (page, titulo, descricao, icone) in zip(colunas, atalhos):
+        with coluna:
+            cartao_atalho(page, titulo, descricao, icone)
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Rodapé com referência rápida
+# Ajuda rápida
 # ════════════════════════════════════════════════════════════════════════════
 st.divider()
 with st.expander("Não sabe por onde começar?", expanded=False):
     st.markdown(
         """
-        **De manhã (~10h)** — após contar o estoque:
+        **De manhã** — após contar o estoque:
         1. Vá em **Lançamento** e preencha a folha do dia.
-        2. Em **Sugestão**, escolha entre Palha (semanal, na segunda) ou Cocada (diário).
+        2. Em **Sugestão**, veja o corte e a produção do dia.
         3. Discuta os números com a Produção/Corte e ajuste se precisar.
 
         **Durante o dia** — quando aparecer dúvida:
@@ -188,9 +182,9 @@ with st.expander("Não sabe por onde começar?", expanded=False):
         - **Insights** dá diagnóstico automático (tachos parciais, sobrecarga de embalagem, etc).
         - **Assistente IA** responde em português a perguntas livres sobre o dia.
 
-        **Toda semana** — manutenção do sistema:
-        - Em **Suprimentos**, atualizar estoque de insumos críticos.
-        - Em **Equipe**, marcar presenças do dia.
-        - Em **Média Móvel**, ver se as metas base precisam ser recalibradas.
+        **Toda semana** — manutenção:
+        - Em **Suprimentos**, atualizar o estoque de insumos críticos.
+        - Em **Equipe**, marcar presenças.
+        - Em **Média Móvel**, ver se as metas base precisam de recalibração.
         """
     )

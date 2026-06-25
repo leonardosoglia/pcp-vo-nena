@@ -783,6 +783,52 @@ section[data-testid="stSidebar"] .stCaption {{
     border: 1px solid {t['border_strong']};
 }}
 
+/* ─────────────────────── INÍCIO / PEÇAS REUTILIZÁVEIS ─────────────────────── */
+.grupo-atalho {{
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: {t['text_muted']};
+    margin: 0.7rem 0 0.4rem 0;
+}}
+
+/* Cartão de atalho = st.container(border) que contém um page_link */
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]) {{
+    border-radius: 10px !important;
+    border-color: {t['border']} !important;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}}
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]):hover {{
+    border-color: {t['brand']} !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}}
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]) [data-testid="stPageLink"] a {{
+    padding: 2px 0 !important;
+    background: transparent !important;
+}}
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]) [data-testid="stPageLink"] p {{
+    font-weight: 600 !important; font-size: 13px !important; color: {t['text']} !important;
+}}
+[data-testid="stMain"] [data-testid="stPageLink"] span[data-testid="stIconMaterial"] {{
+    color: {t['brand']} !important;
+}}
+.atalho-desc {{
+    color: {t['text_muted']} !important; font-size: 11.5px !important;
+    margin: 2px 0 0 0 !important; line-height: 1.4;
+}}
+
+/* Mini-cartão de status (ex.: folha de hoje na Início) */
+.mc-status {{
+    background: {t['surface']}; border: 1px solid {t['border']};
+    border-radius: 6px; padding: 8px 11px;
+}}
+.mc-status-label {{
+    color: {t['text_muted']}; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;
+}}
+.status-pill {{
+    display: inline-block; font-size: 12px; font-weight: 600;
+    padding: 3px 11px; border-radius: 999px;
+}}
+
 /* ─────────────────────────── ESCONDER ELEMENTOS DESNECESSÁRIOS ─────────────────────────── */
 footer {{ visibility: hidden; height: 0; }}
 #MainMenu {{ visibility: hidden; }}
