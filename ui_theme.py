@@ -233,13 +233,31 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a:hover {{
     background-color: {t['sb_surface']} !important;
 }}
 
-/* Item ativo (página atual) */
+/* Item ativo (página atual) — realce forte com a barra laranja */
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li[aria-current="page"] a,
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li.active a {{
-    background-color: {t['sb_surface']} !important;
-    color: {t['sb_text']} !important;
+    background-color: {t['sb_surface_2']} !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border-left: 4px solid {t['brand']} !important;
+    border-radius: 0 6px 6px 0 !important;
+    padding-left: 9px !important;
+}}
+
+/* Títulos de grupo do menu (Operação do dia, Sugestão, ...) — hierarquia */
+section[data-testid="stSidebar"] [data-testid="stNavSectionHeader"] {{
+    color: {t['sb_text_muted']} !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
-    border-left: 3px solid {t['brand']} !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.07em !important;
+    margin: 12px 0 2px 0 !important;
+    padding-left: 14px !important;
+}}
+
+/* Logo no topo da sidebar — respiro */
+section[data-testid="stSidebar"] [data-testid="stLogo"] {{
+    margin: 4px 12px 10px !important;
 }}
 
 /* Botões na sidebar = SEMPRE laranja brand com texto branco */
@@ -807,7 +825,7 @@ section[data-testid="stSidebar"] .stCaption {{
 [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]) [data-testid="stPageLink"] p {{
     font-weight: 600 !important; font-size: 13px !important; color: {t['text']} !important;
 }}
-[data-testid="stMain"] [data-testid="stPageLink"] span[data-testid="stIconMaterial"] {{
+[data-testid="stMain"] [data-testid="stPageLink"] [data-testid="stIconMaterial"] {{
     color: {t['brand']} !important;
 }}
 .atalho-desc {{

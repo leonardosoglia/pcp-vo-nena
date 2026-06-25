@@ -62,6 +62,16 @@ admin_seed_pg = st.Page("pages/0_Admin_Seed.py", title="Cadastrar BOM (setup)")
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# LOGO / CABEÇALHO NO TOPO DA SIDEBAR
+# ════════════════════════════════════════════════════════════════════════════
+_LOGO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo_vo_nena.svg")
+try:
+    st.logo(_LOGO, size="large")
+except Exception:
+    pass
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # SIDEBAR ORGANIZADA POR GRUPOS
 # ════════════════════════════════════════════════════════════════════════════
 pg = st.navigation({
