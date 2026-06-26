@@ -41,6 +41,7 @@ from cocada_planejamento import (
     EXEMPLO_11_05, ESPERADO_11_05,
 )
 import cached_db
+from componentes import tabela
 
 st.set_page_config(
     page_title="Sugestão Cocada • Doces Vó Nena",
@@ -51,14 +52,53 @@ from ui_theme import aplicar_tema
 aplicar_tema()
 
 
-st.title("Sugestão de corte e produção — Cocada")
-st.caption(
-    "**Camada 2 — semi-automação (v3).** Sugere corte por formato (45g, Mini, Pet), "
-    "produção de bandejas com **capacidade priorizada** (T > L > demais), "
-    "produção de potes (260g, 605g) **absorvendo a sobra do tacho parcial**, "
-    "e **viração calculada** pra alimentar o corte dos próximos dias. "
-    "**A Gestão decide** — o sistema só sugere e pode ser ajustado."
+# ════════════════════════════════════════════════════════════════════════════
+# CSS do painel de decisão (page-local — mesmo padrão da Sugestão Palha)
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown("""
+<style>
+.sgp-eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C05621;background:#FBEADF;padding:3px 9px;border-radius:6px;margin-bottom:9px}
+.sgp-title{font-size:20px;font-weight:700;color:#151921;margin:0 0 4px;letter-spacing:-.01em}
+.sgp-sub{font-size:12.5px;color:#6B7280;margin:0 0 6px;line-height:1.5;max-width:680px}
+.sgp-card{background:#fff;border:1px solid #ECEDEF;border-radius:14px;padding:15px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 10px rgba(16,24,40,.04)}
+.sgp-chip{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+.sgp-lab{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#9AA1AC;margin-bottom:3px}
+.sgp-val{font-size:26px;font-weight:700;color:#151921;line-height:1;letter-spacing:-.02em}
+.sgp-unit{font-size:13px;font-weight:500;color:#9AA1AC;margin-left:5px}
+.sgp-csub{font-size:11px;color:#B0B6BE;margin-top:6px}
+.sgp-ctx{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;color:#475569;background:#EEF0F3;padding:4px 11px;border-radius:999px;margin-top:6px}
+.sgp-h{font-size:13px;font-weight:600;color:#151921;margin:14px 0 8px}
+</style>
+""", unsafe_allow_html=True)
+
+_SVG_SCISSORS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>'
+_SVG_LAYERS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>'
+_SVG_BOTTLE = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4h6v3"></path><rect x="7" y="7" width="10" height="14" rx="2"></rect></svg>'
+_SVG_REFRESH = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>'
+
+
+def _kpi(col, icone_svg, cor, chip_bg, label, valor, unidade, sub):
+    """Cartão de indicador do painel de decisão."""
+    col.markdown(
+        f'<div class="sgp-card"><div class="sgp-chip" style="background:{chip_bg}">'
+        f'{icone_svg.format(c=cor)}</div><div class="sgp-lab">{label}</div>'
+        f'<div><span class="sgp-val">{valor}</span><span class="sgp-unit">{unidade}</span></div>'
+        f'<div class="sgp-csub">{sub}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Cabeçalho enxuto + painel de decisão (preenchido após o cálculo)
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown(
+    '<div class="sgp-eyebrow">Sugestão · Cocada</div>'
+    '<div class="sgp-title">Corte e produção do dia</div>'
+    '<div class="sgp-sub">A partir dos estoques do dia, o sistema sugere o corte, a produção, '
+    'os potes e a viração. <b>A Gestão decide.</b></div>',
+    unsafe_allow_html=True,
 )
+kpi_box = st.container()
 
 # Seletor de data — puxa todos os estoques do dia direto do banco
 col_data, _ = st.columns([1, 3])
@@ -401,7 +441,7 @@ df_sug = pd.DataFrame({
     "Produção (band)": [r['producao_band'][s] for s in SABORES],
     "Produção (tachos)": [r['producao_tachos'][s] for s in SABORES],
 })
-st.dataframe(df_sug, width='stretch', hide_index=True)
+tabela(df_sug)
 
 # Mostrar o que foi reduzido pela capacidade priorizada
 if r['sabores_reduzidos']:
@@ -439,7 +479,7 @@ df_pote = pd.DataFrame({
     "605g da sobra": [r['pote_605g_da_sobra'][s] for s in SABORES],
     "605g total": [r['producao_pote_605g'][s] for s in SABORES],
 })
-st.dataframe(df_pote, width='stretch', hide_index=True)
+tabela(df_pote, altura_max=320)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -456,7 +496,7 @@ df_vira = pd.DataFrame({
     "Corte hoje (band)": [r['corte_total'][s] for s in SABORES],
     "Virada sugerida (band)": [r['virada_sugerida'][s] for s in SABORES],
 })
-st.dataframe(df_vira, width='stretch', hide_index=True)
+tabela(df_vira)
 
 
 # Sumário
@@ -465,11 +505,18 @@ total_prod = sum(r['producao_band'].values())
 total_p260 = sum(r['producao_pote_260g'].values())
 total_p605 = sum(r['producao_pote_605g'].values())
 total_vira = sum(r['virada_sugerida'].values())
-st.markdown(
-    f"**Hoje:** cortar **{total_corte} bandejas** · produzir **{total_prod} bandejas** "
-    f"em **{r['total_tachos']} tachos** · produzir **{total_p260} potes 260g** + "
-    f"**{total_p605} potes 605g** · virar **{total_vira} bandejas**."
-)
+
+# Painel de decisão no topo (cartões) — preenche o placeholder lá de cima
+with kpi_box:
+    _c1, _c2, _c3, _c4 = st.columns(4)
+    _kpi(_c1, _SVG_SCISSORS, "#C05621", "#FBEADF", "Cortar hoje", total_corte, "band", "45g · Mini · Pet")
+    _kpi(_c2, _SVG_LAYERS, "#A16207", "#FBF1DA", "Produzir", total_prod, "band", f"{r['total_tachos']} tachos")
+    _kpi(_c3, _SVG_BOTTLE, "#2563A8", "#E7EEF8", "Potes", total_p260 + total_p605, "un",
+         f"{total_p260} de 260g · {total_p605} de 605g")
+    _kpi(_c4, _SVG_REFRESH, "#157A54", "#E4F3EB", "Virar", total_vira, "band", "pros próximos dias")
+    _ctx_c = (f"{WEEKDAYS_PT[weekday]} · estoques de {data_sel.strftime('%d/%m')}"
+              if data_sel is not None else "Configure os estoques pra ver a sugestão")
+    st.markdown(f'<span class="sgp-ctx">{_ctx_c}</span>', unsafe_allow_html=True)
 
 if r['excede_capacidade']:
     st.error(
@@ -589,7 +636,7 @@ if data_sel is not None:
             "Pote 260g (und)": [_fmt_mediana(epp260[s]) for s in SABORES],
             "Pote 605g (und)": [_fmt_mediana(epp605[s]) for s in SABORES],
         })
-        st.dataframe(df_hist, width='stretch', hide_index=True)
+        tabela(df_hist)
 
         # Sumário
         total_corte_h = sum(_fmt_mediana(ec45[s]) + _fmt_mediana(ecmi[s]) + _fmt_mediana(ecpe[s]) for s in SABORES)
@@ -613,7 +660,7 @@ if data_sel is not None:
                 "Pote 260g": [_fmt_range(epp260[s]) for s in SABORES],
                 "Pote 605g": [_fmt_range(epp605[s]) for s in SABORES],
             })
-            st.dataframe(df_range, width='stretch', hide_index=True)
+            tabela(df_range)
             st.caption(
                 "Mostra o range (mín–máx) observado nas folhas usadas. `—` = nunca "
                 "cortou/produziu nesses dias. Útil pra entender quão estável é a 'mão' da Gestão."
@@ -673,7 +720,7 @@ if _inputs_iguais_11_05():
         "Produção real": [ESPERADO_11_05['producao'][s] for s in SABORES],
     })
     st.markdown("**Corte e produção (bandejas):**")
-    st.dataframe(df_val_band, width='stretch', hide_index=True)
+    tabela(df_val_band)
 
     df_val_pote = pd.DataFrame({
         "Sabor": SABORES,
@@ -683,7 +730,7 @@ if _inputs_iguais_11_05():
         "Pote 605g real": [ESPERADO_11_05['pote_605g'][s] for s in SABORES],
     })
     st.markdown("**Potes (unidades):**")
-    st.dataframe(df_val_pote, width='stretch', hide_index=True)
+    tabela(df_val_pote)
 
     d_45g = sum(abs(r['corte_45g'][s] - ESPERADO_11_05['corte_45g'][s]) for s in SABORES)
     d_pet = sum(abs(r['corte_pet'][s] - ESPERADO_11_05['corte_pet'][s]) for s in SABORES)
