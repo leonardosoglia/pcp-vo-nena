@@ -39,20 +39,7 @@ data_fmt = f"{hoje.day} de {MESES_PT[hoje.month]} de {hoje.year}"
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Cabeçalho com a ação principal do dia
-# ════════════════════════════════════════════════════════════════════════════
-cab_esq, cab_dir = st.columns([3, 1.3], vertical_alignment="center")
-with cab_esq:
-    st.title("PCP Vó Nena")
-    st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
-with cab_dir:
-    if st.button("Lançar folha de hoje", type="primary",
-                 icon=":material/note_add:", use_container_width=True):
-        st.switch_page("lancamento.py")
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# Status do dia
+# Status do dia — calculado cedo: alimenta o botão do cabeçalho e os cartões
 # ════════════════════════════════════════════════════════════════════════════
 try:
     datas_existentes = cached_db.list_datas_folha()
@@ -70,6 +57,28 @@ if ultima_folha:
     except Exception:
         ultima_fmt = str(ultima_folha)
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# Cabeçalho com a ação principal do dia — o botão muda conforme a folha de hoje
+# ════════════════════════════════════════════════════════════════════════════
+cab_esq, cab_dir = st.columns([3, 1.3], vertical_alignment="center")
+with cab_esq:
+    st.title("PCP Vó Nena")
+    st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
+with cab_dir:
+    if folha_hoje_existe:
+        if st.button("Ver folha de hoje", type="primary",
+                     icon=":material/visibility:", use_container_width=True):
+            st.switch_page("lancamento.py")
+    else:
+        if st.button("Lançar folha de hoje", type="primary",
+                     icon=":material/note_add:", use_container_width=True):
+            st.switch_page("lancamento.py")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Status do dia (números já calculados no topo)
+# ════════════════════════════════════════════════════════════════════════════
 s1, s2, s3 = st.columns(3)
 with s1:
     if folha_hoje_existe:

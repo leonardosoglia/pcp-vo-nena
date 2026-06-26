@@ -72,10 +72,13 @@ except Exception:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# SIDEBAR ORGANIZADA POR GRUPOS
+# ROTEAMENTO — o menu automático fica ESCONDIDO; montamos o nosso logo abaixo.
+# Motivo: o menu automático do Streamlit recolhe os grupos e REMOVE do HTML os
+# itens do grupo fechado (o estado fica grudado no navegador). Montando o menu
+# com st.page_link, garantimos todos os grupos SEMPRE abertos.
 # ════════════════════════════════════════════════════════════════════════════
 pg = st.navigation({
-    "": [home],                                       # Início sem rótulo de grupo
+    "": [home],
     "Operação do dia": [lancamento_pg, painel_pg],
     "Sugestão": [sugestao_palha_pg, sugestao_cocada_pg],
     "Vendas & resultado": [vendas_pg, lucratividade_pg, producao_demanda_pg],
@@ -83,6 +86,50 @@ pg = st.navigation({
     "Cadastros": [suprimentos_pg, reconciliacao_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
-}, expanded=True)  # menu SEMPRE aberto (sem o "Ver mais/menos" que ficava grudado)
+}, position="hidden")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# MENU PRÓPRIO NA SIDEBAR — grupos sempre abertos, itens recuados
+# ════════════════════════════════════════════════════════════════════════════
+def _grupo(titulo):
+    st.markdown(f"<div class='navgrp'>{titulo}</div>", unsafe_allow_html=True)
+
+
+with st.sidebar:
+    st.page_link(home, use_container_width=True)
+
+    _grupo("Operação do dia")
+    st.page_link(lancamento_pg, use_container_width=True)
+    st.page_link(painel_pg, use_container_width=True)
+
+    _grupo("Sugestão")
+    st.page_link(sugestao_palha_pg, use_container_width=True)
+    st.page_link(sugestao_cocada_pg, use_container_width=True)
+
+    _grupo("Vendas & resultado")
+    st.page_link(vendas_pg, use_container_width=True)
+    st.page_link(lucratividade_pg, use_container_width=True)
+    st.page_link(producao_demanda_pg, use_container_width=True)
+
+    _grupo("Análise da produção")
+    st.page_link(curva_abc_pg, use_container_width=True)
+    st.page_link(media_movel_pg, use_container_width=True)
+    st.page_link(anomalias_pg, use_container_width=True)
+    st.page_link(insights_pg, use_container_width=True)
+    st.page_link(bala_pg, use_container_width=True)
+
+    _grupo("Cadastros")
+    st.page_link(suprimentos_pg, use_container_width=True)
+    st.page_link(reconciliacao_pg, use_container_width=True)
+    st.page_link(equipe_pg, use_container_width=True)
+
+    _grupo("Suporte")
+    st.page_link(assistente_pg, use_container_width=True)
+    st.page_link(ajuda_pg, use_container_width=True)
+
+    _grupo("Admin")
+    st.page_link(admin_seed_pg, use_container_width=True)
+
 
 pg.run()

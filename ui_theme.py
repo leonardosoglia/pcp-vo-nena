@@ -271,6 +271,47 @@ section[data-testid="stSidebar"] [data-testid="stLogo"] {{
     margin: 4px 12px 10px !important;
 }}
 
+/* ─────────── MENU PRÓPRIO (st.page_link) — sempre aberto, por grupo ───────────
+   Substitui o menu automático (que recolhe grupos). Cada grupo = título com
+   risquinho de divisão; cada item = um st.page_link recuado pra "dentro" do grupo.
+   Degradação segura: se alguma cor não pegar, o texto continua branco/legível. */
+section[data-testid="stSidebar"] .navgrp {{
+    color: {t['sb_text_muted']} !important;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 14px 6px 4px 6px; padding: 11px 6px 0 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] {{ margin: 1px 0 !important; }}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a {{
+    color: #CBD5E1 !important;
+    border-radius: 7px !important;
+    padding: 6px 11px 6px 22px !important;   /* recuo: item "dentro" do grupo */
+    transition: all 0.15s ease;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover {{
+    background-color: {t['sb_surface']} !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a p {{
+    color: inherit !important; font-size: 12px !important; font-weight: 500 !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] [data-testid="stIconMaterial"] {{
+    color: {t['sb_text_muted']} !important;
+}}
+/* Item ATIVO — pílula com brilho laranja (página atual via aria-current) */
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {{
+    background-color: rgba(192, 86, 33, 0.16) !important;
+    border-left: 3px solid {t['brand']} !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding-left: 19px !important;           /* 19 + 3px da barra = 22, alinha c/ os demais */
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] p {{
+    color: #FFFFFF !important; font-weight: 600 !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] [data-testid="stIconMaterial"] {{
+    color: {t['brand']} !important;
+}}
+
 /* Botões na sidebar = SEMPRE laranja brand com texto branco */
 section[data-testid="stSidebar"] .stButton > button,
 section[data-testid="stSidebar"] button[kind="secondary"],
@@ -827,7 +868,8 @@ section[data-testid="stSidebar"] .stCaption {{
 }}
 [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]):hover {{
     border-color: {t['brand']} !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
 }}
 [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stPageLink"]) [data-testid="stPageLink"] a {{
     padding: 2px 0 !important;
