@@ -1,21 +1,25 @@
 """
-pages/9_Ajuda.py — Central de Ajuda / Documentação do Sistema
+pages/9_Ajuda.py — Central de Ajuda / Documentação do sistema.
 
-Página dedicada com:
-- Glossário de termos técnicos
-- Explicação de cada feature do sistema
-- Perguntas frequentes (FAQ)
-- Referências bibliográficas (pra TCC)
+Redesenho 26/06/2026 (reforma visual, Parte 3):
+- REMOVIDOS os nomes de pessoas → departamentos (Gestão, Produção, Corte,
+  Embalagem, Estoque). Regra firme do projeto.
+- Conteúdo atualizado (assistente já ativado; hospedagem atual; mapa com as
+  18 telas de hoje).
+- Organização nova: cabeçalho + busca + abas (Como usar · Telas · Glossário ·
+  Perguntas · Referências). Glossário e Perguntas são pesquisáveis.
 
-Decisão (19/05/2026): mover TODO conteúdo didático pra cá pra deixar
-as outras páginas limpas e profissionais. Pedido do Leonardo:
-"esses textos longos e desnecessários nas abas onde visualizamos
-informação — quero cara profissional".
+O CSS desta tela fica AQUI (page-local) de propósito: as peças (cartões brancos,
+pílulas de departamento, busca com lupa) precisam bater fielmente com o mockup
+aprovado pela Gestão, e as classes antigas (`glossario-termo`, `faq-q`,
+`card-feature`) são forçadas pra cards coloridos pelo tema global — reusá-las
+deixaria a tela diferente do preview. Como cada página injeta seu próprio CSS,
+este bloco só afeta a tela de Ajuda.
 """
 import streamlit as st
 import os
 
-# Bootstrap defensivo (HF Spaces sem secrets.toml)
+# Bootstrap defensivo (HF Spaces injeta DATABASE_URL como env var)
 try:
     if not os.getenv("DATABASE_URL") and "DATABASE_URL" in st.secrets:
         os.environ["DATABASE_URL"] = st.secrets["DATABASE_URL"]
@@ -30,437 +34,413 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
 aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# CABEÇALHO
+# CSS DA TELA (isolado nesta página) — fiel ao mockup aprovado
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Central de Ajuda")
-st.caption(
-    "Documentação completa do sistema PCP Vó Nena. Use o índice abaixo pra "
-    "navegar até a seção que te interessa."
+AJUDA_CSS = """
+<style>
+/* Cabeçalho */
+.aj-eyebrow{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#C05621;margin:2px 0 4px}
+.aj-title{font-size:19px;font-weight:700;color:#0F172A;line-height:1.2;margin:0 0 3px}
+.aj-sub{font-size:12.5px;color:#64748B;margin:0 0 6px}
+
+/* Busca com lupa (estiliza o único campo de texto desta tela) */
+[data-testid="stMain"] .stTextInput input{
+    min-height:40px !important;
+    border-radius:10px !important;
+    font-size:13px !important;
+    padding:8px 12px 8px 36px !important;
+    border:1px solid #E2E8F0 !important;
+    background-color:#FFFFFF !important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:11px center;
+}
+
+/* Abas — um pouco mais de respiro e fonte que o padrão, igual ao preview */
+[data-testid="stMain"] .stTabs [data-baseweb="tab-list"]{gap:18px !important}
+[data-testid="stMain"] .stTabs [data-baseweb="tab"]{font-size:13px !important;padding:7px 2px !important}
+
+/* Cartão branco padrão da Ajuda */
+.aj-card{background:#FFFFFF;border:1px solid #E4E4E7;border-radius:12px;padding:16px 18px;margin:0 0 12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.aj-card-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.aj-card-title{font-size:15px;font-weight:600;color:#0F172A}
+
+/* Pílulas de departamento */
+.aj-pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:rgba(15,23,42,.06);color:#334155;margin:1px 2px 1px 0}
+.aj-pill-brand{background:rgba(192,86,33,.12);color:#993C1D}
+
+/* Selo verde "sem nomes" */
+.aj-chip-ok{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#0F6E56;background:#E1F5EE;padding:3px 10px;border-radius:999px}
+
+/* Tabela do fluxo */
+.aj-table{width:100%;border-collapse:collapse}
+.aj-th{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#94A3B8;text-align:left;padding:0 8px 8px}
+.aj-td{font-size:12.5px;padding:9px 8px;border-top:1px solid #EEF2F6;color:#334155;vertical-align:middle}
+
+/* Mapa de telas (grupos) */
+.aj-grp{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#94A3B8;margin:14px 2px 6px}
+.aj-grp:first-child{margin-top:2px}
+.aj-tela{display:flex;gap:10px;padding:8px 0;border-top:1px solid #F1F5F9}
+.aj-tela:first-of-type{border-top:none}
+.aj-tela-nome{flex:0 0 168px;font-size:12.5px;font-weight:600;color:#C05621}
+.aj-tela-desc{font-size:12px;color:#475569;line-height:1.45}
+
+/* Glossário — cartões em grade */
+.aj-gloss-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.aj-gloss{background:#FFFFFF;border:1px solid #E4E4E7;border-radius:10px;padding:12px 14px}
+.aj-gloss-termo{font-size:13px;font-weight:600;color:#C05621;margin-bottom:3px}
+.aj-gloss-def{font-size:12px;color:#475569;line-height:1.5}
+.aj-vazio{font-size:12.5px;color:#94A3B8;padding:14px 2px}
+
+/* Perguntas — sanfona */
+details.aj-faq{background:#FFFFFF;border:1px solid #E4E4E7;border-radius:10px;margin:8px 0;overflow:hidden}
+details.aj-faq>summary{list-style:none;cursor:pointer;padding:12px 16px;font-size:12.5px;font-weight:500;color:#334155;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.aj-faq>summary::-webkit-details-marker{display:none}
+details.aj-faq>summary::after{content:"";flex:0 0 16px;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center;transition:transform .15s ease}
+details.aj-faq[open]>summary{color:#C05621}
+details.aj-faq[open]>summary::after{transform:rotate(180deg)}
+.aj-faq-a{padding:0 16px 14px;font-size:12px;color:#475569;line-height:1.55}
+
+/* Referências */
+.aj-ref{background:#FFFFFF;border:1px solid #E4E4E7;border-radius:10px;padding:12px 14px;margin:0 0 10px}
+.aj-ref-titulo{font-size:12.5px;font-weight:600;color:#0F172A}
+.aj-ref-corpo{font-size:12px;color:#475569;line-height:1.5;margin-top:3px}
+.aj-ref-uso{font-size:11.5px;color:#C05621;margin-top:4px}
+</style>
+"""
+st.markdown(AJUDA_CSS, unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# CABEÇALHO + BUSCA
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown(
+    "<div class='aj-eyebrow'>PCP Vó Nena · Ajuda</div>"
+    "<div class='aj-title'>Central de Ajuda</div>"
+    "<div class='aj-sub'>Tudo sobre o sistema num lugar só. Use a busca ou as abas pra achar rápido.</div>",
+    unsafe_allow_html=True,
+)
+
+q = st.text_input(
+    "Buscar",
+    placeholder="Buscar um termo do glossário ou uma pergunta…",
+    label_visibility="collapsed",
+).strip().lower()
+
+
+def _casa(*textos) -> bool:
+    """True se a busca está vazia ou bate em algum dos textos."""
+    if not q:
+        return True
+    return any(q in (t or "").lower() for t in textos)
+
+
+def _esc(texto: str) -> str:
+    """Escapa o mínimo pra não quebrar o HTML dos cartões."""
+    return (texto or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+tab_uso, tab_telas, tab_gloss, tab_faq, tab_ref = st.tabs(
+    ["Como usar", "Telas do sistema", "Glossário", "Perguntas frequentes", "Referências"]
 )
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# ÍNDICE
+# ABA — COMO USAR (fluxo do dia, por departamento)
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown("""
-### Índice
+with tab_uso:
+    st.markdown("""
+<div class='aj-card'>
+  <div class='aj-card-head'>
+    <div class='aj-card-title'>Fluxo de um dia</div>
+    <span class='aj-chip-ok'>&#10003; Só departamentos — sem nomes de pessoas</span>
+  </div>
+  <table class='aj-table'>
+    <thead><tr>
+      <th class='aj-th' style='width:92px'>Hora</th>
+      <th class='aj-th' style='width:160px'>Responsável</th>
+      <th class='aj-th'>O que acontece</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class='aj-td'>06h&ndash;21h</td>
+        <td class='aj-td'><span class='aj-pill'>Produção</span><span class='aj-pill'>Corte</span><span class='aj-pill'>Embalagem</span></td>
+        <td class='aj-td'>Produzem, viram, cortam e embalam ao longo de todo o dia</td>
+      </tr>
+      <tr>
+        <td class='aj-td'>08h&ndash;10h</td>
+        <td class='aj-td'><span class='aj-pill'>Estoque</span></td>
+        <td class='aj-td'>Conta o estoque físico na fábrica (45g, Mini, Pet, Pão de Mel, Balas)</td>
+      </tr>
+      <tr>
+        <td class='aj-td'>~10h</td>
+        <td class='aj-td'><span class='aj-pill'>Estoque</span></td>
+        <td class='aj-td'>Preenche a folha do dia no Lançamento</td>
+      </tr>
+      <tr>
+        <td class='aj-td'>~10h30</td>
+        <td class='aj-td'><span class='aj-pill aj-pill-brand'>Gestão</span></td>
+        <td class='aj-td'>Confere Painel e Insights e define as ordens do dia</td>
+      </tr>
+      <tr>
+        <td class='aj-td'>~10h30</td>
+        <td class='aj-td'><span class='aj-pill aj-pill-brand'>Gestão</span></td>
+        <td class='aj-td'>Volta no Lançamento e ajusta corte, embalagem e produção</td>
+      </tr>
+      <tr>
+        <td class='aj-td'>Fim do dia</td>
+        <td class='aj-td'><span class='aj-pill'>Estoque</span></td>
+        <td class='aj-td'>Confere e salva a folha</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-| Seção | O que tem |
-|---|---|
-|  [Como usar o sistema](#como-usar) | Fluxo do dia, abas principais, atalhos |
-|  [Páginas de Análise](#paginas-analise) | Insights, Curva ABC, Anomalias ML, Média Móvel |
-|  [Suprimentos](#suprimentos) | Insumos, BOM, Movimentações, Necessidades |
-|  [Equipe](#equipe) | Funcionários, Capacidades, Presença |
-|  [Assistente IA](#assistente-ia) | Como funciona, custos, status atual |
-|  [Glossário](#glossario) | Termos técnicos explicados |
-|  [Perguntas Frequentes](#faq) | FAQ sobre o sistema |
-|  [Referências Bibliográficas](#referencias) | Pro TCC |
-""")
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# COMO USAR O SISTEMA
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='como-usar'></a>", unsafe_allow_html=True)
-st.header("Como usar o sistema")
-
-st.markdown("""
-**Fluxo típico de um dia:**
-
-| Hora | Quem | O quê |
-|---|---|---|
-| 7h–10h | Leonardo | Conta estoque físico (45g, Mini, Pet, PM, Balas) na fábrica |
-| ~10h | Leonardo | Abre **Lançamento** → preenche a folha do dia |
-| ~10h30 | Eraldo | Confere o **Painel** + **Insights** + decide ordens |
-| ~10h30 | Eraldo | Volta no **Lançamento** → ajusta ord_corte / ord_emb / ord_prod |
-| 11h–18h | Equipe | Executa as ordens (Joel produz, Gil corta, Leonília embala) |
-| Fim do dia | Leonardo | Confere folha + salva |
-
-**Mapa de páginas (sidebar esquerda):**
-
-| Página | Pra quê |
-|---|---|
-| **Lançamento** | Onde a folha do dia é preenchida (Eraldo + Leonardo) |
-| **Painel** | Visualização por departamento (Produção, Corte, Embalagem) |
-| **Insights** | Diagnóstico operacional automático (regras hardcoded) |
-| **Suprimentos** | Cadastro de insumos + receitas + estoque MP |
-| **Curva ABC** | Classificação dos produtos por volume |
-| **Anomalias ML** | Detecção de folhas atípicas via Machine Learning |
-| **Média Móvel** | Comparativo meta × realidade observada |
-| **Assistente IA** | Pergunte ao Claude (LLM) — quando ativado |
-| **Equipe** | Funcionários, capacidades, presença diária |
-| **Ajuda** | Esta página |
-""")
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# PÁGINAS DE ANÁLISE
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='paginas-analise'></a>", unsafe_allow_html=True)
-st.header("Páginas de Análise")
-
-# --- Insights ---
-st.subheader("Insights")
-st.markdown("""
-<div class='card-feature'>
-<b>O que faz:</b> diagnóstico operacional automático baseado em <b>regras hardcoded</b>.
-Sinaliza padrões conhecidos sem precisar de Machine Learning.<br><br>
-<b>Hipóteses ativas:</b>
-<ul>
-<li><b>Insight Master</b> — possível viés sistemático no Cortados ③ (a validar com mais dados)</li>
-<li><b>H1 — Tachos parciais</b> — quando ord_prod_band não é múltiplo de 8, sobra vira pote 260g/605g (NÃO é desperdício)</li>
-<li><b>H4 — Sobrecarga Embalagem</b> — slider configurável de capacidade (padrão 3000 und/dia, varia conforme equipe)</li>
-<li><b>H5 — Anomalia Palha</b> — Leite em Pó &gt; Tradicional × 1.3 (validado pela Gestão)</li>
-<li><b>H6 — Proporção T/L</b> — meta 2:1; oscilações podem ser pedidos antecipados, não desbalanceamento</li>
-</ul>
+<div class='aj-card'>
+  <div class='aj-card-title' style='margin-bottom:8px'>Por onde começar</div>
+  <div class='aj-tela'><div class='aj-tela-nome'>1. Início</div><div class='aj-tela-desc'>Mostra o status do dia, os alertas de estoque e os atalhos pras telas mais usadas.</div></div>
+  <div class='aj-tela'><div class='aj-tela-nome'>2. Lançamento</div><div class='aj-tela-desc'>O coração do sistema: a folha do dia, igualzinha ao papel da fábrica.</div></div>
+  <div class='aj-tela'><div class='aj-tela-nome'>3. Painel e Insights</div><div class='aj-tela-desc'>A leitura do dia por departamento e o diagnóstico automático pra apoiar a decisão.</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- Curva ABC ---
-st.subheader("Curva ABC")
-st.markdown("""
-<div class='card-feature'>
-<b>O que faz:</b> separa automaticamente os produtos em 3 classes de prioridade,
-baseado no princípio de Pareto (80/20).<br><br>
-<b>Classes:</b>
-<ul>
-<li><b>A </b> — produtos que somam 80% do volume produzido. Atenção máxima.</li>
-<li><b>B </b> — próximos 15%. Cadência regular.</li>
-<li><b>C </b> — últimos 5%. Lotes maiores e espaçados.</li>
-</ul>
-<b>Métrica usada:</b> <code>ord_corte_*</code> (fluxo de bandejas), somada ao longo de
-todas as folhas registradas. <b>NÃO usa Embalados</b> (que é estoque na prateleira,
-não pode ser somado entre dias — princípio Forrester 1961).
-</div>
-""", unsafe_allow_html=True)
-
-# --- Anomalias ML ---
-st.subheader("Anomalias ML")
-st.markdown("""
-<div class='card-feature'>
-<b>O que faz:</b> usa <b>Machine Learning não-supervisionado</b> (algoritmo Isolation
-Forest) pra detectar folhas que destoam do padrão histórico — sem ninguém precisar
-programar regra.<br><br>
-<b>Como ler:</b>
-<ul>
-<li><b>Score de estranheza alto</b> = folha mais diferente do padrão</li>
-<li><b>Top 3 features</b> = quais campos mais contribuíram pro desvio</li>
-<li><b>σ (sigma)</b> = quantos desvios-padrão acima/abaixo do normal. ±2σ é raro (~5%).</li>
-<li><b>"Atípica" ≠ "erro"</b>: pode ser encomenda especial, dia atípico, etc. É <b>pista pra investigar</b>.</li>
-</ul>
-<b>Limitação:</b> com menos de 30 folhas, precisão é limitada. Fica robusto a partir de ~60 folhas (3 meses).
-</div>
-""", unsafe_allow_html=True)
-
-# --- Média Móvel ---
-st.subheader("Média Móvel")
-st.markdown("""
-<div class='card-feature'>
-<b>O que faz:</b> compara a meta fixa da tabela <code>metas_45g</code> (ex: "Tradicional
-45g segunda = 5.200 und") com a média das últimas N semanas. Se a realidade
-descolou da meta, sinaliza pra recalibrar.<br><br>
-<b>Status dos desvios:</b>
-<ul>
-<li><b> OK</b> — diferença &lt; 10% (meta calibrada)</li>
-<li><b> Atenção</b> — 10-20% (acompanhar)</li>
-<li><b> Recalibrar</b> — &gt; 20% (meta provavelmente desatualizada)</li>
-</ul>
-<b>Janela móvel ajustável:</b> 2-8 ocorrências do mesmo dia da semana. Padrão 4.<br>
-<b>Métrica usada:</b> <code>ord_emb_45g</code> (fluxo de embalagem 45g). Não usa Embalados.
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
-
 
 # ════════════════════════════════════════════════════════════════════════════
-# SUPRIMENTOS
+# ABA — TELAS DO SISTEMA (mapa atualizado, 18 telas em 8 grupos)
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='suprimentos'></a>", unsafe_allow_html=True)
-st.header("Suprimentos")
-
-st.markdown("""
-<div class='card-feature'>
-<b>O que é:</b> módulo de gestão de matéria-prima, embalagens, potes, cintas — qualquer
-item consumível. Aplica MRP simplificado (Material Requirements Planning).<br><br>
-<b>4 abas:</b>
-<ul>
-<li><b> Insumos</b> — cadastro de cada item (nome, código, unidade, estoque atual, estoque mínimo, fornecedor, lead time)</li>
-<li><b> BOM</b> — receitas (Bill of Materials): pra produzir 1 tacho de Tradicional → 19L leite + 8kg açúcar + 4kg coco + ...</li>
-<li><b> Movimentações</b> — histórico de entradas (compras) e saídas (consumo na produção)</li>
-<li><b>Necessidades do dia</b> — cruza folha do dia × BOM × estoque atual → "Vai faltar X kg de Y"</li>
-</ul>
-<b>Status atual:</b> schema pronto, aguardando cadastro real de insumos (depende de
-entrevista com Eraldo + exportação CSV do Sigee Cloud com Mariana).
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# EQUIPE
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='equipe'></a>", unsafe_allow_html=True)
-st.header("Equipe")
-
-st.markdown("""
-<div class='card-feature'>
-<b>O que é:</b> cadastro de funcionários + capacidades por atividade + presença diária.
-Fundação da Camada 2 do sistema (Sugestão Automática de Ordem do Dia — em construção).<br><br>
-<b>3 abas:</b>
-<ul>
-<li><b> Funcionários</b> — CRUD agrupado por departamento (Gestão, Produção, Corte, Embalagem, etc.)</li>
-<li><b> Capacidades</b> — pra cada funcionário, quanto produz por atividade (ex: "Gil corta 30 band 45g/dia")</li>
-<li><b> Presença do dia</b> — quem trabalhou em cada data, com observações (chegou tarde, etc.)</li>
-</ul>
-<b>Como será usado (próxima etapa):</b> o algoritmo de Sugestão de Ordem vai calcular
-a <b>capacidade efetiva do dia</b> = soma(capacidade × presente) e usar como restrição
-pra pré-preencher ord_corte, ord_emb, ord_prod.
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# ASSISTENTE IA
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='assistente-ia'></a>", unsafe_allow_html=True)
-st.header("Assistente IA")
-
-st.markdown("""
-<div class='card-feature'>
-<b>O que é:</b> integração com o Claude (LLM da Anthropic). Permite perguntas em
-PT-BR sobre a operação, e respostas em linguagem humana baseadas no contexto real
-da fábrica.<br><br>
-<b>Funcionalidades implementadas:</b>
-<ul>
-<li><b>Q&A geral</b> (página Assistente IA) — pergunta livre + contexto da folha + histórico</li>
-<li><b>Explicação de Anomalia</b> (botão na página Anomalias ML) — traduz output técnico (z-score) em narrativa</li>
-</ul>
-<b>Status atual:</b> código entregue mas <b>não ativado em produção</b> por questão de
-custo. Pra ativar, basta configurar a secret <code>ANTHROPIC_API_KEY</code> no HF Spaces.<br><br>
-<b>Custos estimados (se ativar):</b>
-<ul>
-<li>Por consulta Haiku 4.5: ~R$0,02-0,05</li>
-<li>Mês típico (10 perguntas/dia): ~R$5-10</li>
-<li>Pro TCC inteiro (~2 meses): ~R$10-25 total</li>
-</ul>
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# GLOSSÁRIO
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='glossario'></a>", unsafe_allow_html=True)
-st.header("Glossário")
-st.caption("Termos técnicos do sistema, em ordem alfabética.")
-
-termos = [
-    ("Anomalia / Atípico",
-     "Folha que destoa do padrão do histórico. Detectada pelo algoritmo Isolation Forest. Não é necessariamente um erro — pode ser pedido especial, dia diferente, etc."),
-    ("BOM (Bill of Materials)",
-     "Receita: lista de insumos e quantidades pra produzir 1 unidade do produto. Ex: 1 tacho Tradicional = 19L leite + 8kg açúcar + 4kg coco. Cadastrado em Suprimentos > BOM."),
-    ("Camada 0",
-     "Folha de Produção digital substituindo o papel. Núcleo do sistema (Lançamento + Painel)."),
-    ("Camada 1",
-     "Visualização e diagnóstico (Insights). Regras hardcoded ativas hoje."),
-    ("Camada 1.5",
-     "ML e IA estatística (Curva ABC, Anomalias ML, Média Móvel). Atual fase do projeto."),
-    ("Camada 2",
-     "Sugestão automática (Sugestão de Ordem do Dia). Em construção — depende de cadastro de Equipe + capacidades."),
-    ("Cortados ① (1)",
-     "Cortado bruto: produto que foi cortado mas ainda não embalado. Snapshot do dia."),
-    ("Cortados ② (2)",
-     "Total que passou pela bancada de corte hoje. Derivado: cort1_* + emb_* + papelzinho_joel.joel_*. Mostra o trabalho REAL do dia."),
-    ("Cortados ③ (3)",
-     "Cortados ② menos o param_real do dia. Positivo = sobrou; negativo = faltou. Indicador de calibração."),
-    ("Curva ABC",
-     "Classificação dos produtos em 3 grupos por volume: A (top 80%), B (próximos 15%), C (últimos 5%). Princípio de Pareto."),
-    ("Estoque vs Fluxo",
-     "Princípio de Forrester (1961): valor de estoque (snapshot) NÃO pode ser somado entre dias; valor de fluxo (entrada/saída do dia) PODE. emb_* é estoque; ord_corte_*/ord_emb_* são fluxo."),
-    ("HF Spaces / Hugging Face Spaces",
-     "Plataforma onde o app está hospedado (huggingface.co/spaces). Migramos do Streamlit Cloud em 17/05/2026 pra ter 16x mais memória RAM."),
-    ("Isolation Forest",
-     "Algoritmo de Machine Learning não-supervisionado que detecta outliers. Usado na página Anomalias ML."),
-    ("Lead time",
-     "Tempo entre pedir um insumo ao fornecedor e ele chegar na fábrica. Crítico pro cálculo de Necessidades do dia (Suprimentos)."),
-    ("LLM (Large Language Model)",
-     "Modelo de linguagem como o Claude. Usado pra responder perguntas em PT-BR ou explicar anomalias em linguagem humana."),
-    ("Média Móvel",
-     "Média das últimas N ocorrências (do mesmo dia da semana). Atualiza automaticamente conforme novas folhas entram. Detecta mudança gradual de demanda."),
-    ("MRP (Material Requirements Planning)",
-     "Técnica clássica de PCP: calcula necessidade de insumos a partir de ordem de produção × BOM × estoque atual. Aplicado em Suprimentos > Necessidades do dia."),
-    ("ord_corte_* (45g, Mini, Pet)",
-     "Ordem do dia pra cortar X bandejas. Em bandejas. FLUXO — pode somar entre dias."),
-    ("ord_emb_* (45g, Mini)",
-     "Ordem do dia pra embalar X unidades. Em unidades. FLUXO. Cocada Pet não tem ord_emb separado."),
-    ("ord_prod_band",
-     "Ordem do dia pra produzir X bandejas via tacho (Sr. Joel). Quando não múltiplo de 8: sobra vira pote 260g/605g."),
-    ("ord_prod_virada",
-     "Ordem do dia pra Sr. Joel virar X bandejas (resposta corretiva quando Viradas② tá baixo)."),
-    ("P/Virar",
-     "Bandejas que estão esperando ser viradas (etapa do processo de cocada antes do corte). joel_pv no banco."),
-    ("Papelzinho do Joel",
-     "Documento físico onde o Sr. Joel anota produção do dia em 5 colunas × 6 sabores. Digitalizado em papelzinho_joel."),
-    ("param_real_45g / Mini / Pet",
-     "Parâmetro real do dia: meta de produção em unidades. Pode ser diferente da meta base (metas_45g) por causa de pedidos antecipados."),
-    ("Score de estranheza / Anomaly score",
-     "Valor que o Isolation Forest atribui a cada folha. Quanto maior, mais a folha destoa do padrão."),
-    ("σ (sigma) / Desvio-padrão",
-     "Medida estatística de variação. ±1σ é comum (~68% das observações). ±2σ é raro (~5%). ±3σ é muito raro (~0,3%)."),
-    ("Suprimentos",
-     "Módulo de gestão de matéria-prima + embalagens + potes + cintas. MRP simplificado."),
-    ("Tacho",
-     "Unidade de produção do Sr. Joel. 1 tacho cocada = 8 bandejas (Zero = 3). 1 tacho bala = 30 balas. Receita por tacho."),
-    ("Viradas ②",
-     "Bandejas viradas (etapa intermediária do processo de cocada). joel_v − ord_corte_total. Snapshot."),
-    ("z-score",
-     "Quantos desvios-padrão um valor está acima/abaixo da média. Igual ao σ. Usado nas Top 3 features das anomalias."),
+GRUPOS_TELAS = [
+    ("Início", [
+        ("Início", "Porta de entrada: status do dia, alertas de estoque e atalhos."),
+    ]),
+    ("Operação do dia", [
+        ("Lançamento", "Onde a folha do dia é preenchida — a mesma do papel da fábrica."),
+        ("Painel", "Visão do dia por departamento: Produção, Corte, Embalagem e Estoque."),
+    ]),
+    ("Sugestão", [
+        ("Palha", "Sugestão de corte e de produção de palha (apoio à decisão da Gestão)."),
+        ("Cocada", "Sugestão de corte, produção, potes e viração de cocada."),
+    ]),
+    ("Vendas & resultado", [
+        ("Vendas", "Curva ABC de demanda a partir das vendas reais lidas do SIGE."),
+        ("Lucratividade", "Contribuição por produto: o que mais puxa o resultado."),
+        ("Produção × Demanda", "Compara o que é produzido com o que é vendido, sabor a sabor."),
+    ]),
+    ("Análise da produção", [
+        ("Curva ABC", "Classifica os produtos por volume (princípio de Pareto)."),
+        ("Média Móvel", "Compara a meta com a média recente e sinaliza quando recalibrar."),
+        ("Anomalias ML", "Detecta folhas fora do padrão usando aprendizado de máquina."),
+        ("Insights", "Diagnóstico automático por regras conhecidas da operação."),
+        ("Bala", "Acompanhamento da Bala: produção, estoque e giro."),
+    ]),
+    ("Cadastros", [
+        ("Suprimentos", "Insumos, receitas (BOM), movimentações e necessidades do dia."),
+        ("Reconciliação SIGE", "Compara o estoque do nosso sistema com o do SIGE, item a item."),
+        ("Equipe", "Funcionários, capacidades por atividade e presença por dia."),
+    ]),
+    ("Suporte", [
+        ("Assistente IA", "Pergunte ao Claude sobre a operação, em linguagem do dia a dia."),
+        ("Ajuda", "Esta página."),
+    ]),
+    ("Admin", [
+        ("Cadastrar BOM (setup)", "Carga inicial das receitas. Uso raro — área técnica."),
+    ]),
 ]
 
-for termo, def_ in termos:
+_telas_html = ["<div class='aj-card'>"]
+for grupo, telas in GRUPOS_TELAS:
+    _telas_html.append(f"<div class='aj-grp'>{_esc(grupo)}</div>")
+    for nome, desc in telas:
+        _telas_html.append(
+            f"<div class='aj-tela'><div class='aj-tela-nome'>{_esc(nome)}</div>"
+            f"<div class='aj-tela-desc'>{_esc(desc)}</div></div>"
+        )
+_telas_html.append("</div>")
+
+_telas_html.append("""
+<div class='aj-card'>
+  <div class='aj-card-title' style='margin-bottom:8px'>Status atual do sistema</div>
+  <div class='aj-tela-desc' style='margin-bottom:6px'>&bull; Hospedado no Hugging Face (na nuvem), acessível pelo navegador no computador ou no celular.</div>
+  <div class='aj-tela-desc' style='margin-bottom:6px'>&bull; Banco de dados em nuvem (Postgres) com backup automático diário.</div>
+  <div class='aj-tela-desc' style='margin-bottom:6px'>&bull; Assistente de IA <b>ativado</b> (usa o Claude, da Anthropic).</div>
+  <div class='aj-tela-desc'>&bull; Integração com o SIGE em modo <b>somente leitura</b> (lê custo, vendas e estoque; nunca escreve).</div>
+</div>
+""")
+st.markdown("".join(_telas_html), unsafe_allow_html=True)
+
+st.markdown("<div class='aj-grp' style='margin-top:6px'>Entenda melhor as análises</div>", unsafe_allow_html=True)
+st.markdown("""
+<details class='aj-faq'><summary>Insights — diagnóstico por regras</summary>
+<div class='aj-faq-a'>Sinaliza padrões conhecidos da operação, sem aprendizado de máquina. Exemplos: tachos
+parciais (quando a ordem de produção não é múltiplo de 8, a sobra vira pote — não é desperdício);
+possível sobrecarga da Embalagem (limite configurável); proporção entre sabores fora do esperado.
+São pistas pra investigar, nunca uma ordem.</div></details>
+
+<details class='aj-faq'><summary>Curva ABC — prioridade por volume</summary>
+<div class='aj-faq-a'>Separa os produtos em três classes pelo princípio de Pareto: A = os que somam ~80% do
+volume (atenção máxima), B = os próximos ~15%, C = os últimos ~5%. Usa o fluxo de bandejas cortadas
+somado no período — nunca o que está parado na prateleira (princípio estoque × fluxo).</div></details>
+
+<details class='aj-faq'><summary>Anomalias ML — folhas fora do padrão</summary>
+<div class='aj-faq-a'>Um algoritmo de aprendizado de máquina (Isolation Forest) aponta as folhas que mais
+destoam do histórico, sem ninguém programar regra. "Atípica" não quer dizer "erro": pode ser encomenda
+especial ou dia diferente. Fica confiável a partir de ~60 folhas (cerca de 3 meses de dados).</div></details>
+
+<details class='aj-faq'><summary>Média Móvel — a meta ainda está calibrada?</summary>
+<div class='aj-faq-a'>Compara a meta fixa de cada dia da semana com a média das últimas semanas. Diferença
+abaixo de 10% = meta calibrada; entre 10% e 20% = acompanhar; acima de 20% = a meta provavelmente
+está desatualizada e vale recalibrar. A janela de semanas é ajustável.</div></details>
+""", unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ABA — GLOSSÁRIO (pesquisável)
+# ════════════════════════════════════════════════════════════════════════════
+TERMOS = [
+    ("Anomalia / Atípico",
+     "Folha que destoa do padrão do histórico, apontada pelo algoritmo Isolation Forest. Não é necessariamente um erro — pode ser pedido especial ou dia diferente."),
+    ("BOM (lista de materiais)",
+     "A receita: lista de insumos e quantidades pra produzir 1 unidade do produto. Ex.: 1 tacho de Tradicional = 19,5 L de leite + 8 kg de açúcar + 5 kg de coco. Cadastrada em Suprimentos."),
+    ("Bandeja",
+     "Unidade física de divisão da cocada. 1 tacho rende 8 bandejas (a Zero, 3). A bandeja pronta para corte pesa ~5,5 kg."),
+    ("Cortados ① (1)",
+     "Cortado bruto: o que já foi cortado mas ainda não embalado. Foto do dia."),
+    ("Cortados ② (2)",
+     "Tudo que passou pela bancada de corte no dia. É um valor calculado (cortado bruto + embalado + papelzinho da produção). Mostra o trabalho real do dia."),
+    ("Cortados ③ (3)",
+     "Cortados ② menos o parâmetro real do dia. Positivo = sobrou; negativo = faltou. Indicador de calibração."),
+    ("Curva ABC",
+     "Classificação dos produtos em três grupos por volume: A (top ~80%), B (próximos ~15%), C (últimos ~5%). Princípio de Pareto."),
+    ("Estoque × Fluxo",
+     "Princípio de Forrester (1961): estoque (a foto de um dia) não pode ser somado entre dias; fluxo (o que entrou ou saiu no dia) pode. Por isso as análises usam o fluxo, não a prateleira."),
+    ("Hugging Face",
+     "A plataforma na nuvem onde o sistema está hospedado e acessível pelo navegador. O app foi migrado pra lá em 17/05/2026."),
+    ("Isolation Forest",
+     "Algoritmo de aprendizado de máquina que encontra pontos fora da curva. Usado na tela Anomalias ML."),
+    ("Lead time",
+     "Tempo entre pedir um insumo ao fornecedor e ele chegar à fábrica. Importante pro cálculo de necessidades do dia (Suprimentos)."),
+    ("LLM / Assistente IA",
+     "Modelo de linguagem como o Claude. Responde perguntas em português e explica análises em linguagem do dia a dia."),
+    ("Média Móvel",
+     "Média das últimas semanas (do mesmo dia da semana). Atualiza sozinha conforme novas folhas entram e detecta mudança gradual de demanda."),
+    ("MRP (planejamento de materiais)",
+     "Técnica clássica de PCP: calcula a necessidade de insumos a partir da ordem de produção × receita × estoque atual. Aplicada em Suprimentos."),
+    ("Ordem de corte",
+     "Quantas bandejas cortar no dia (em bandejas). É fluxo — pode somar entre dias."),
+    ("Ordem de embalagem",
+     "Quantas unidades embalar no dia (em unidades). É fluxo. A cocada Pet não tem ordem de embalagem separada."),
+    ("Ordem de produção",
+     "Quantas bandejas produzir no dia via tacho (responsabilidade da Produção). Quando não é múltiplo de 8, a sobra vira pote de 260 g / 605 g."),
+    ("Ordem de viração",
+     "Pedido pra a Produção virar X bandejas — medida corretiva quando as viradas estão baixas."),
+    ("Papelzinho da Produção",
+     "Documento físico onde a Produção anota a produção do dia em 5 colunas × 6 sabores. Digitalizado dentro do Lançamento."),
+    ("Parâmetro real do dia",
+     "A meta de produção do dia, em unidades. Pode ser diferente da meta base por causa de pedidos antecipados."),
+    ("P/Virar",
+     "Bandejas esperando para serem viradas (etapa da cocada, antes do corte)."),
+    ("Sigma (σ) / Desvio-padrão",
+     "Medida de variação. ±1σ é comum (~68% dos casos); ±2σ é raro (~5%); ±3σ é muito raro (~0,3%)."),
+    ("SIGE",
+     "O ERP da empresa (sistema oficial). O nosso sistema lê dele custo, vendas e estoque — em modo somente leitura."),
+    ("Suprimentos",
+     "Módulo de gestão de matéria-prima, embalagens, potes e cintas. Aplica MRP simplificado."),
+    ("Tacho",
+     "Unidade de produção. 1 tacho de cocada = 8 bandejas (Zero = 3); 1 tacho de bala = 30 balas. A receita é por tacho."),
+    ("Viradas ②",
+     "Bandejas viradas (etapa intermediária da cocada). Calculado: viradas anotadas menos o total das ordens de corte."),
+]
+
+with tab_gloss:
+    cards = [
+        f"<div class='aj-gloss'><div class='aj-gloss-termo'>{_esc(termo)}</div>"
+        f"<div class='aj-gloss-def'>{_esc(definicao)}</div></div>"
+        for termo, definicao in TERMOS if _casa(termo, definicao)
+    ]
+    if cards:
+        st.markdown(f"<div class='aj-gloss-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='aj-vazio'>Nenhum termo encontrado para “{_esc(q)}”.</div>", unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ABA — PERGUNTAS FREQUENTES (pesquisável)
+# ════════════════════════════════════════════════════════════════════════════
+FAQS = [
+    ("Quem decide as ordens de produção, corte e embalagem?",
+     "Sempre a Gestão. O sistema sugere, visualiza e alerta, mas a decisão final é humana. A sugestão automática (em construção) vai pré-preencher os campos a partir da capacidade da equipe e da demanda — e a Gestão segue aprovando e ajustando."),
+    ("Por que as análises usam as ordens do dia e não o que está embalado?",
+     "Por causa do princípio estoque × fluxo (Forrester, 1961). O embalado é a foto da prateleira em cada dia e não pode ser somado entre dias; as ordens (corte, embalagem) são fluxo do dia e podem somar. Curva ABC, Média Móvel e Anomalias usam o fluxo."),
+    ("Mudei a meta na tabela e não apareceu na hora. Por quê?",
+     "O sistema guarda as tabelas de referência por até 30 minutos pra ficar mais rápido. Pra ver na hora, atualize a página (Ctrl+F5)."),
+    ("Posso confiar 100% na detecção de anomalias?",
+     "Não. Com poucas folhas a precisão é limitada — o modelo ainda está aprendendo o que é “normal”. A partir de ~60 folhas (cerca de 3 meses) fica robusto. Use como pista pra investigar, não como diagnóstico fechado."),
+    ("O Assistente de IA está funcionando?",
+     "Sim, está ativado. Ele usa o Claude (da Anthropic) e responde sobre a operação em linguagem simples. O custo por pergunta é baixo e roda com o crédito da conta."),
+    ("Qual a diferença entre Insights e Anomalias ML?",
+     "Insights usa regras escritas à mão (ex.: “se um sabor passa muito do outro, alerta”). Anomalias ML usa um algoritmo que aprende sozinho o que é normal. Os dois se completam: Insights é explicável; o de máquina acha o que ninguém previu."),
+    ("O app está lento, o que pode ser?",
+     "Causas comuns: primeiro acesso do dia (o servidor estava dormindo — leva alguns segundos pra acordar); primeira navegação com tudo carregando; ou uma tela que lê o SIGE (que é mais lento). Se passar de 30 segundos com frequência, me mande um print."),
+    ("Dá pra usar no celular?",
+     "Dá. As telas se adaptam à tela pequena. Os gráficos funcionam, mas alguns ficam mais confortáveis no computador."),
+    ("Como faço backup dos dados?",
+     "O banco de dados na nuvem tem backup automático diário. Pra uma cópia manual, fale com o responsável técnico do sistema."),
+]
+
+with tab_faq:
+    blocos = [
+        f"<details class='aj-faq'><summary>{_esc(p)}</summary><div class='aj-faq-a'>{_esc(r)}</div></details>"
+        for p, r in FAQS if _casa(p, r)
+    ]
+    if blocos:
+        st.markdown("".join(blocos), unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='aj-vazio'>Nenhuma pergunta encontrada para “{_esc(q)}”.</div>", unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ABA — REFERÊNCIAS (pro TCC)
+# ════════════════════════════════════════════════════════════════════════════
+REFERENCIAS = [
+    ("Pareto, V. (1896). Cours d'Économie Politique. Lausanne: Rouge.",
+     "Princípio proposto ao estudar a distribuição de renda na Itália (80% da terra com 20% da população). Generalizado como Lei de Pareto.",
+     "Tela Curva ABC."),
+    ("Juran, J. M. (1951). Quality Control Handbook. New York: McGraw-Hill.",
+     "Operacionalizou o princípio de Pareto na gestão da qualidade (“os poucos vitais e os muitos triviais”).",
+     "Classificação A/B/C dos produtos."),
+    ("Forrester, J. W. (1961). Industrial Dynamics. Cambridge: MIT Press.",
+     "Estabeleceu a distinção entre estoque (foto) e fluxo (taxa). Conceito aplicado em todo o sistema pra não somar fotos de estoque como se fossem fluxo.",
+     "Princípio transversal — Curva ABC, Média Móvel, Anomalias."),
+    ("Wheelwright, S. C., & Hyndman, R. J. (1998). Forecasting: Methods and Applications. 3ª ed. New York: Wiley.",
+     "Referência clássica em previsão de séries temporais; cobre os métodos de média móvel.",
+     "Tela Média Móvel."),
+    ("Liu, F. T., Ting, K. M., & Zhou, Z. H. (2008). Isolation Forest. 8th IEEE Int. Conf. on Data Mining, 413-422.",
+     "Algoritmo de aprendizado de máquina para detecção de pontos fora da curva.",
+     "Tela Anomalias ML."),
+    ("Heizer, J., & Render, B. (2014). Operations Management. 11ª ed. Boston: Pearson.",
+     "Livro-texto padrão de Gestão de Operações; o capítulo 13 cobre planejamento de capacidade.",
+     "Tela Equipe — capacidades por funcionário."),
+    ("Brown, T. B. et al. (2020). Language Models are Few-Shot Learners. NeurIPS, 33, 1877-1901.",
+     "Artigo que apresentou o GPT-3 e o conceito de aprendizado com poucos exemplos em modelos de linguagem.",
+     "Assistente de IA."),
+    ("Anthropic. (2024). Constitutional AI: Harmlessness from AI Feedback. arXiv:2212.08073.",
+     "Fundamentos do treinamento dos modelos da família Claude, usados no Assistente de IA.",
+     "Assistente de IA."),
+]
+
+with tab_ref:
     st.markdown(
-        f"<div class='glossario-termo'><b>{termo}</b> — {def_}</div>",
+        "<div class='aj-sub' style='margin-bottom:10px'>Para usar no TCC (Capítulo 2 — Revisão de Literatura).</div>",
         unsafe_allow_html=True,
     )
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# FAQ
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='faq'></a>", unsafe_allow_html=True)
-st.header("Perguntas Frequentes (FAQ)")
-
-faqs = [
-    ("Por que algumas páginas usam ord_corte_* e não emb_* nos cálculos?",
-     "Princípio estoque vs fluxo (Forrester, 1961). emb_* é snapshot do estoque na prateleira em cada dia, NÃO pode ser somado entre dias. ord_corte_* é fluxo (demanda do dia), pode somar. Curva ABC, Média Móvel e Anomalias ML usam fluxo."),
-
-    ("Por que minha alteração na meta da tabela metas_45g não aparece no app imediatamente?",
-     "O sistema tem cache de 30 minutos pras tabelas de referência. Pra forçar atualização imediata, dá refresh na página (Ctrl+F5)."),
-
-    ("Posso confiar 100% na Detecção de Anomalia ML?",
-     "Não. Com menos de 30 folhas, a precisão é limitada — o modelo ainda está aprendendo o 'normal'. A partir de ~60 folhas (3 meses), fica robusto. Use como pista pra investigar, não diagnóstico fechado."),
-
-    ("O Assistente IA está funcionando?",
-     "O código está pronto, mas não está ativado. Pra ativar, é preciso criar conta na Anthropic (console.anthropic.com), gerar API key e configurar como secret ANTHROPIC_API_KEY no HF Spaces. Custo estimado: R$5-10/mês de uso típico."),
-
-    ("Quem decide as ordens de produção/corte/embalagem?",
-     "Sempre o Eraldo (Gestão). O sistema sugere/visualiza/alerta, mas a decisão final é humana. A Camada 2 (em construção) vai pré-preencher os campos baseado em capacidade da equipe + demanda — mas o Eraldo continua aprovando/ajustando."),
-
-    ("Qual a diferença entre as páginas Insights e Anomalias ML?",
-     "Insights usa REGRAS PROGRAMADAS à mão (ex: 'se LP > T × 1.3, alerta'). Anomalias ML usa um ALGORITMO que aprende sozinho o normal. Os dois se complementam: Insights é explicável; ML detecta coisas que ninguém previu."),
-
-    ("Por que algumas anomalias aparecem com valor positivo e outras negativo no z-score?",
-     "Positivo (+σ) = aquele campo estava ACIMA do normal. Negativo (-σ) = abaixo. Ex: 'Ordem de embalagem de Tradicional +3.2σ' significa que naquele dia foi muito acima do esperado."),
-
-    ("O app está lento, o que pode ser?",
-     "Várias causas possíveis: (1) primeiro carregamento (cold start) — normal demorar 5-10s; (2) cache vazio — primeira navegação carrega tudo; (3) folha do dia muito grande. Se persistir mais de 30s, me avisa via prints."),
-
-    ("Posso usar o sistema no celular?",
-     "Sim, todas as páginas são responsivas. O Streamlit detecta tela pequena e adapta layout. Os gráficos Plotly funcionam, mas alguns expandem melhor em desktop."),
-
-    ("Como faço backup dos dados?",
-     "Os dados ficam no Supabase (Postgres), que tem backup automático diário. Pra exportar manualmente, peça pro Leonardo gerar um dump SQL via psql ou pgAdmin."),
-]
-
-for q, a in faqs:
-    st.markdown(f"<div class='faq-q'> {q}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='faq-a'>{a}</div>", unsafe_allow_html=True)
-
-st.divider()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# REFERÊNCIAS
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<a id='referencias'></a>", unsafe_allow_html=True)
-st.header("Referências Bibliográficas")
-st.caption("Pra usar no TCC (Capítulo 2 — Revisão de Literatura).")
-
-st.markdown("""
-**Princípios fundamentais aplicados no sistema:**
-
-<div class='ref-box'>
-<b>Pareto, V. (1896).</b> <i>Cours d'Économie Politique.</i> Lausanne: Rouge.<br>
-Princípio originalmente proposto ao estudar distribuição de renda na Itália:
-80% da terra pertencia a 20% da população. Generalizado como "Lei de Pareto".
-<br><i>Aplicação no sistema: página Curva ABC.</i>
-</div>
-
-<div class='ref-box'>
-<b>Juran, J. M. (1951).</b> <i>Quality Control Handbook.</i> New York: McGraw-Hill.<br>
-Operacionalizou o princípio de Pareto em gestão de qualidade. Introduziu o termo
-"the vital few and the trivial many" (poucos vitais e muitos triviais).
-<br><i>Aplicação no sistema: classificação A/B/C dos produtos.</i>
-</div>
-
-<div class='ref-box'>
-<b>Forrester, J. W. (1961).</b> <i>Industrial Dynamics.</i> Cambridge: MIT Press.<br>
-Estabeleceu a distinção fundamental entre <b>stock</b> (estoque, snapshot) e
-<b>flow</b> (fluxo, taxa). Conceito aplicado em todo o sistema PCP Vó Nena
-pra evitar somar snapshots de estoque como se fossem fluxos.
-<br><i>Aplicação: princípio transversal — Curva ABC, Média Móvel, Anomalias ML.</i>
-</div>
-
-<div class='ref-box'>
-<b>Wheelwright, S. C., & Hyndman, R. J. (1998).</b> <i>Forecasting: Methods and
-Applications.</i> 3rd ed. New York: Wiley.<br>
-Referência clássica em previsão de séries temporais. Capítulo 2 cobre
-métodos de média móvel.
-<br><i>Aplicação no sistema: página Média Móvel.</i>
-</div>
-
-<div class='ref-box'>
-<b>Liu, F. T., Ting, K. M., & Zhou, Z. H. (2008).</b> <i>Isolation Forest.</i>
-Proceedings of the 8th IEEE International Conference on Data Mining, 413-422.<br>
-Algoritmo de Machine Learning não-supervisionado pra detecção de outliers.
-Mais de 5.000 citações em literatura.
-<br><i>Aplicação no sistema: página Anomalias ML.</i>
-</div>
-
-<div class='ref-box'>
-<b>Heizer, J., & Render, B. (2014).</b> <i>Operations Management: Sustainability
-and Supply Chain Management.</i> 11th ed. Boston: Pearson.<br>
-Livro-texto padrão em Operations Management. Capítulo 13 cobre Capacity Planning.
-<br><i>Aplicação no sistema: página Equipe — modelagem de capacidades por funcionário.</i>
-</div>
-
-<div class='ref-box'>
-<b>Brown, T. B. et al. (2020).</b> <i>Language Models are Few-Shot Learners.</i>
-Advances in Neural Information Processing Systems (NeurIPS), 33, 1877-1901.<br>
-Paper introduzindo GPT-3 e o conceito de few-shot learning em LLMs grandes.
-<br><i>Aplicação no sistema: Assistente IA via Claude API (LLM).</i>
-</div>
-
-<div class='ref-box'>
-<b>Anthropic. (2024).</b> <i>Constitutional AI: Harmlessness from AI Feedback.</i>
-arXiv:2212.08073.<br>
-Fundamentos do treinamento de modelos da família Claude (usados no Assistente IA).
-<br><i>Aplicação no sistema: Assistente IA.</i>
-</div>
-""", unsafe_allow_html=True)
-
-
-st.divider()
-st.caption(
-    " Esta página é a fonte central de documentação do sistema. "
-    "Quando tiver dúvida sobre alguma feature, comece por aqui antes de chamar o dev. "
-    "Atualizada conforme o sistema evolui."
-)
+    refs = [
+        f"<div class='aj-ref'><div class='aj-ref-titulo'>{_esc(titulo)}</div>"
+        f"<div class='aj-ref-corpo'>{_esc(corpo)}</div>"
+        f"<div class='aj-ref-uso'>Aplicação: {_esc(uso)}</div></div>"
+        for titulo, corpo, uso in REFERENCIAS
+    ]
+    st.markdown("".join(refs), unsafe_allow_html=True)
