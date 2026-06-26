@@ -613,6 +613,48 @@ section[data-testid="stSidebar"] .stCaption {{
     overflow: hidden;
 }}
 
+/* ─────────── QUADRO PADRÃO DO SISTEMA (componentes.tabela) ───────────
+   Tabela limpa, fiel ao mockup: cabeçalho cinza-claro, linhas finas,
+   1ª coluna em destaque. Usada por todos os quadros de apresentação. */
+[data-testid="stMain"] .vn-tbl-wrap {{
+    border: 1px solid #ECEDEF;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 2px 0 8px;
+    box-shadow: 0 1px 2px rgba(16,24,40,.03);
+}}
+[data-testid="stMain"] .vn-tbl {{
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFFFF;
+}}
+[data-testid="stMain"] .vn-tbl th {{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #9AA1AC;
+    text-align: left;
+    padding: 9px 13px;
+    background: #FAFAFB;
+    border-bottom: 1px solid #EEF0F3;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}}
+[data-testid="stMain"] .vn-tbl td {{
+    font-size: 12.5px;
+    color: #3A4250;
+    padding: 9px 13px;
+    border-top: 1px solid #F2F4F7;
+}}
+[data-testid="stMain"] .vn-tbl tbody tr:first-child td {{
+    border-top: none;
+}}
+[data-testid="stMain"] .vn-tbl td:first-child {{
+    font-weight: 600;
+    color: #151921;
+}}
+
 /* ─────────────────────────── DIVIDER ─────────────────────────── */
 [data-testid="stMain"] hr {{
     border-color: {t['border']} !important;

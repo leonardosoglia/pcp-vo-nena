@@ -35,6 +35,7 @@ from palha_planejamento import (
     EXEMPLO_VALIDACAO_18_05, ESPERADO_18_05,
 )
 import cached_db
+from componentes import tabela
 
 # Sabor no banco → sigla na calculadora
 SIGLA_PALHA_DB = {
@@ -275,7 +276,7 @@ df = pd.DataFrame({
     "Sobra após corte": [r["sobra"][s] for s in SABORES],
     "Produção sugerida (band)": [r["producao"][s] for s in SABORES],
 })
-st.dataframe(df, width='stretch', hide_index=True)
+tabela(df)
 st.caption(
     f"Esta semana: cortar **{total_corte} band** ({_resumo(r['corte_total'])}) · "
     f"produzir **{total_prod} band** ({_resumo(r['producao'])})."
@@ -300,7 +301,7 @@ with st.expander("Versão conservadora — evita cortar bandeja pra cobrir sobra
         "Sobra após corte": [r_conserv["sobra"][s] for s in SABORES],
         "Produção sugerida (band)": [r_conserv["producao"][s] for s in SABORES],
     })
-    st.dataframe(df_c, width='stretch', hide_index=True)
+    tabela(df_c)
 
     total_corte_c = sum(r_conserv["corte_total"].values())
     total_prod_c = sum(r_conserv["producao"].values())

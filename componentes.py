@@ -23,6 +23,32 @@ def cartao_atalho(page, titulo: str, descricao: str, icone: str = ""):
         st.markdown(f"<p class='atalho-desc'>{descricao}</p>", unsafe_allow_html=True)
 
 
+def _esc(v) -> str:
+    """Escapa o mínimo pra não quebrar o HTML da tabela."""
+    return (str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def tabela(df, altura_max: int | None = None):
+    """Quadro padrão do sistema — tabela limpa (cabeçalho cinza-claro, linhas finas,
+    1ª coluna em destaque), igual ao mockup aprovado.
+
+    Substitui o `st.dataframe` (grid interativo) nos quadros de apresentação.
+    `df` é um DataFrame do pandas. `altura_max` (px) liga a rolagem em quadros
+    grandes, mantendo o cabeçalho fixo no topo.
+    """
+    ths = "".join(f"<th>{_esc(c)}</th>" for c in df.columns)
+    linhas = []
+    for _, row in df.iterrows():
+        tds = "".join(f"<td>{_esc(v)}</td>" for v in row)
+        linhas.append(f"<tr>{tds}</tr>")
+    estilo = f' style="max-height:{int(altura_max)}px;overflow:auto"' if altura_max else ""
+    st.markdown(
+        f'<div class="vn-tbl-wrap"{estilo}><table class="vn-tbl">'
+        f'<thead><tr>{ths}</tr></thead><tbody>{"".join(linhas)}</tbody></table></div>',
+        unsafe_allow_html=True,
+    )
+
+
 def status_badge(label: str, texto: str, tipo: str = "info"):
     """Mini-cartão de status: rótulo em cima + selo colorido (pílula) embaixo.
 
