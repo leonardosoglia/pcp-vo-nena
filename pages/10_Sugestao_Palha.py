@@ -5,9 +5,9 @@ Calculadora que aplica a lógica documentada no CADERNO.md seção 1.A:
   - CORTE     = necessidade líquida (demanda da semana − estoque pronto) ÷ rendimento.
   - PRODUÇÃO  = estoque-alvo de bandejas − sobra após o corte (order-up-to).
 
-Pré-carregada com o exemplo real do 18/05/2026 (segunda) — o resultado deve bater
-com o que a Gestão fez à mão naquele dia. É a primeira prova de que a automação
-funciona.
+Reforma visual 26/06/2026: virou PAINEL DE DECISÃO — números-chave em cartões no
+topo, textos enxutos, estoque/conservadora/memória em seções recolhíveis.
+NENHUM cálculo mudou (sugerir_palha, tabelas e validação idênticos).
 
 Princípio: o sistema SUGERE, a Gestão DECIDE.
 """
@@ -51,14 +51,58 @@ from ui_theme import aplicar_tema
 aplicar_tema()
 
 
-st.title("Sugestão de corte e produção — Palha")
-st.caption(
-    "**Camada 2 — semi-automação.** Toda segunda, o sistema sugere quanto cortar (50g + Pet) "
-    "e quanto produzir de bandejas de palha, a partir dos estoques do dia. "
-    "**A Gestão decide** — o sistema só sugere e pode ser ajustado."
+# ════════════════════════════════════════════════════════════════════════════
+# CSS do painel de decisão (page-local — fiel ao mockup aprovado)
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown("""
+<style>
+.sgp-eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C05621;background:#FBEADF;padding:3px 9px;border-radius:6px;margin-bottom:9px}
+.sgp-title{font-size:20px;font-weight:700;color:#151921;margin:0 0 4px;letter-spacing:-.01em}
+.sgp-sub{font-size:12.5px;color:#6B7280;margin:0 0 6px;line-height:1.5;max-width:680px}
+.sgp-card{background:#fff;border:1px solid #ECEDEF;border-radius:14px;padding:15px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 10px rgba(16,24,40,.04)}
+.sgp-chip{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+.sgp-lab{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#9AA1AC;margin-bottom:3px}
+.sgp-val{font-size:26px;font-weight:700;color:#151921;line-height:1;letter-spacing:-.02em}
+.sgp-unit{font-size:13px;font-weight:500;color:#9AA1AC;margin-left:5px}
+.sgp-csub{font-size:11px;color:#B0B6BE;margin-top:6px}
+.sgp-ctx{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;color:#475569;background:#EEF0F3;padding:4px 11px;border-radius:999px;margin-top:6px}
+.sgp-h{font-size:13px;font-weight:600;color:#151921;margin:14px 0 8px}
+</style>
+""", unsafe_allow_html=True)
+
+_SVG_SCISSORS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>'
+_SVG_LAYERS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>'
+
+
+def _kpi(col, icone_svg, cor, chip_bg, label, valor, unidade, sub):
+    """Cartão de indicador do painel de decisão."""
+    col.markdown(
+        f'<div class="sgp-card"><div class="sgp-chip" style="background:{chip_bg}">'
+        f'{icone_svg.format(c=cor)}</div><div class="sgp-lab">{label}</div>'
+        f'<div><span class="sgp-val">{valor}</span><span class="sgp-unit">{unidade}</span></div>'
+        f'<div class="sgp-csub">{sub}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Cabeçalho enxuto
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown(
+    '<div class="sgp-eyebrow">Sugestão · Palha</div>'
+    '<div class="sgp-title">Corte e produção da semana</div>'
+    '<div class="sgp-sub">A partir dos estoques do dia, o sistema sugere quanto cortar '
+    '(50g + Pet) e quanto produzir de bandejas. <b>A Gestão decide.</b></div>',
+    unsafe_allow_html=True,
 )
 
+# Painel de decisão (preenchido depois do cálculo) — fica no topo
+kpi_box = st.container()
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Seletor de data: puxa os estoques direto do banco
+# ════════════════════════════════════════════════════════════════════════════
 col_data, _ = st.columns([1, 3])
 data_sel = col_data.date_input(
     "Data da folha",
@@ -108,93 +152,72 @@ if data_sel is not None:
         fonte_dados = "banco"
         st.success(
             f"Folha de **{data_sel.strftime('%d/%m/%Y')}** carregada do banco. "
-            "Os estoques (50g, Pet, bandejas) abaixo vieram da folha lançada. "
-            "Edite se quiser testar um cenário."
+            "Os estoques (50g, Pet, bandejas) vieram da folha lançada. "
+            "Abra o painel de estoque abaixo pra ver/editar."
         )
     else:
         st.warning(
             f"Não há folha lançada pra **{data_sel.strftime('%d/%m/%Y')}**. "
-            "Os campos ficam zerados — preencha manualmente."
+            "Os campos ficam zerados — preencha manualmente no painel abaixo."
         )
         ks = f"vazio_{data_sel.isoformat()}"
 
-st.divider()
-
 
 # ════════════════════════════════════════════════════════════════════════════
-# Inputs — estoque do dia
+# Inputs — estoque do dia + ajustes da semana (recolhível)
 # ════════════════════════════════════════════════════════════════════════════
-st.header("Somatório de displays da semana")
-st.caption(
-    "Quanto deu o somatório de displays previstos pra semana — **você decide o número** "
-    "(ex.: 136 contando a partir de terça, 168 a semana toda, ou outro conforme a semana). "
-    "O cálculo da palha usa este valor: (somatório − displays em estoque) × composição do display."
-)
-_col_sem, _ = st.columns([1, 3])
-ideal_displays_semana = _col_sem.number_input(
-    "Somatório de displays da semana",
-    min_value=0, value=136, step=1,
-    key=f"ideal_disp_{ks}",
-    help="Ex.: 136 (ter–sex) · 168 (seg–sex) · ou o que a semana pedir. × composição (T=4) → unidades de T.",
-)
-st.divider()
-
-st.header("Estoque do dia")
-
-st.info(
-    "**Input mais importante:** quantos displays de 50g já estão montados. "
-    "Esse número varia muito de semana pra semana (~0 a ~50) e tem o maior impacto na sugestão. "
-    "Pergunte à Embalagem antes de rodar."
-)
-col_d, _ = st.columns([1, 3])
-estoque_displays = col_d.number_input(
-    "Displays montados em estoque",
-    min_value=0, value=defaults["estoque_displays"], step=1,
-    key=f"displays_{ks}",
-    help=(
-        "1 display = 10 palhas 50g (4T + 4L + 2CH). Soma TODOS os displays prontos na "
-        "geladeira/sala da Embalagem. Validado contra a semana de 18/05: com este valor "
-        "em 35, a sugestão bate no centavo a decisão real da Gestão."
-    ),
-)
-with st.expander("Por que esse input é tão crítico?", expanded=False):
-    st.markdown(
-        "**O ideal de displays da semana é o número que você definiu no campo acima** "
-        "(ex.: 136 a partir de terça, 168 a semana toda). O sistema desconta os displays já "
-        "prontos em estoque: quanto mais prontos, menos corte ele sugere. **Validação 24/05:** "
-        "rodando contra 3 semanas (04/05, 11/05, 18/05) — com o valor certo de displays em "
-        "estoque, o sistema reproduz a decisão real da Gestão dentro de ~5%. **Médio prazo:** "
-        "vira coluna na folha do dia."
+with st.expander("Estoque do dia & ajustes da semana (editar)", expanded=(fonte_dados != "banco")):
+    st.caption(
+        "Input mais sensível: **quantos displays de 50g já estão montados** "
+        "(varia ~0 a ~50 por semana e é o que mais mexe na sugestão — pergunte à Embalagem). "
+        "50g, Pet e bandejas vêm da folha quando você escolhe a data."
     )
 
-st.markdown("**Palha 50g pronta em estoque** (só T, L, CH têm 50g):")
-cols = st.columns(3)
-estoque_50g = {}
-for i, s in enumerate(SABORES_50G):
-    estoque_50g[s] = cols[i].number_input(
-        f"50g {s}", min_value=0, value=defaults["estoque_50g"][s], step=1,
-        key=f"50g_{s}_{ks}",
+    _col_sem, _ = st.columns([1, 3])
+    ideal_displays_semana = _col_sem.number_input(
+        "Somatório de displays da semana",
+        min_value=0, value=136, step=1,
+        key=f"ideal_disp_{ks}",
+        help="Ex.: 136 (ter–sex) · 168 (seg–sex) · ou o que a semana pedir. × composição (T=4) → unidades de T.",
     )
 
-st.markdown("**Pet pronto em estoque**:")
-cols = st.columns(5)
-estoque_pet = {}
-for i, s in enumerate(SABORES):
-    estoque_pet[s] = cols[i].number_input(
-        f"Pet {s}", min_value=0, value=defaults["estoque_pet"][s], step=1,
-        key=f"pet_{s}_{ks}",
+    col_d, _ = st.columns([1, 3])
+    estoque_displays = col_d.number_input(
+        "Displays montados em estoque",
+        min_value=0, value=defaults["estoque_displays"], step=1,
+        key=f"displays_{ks}",
+        help=(
+            "1 display = 10 palhas 50g (4T + 4L + 2CH). Soma TODOS os displays prontos na "
+            "geladeira/sala da Embalagem. Quanto mais prontos, menos corte o sistema sugere."
+        ),
     )
 
-st.markdown("**Bandejas em estoque**:")
-cols = st.columns(5)
-estoque_bandejas = {}
-for i, s in enumerate(SABORES):
-    estoque_bandejas[s] = cols[i].number_input(
-        f"Band {s}", min_value=0, value=defaults["estoque_bandejas"][s], step=1,
-        key=f"band_{s}_{ks}",
-    )
+    st.markdown("**Palha 50g pronta em estoque** (só T, L, CH têm 50g):")
+    cols = st.columns(3)
+    estoque_50g = {}
+    for i, s in enumerate(SABORES_50G):
+        estoque_50g[s] = cols[i].number_input(
+            f"50g {s}", min_value=0, value=defaults["estoque_50g"][s], step=1,
+            key=f"50g_{s}_{ks}",
+        )
 
-st.divider()
+    st.markdown("**Pet pronto em estoque**:")
+    cols = st.columns(5)
+    estoque_pet = {}
+    for i, s in enumerate(SABORES):
+        estoque_pet[s] = cols[i].number_input(
+            f"Pet {s}", min_value=0, value=defaults["estoque_pet"][s], step=1,
+            key=f"pet_{s}_{ks}",
+        )
+
+    st.markdown("**Bandejas em estoque**:")
+    cols = st.columns(5)
+    estoque_bandejas = {}
+    for i, s in enumerate(SABORES):
+        estoque_bandejas[s] = cols[i].number_input(
+            f"Band {s}", min_value=0, value=defaults["estoque_bandejas"][s], step=1,
+            key=f"band_{s}_{ks}",
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -218,10 +241,31 @@ r_conserv = sugerir_palha(
 )
 
 
+# Totais + resumo por sabor
+def _resumo(d):
+    return " · ".join(f"{s} {d[s]}" for s in SABORES)
+total_corte = sum(r["corte_total"].values())
+total_prod = sum(r["producao"].values())
+
+
 # ════════════════════════════════════════════════════════════════════════════
-# Resultado — quadro NORMAL
+# Painel de decisão (topo) — números-chave em cartões
 # ════════════════════════════════════════════════════════════════════════════
-st.header("Sugestão (normal — arredondamento clássico)")
+with kpi_box:
+    _c1, _c2, _c3 = st.columns([1, 1, 1])
+    _kpi(_c1, _SVG_SCISSORS, "#C05621", "#FBEADF", "Cortar esta semana", total_corte, "band", "50g + Pet, por sabor")
+    _kpi(_c2, _SVG_LAYERS, "#A16207", "#FBF1DA", "Produzir", total_prod, "band", "repor o estoque-alvo")
+    _ctx = (
+        f"Semana de {data_sel.strftime('%d/%m/%Y')}" if data_sel is not None
+        else "Selecione uma data ou preencha os estoques"
+    )
+    _c3.markdown(f'<span class="sgp-ctx">{_ctx}</span>', unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Detalhe por sabor — quadro NORMAL
+# ════════════════════════════════════════════════════════════════════════════
+st.markdown('<div class="sgp-h">Detalhe por sabor</div>', unsafe_allow_html=True)
 
 df = pd.DataFrame({
     "Sabor": SABORES,
@@ -232,65 +276,51 @@ df = pd.DataFrame({
     "Produção sugerida (band)": [r["producao"][s] for s in SABORES],
 })
 st.dataframe(df, width='stretch', hide_index=True)
-
-# Sumário em uma linha
-def _resumo(d):
-    return " · ".join(f"{s} {d[s]}" for s in SABORES)
-total_corte = sum(r["corte_total"].values())
-total_prod = sum(r["producao"].values())
-st.markdown(
-    f"**Esta semana (normal):** cortar **{total_corte} bandejas** ({_resumo(r['corte_total'])}) · "
-    f"produzir **{total_prod} bandejas** ({_resumo(r['producao'])})."
+st.caption(
+    f"Esta semana: cortar **{total_corte} band** ({_resumo(r['corte_total'])}) · "
+    f"produzir **{total_prod} band** ({_resumo(r['producao'])})."
 )
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Resultado — quadro CONSERVADOR (amarelo claro)
+# Versão conservadora (recolhível) — evita cortar bandeja pra cobrir sobra pequena
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown(
-    """<div class='card-info'>
-    <h3 style="margin: 0 0 6px 0;">Sugestão (conservadora — evita corte com sobra grande)</h3>
-    <p style="margin: 0; font-size: 0.92em;">
-    No <strong>50g</strong>: se a necessidade líquida &lt; <strong>60 unidades</strong>, NÃO corta
-    nenhuma bandeja (evita cortar 1 band só pra cobrir 50 palhas com sobra de 30).
-    Acima disso, arredondamento clássico.<br>
-    No <strong>Pet</strong>: se a fração decimal &lt; 0.81, arredonda pra baixo
-    (ex: 1.80 → 1, 1.67 → 1). Acima disso, segue a regra normal (1.83 → 2).<br>
-    Na <strong>produção</strong>: segue o arredondamento clássico.
-    Calibrado com folhas reais de 25/05/2026 (Pet) e 27/05/2026 (50g).
-    </p>
-    </div>""",
-    unsafe_allow_html=True,
-)
+with st.expander("Versão conservadora — evita cortar bandeja pra cobrir sobra pequena", expanded=False):
+    st.caption(
+        "No 50g: se a necessidade líquida < 60 unidades, NÃO corta nenhuma bandeja. "
+        "No Pet: fração decimal < 0,81 arredonda pra baixo (1,80 → 1). "
+        "Na produção: arredondamento clássico. Calibrado com folhas reais de 25/05 (Pet) e 27/05 (50g)."
+    )
 
-df_c = pd.DataFrame({
-    "Sabor": SABORES,
-    "Corte 50g (band)": [r_conserv["corte_50g"][s] for s in SABORES],
-    "Corte Pet (band)": [r_conserv["corte_pet"][s] for s in SABORES],
-    "Corte total (band)": [r_conserv["corte_total"][s] for s in SABORES],
-    "Sobra após corte": [r_conserv["sobra"][s] for s in SABORES],
-    "Produção sugerida (band)": [r_conserv["producao"][s] for s in SABORES],
-})
-st.dataframe(df_c, width='stretch', hide_index=True)
+    df_c = pd.DataFrame({
+        "Sabor": SABORES,
+        "Corte 50g (band)": [r_conserv["corte_50g"][s] for s in SABORES],
+        "Corte Pet (band)": [r_conserv["corte_pet"][s] for s in SABORES],
+        "Corte total (band)": [r_conserv["corte_total"][s] for s in SABORES],
+        "Sobra após corte": [r_conserv["sobra"][s] for s in SABORES],
+        "Produção sugerida (band)": [r_conserv["producao"][s] for s in SABORES],
+    })
+    st.dataframe(df_c, width='stretch', hide_index=True)
 
-total_corte_c = sum(r_conserv["corte_total"].values())
-total_prod_c = sum(r_conserv["producao"].values())
-st.markdown(
-    f"**Esta semana (conservador):** cortar **{total_corte_c} bandejas** ({_resumo(r_conserv['corte_total'])}) · "
-    f"produzir **{total_prod_c} bandejas** ({_resumo(r_conserv['producao'])})."
-)
+    total_corte_c = sum(r_conserv["corte_total"].values())
+    total_prod_c = sum(r_conserv["producao"].values())
+    st.caption(
+        f"Conservador: cortar **{total_corte_c} band** ({_resumo(r_conserv['corte_total'])}) · "
+        f"produzir **{total_prod_c} band** ({_resumo(r_conserv['producao'])})."
+    )
 
-# Onde os 2 quadros divergem (fica fácil pra Gestão escolher)
-divergencias = []
-for s in SABORES:
-    if r["corte_50g"][s] != r_conserv["corte_50g"][s]:
-        divergencias.append(f"{s} 50g (normal {r['corte_50g'][s]} · conserv {r_conserv['corte_50g'][s]})")
-    if r["corte_pet"][s] != r_conserv["corte_pet"][s]:
-        divergencias.append(f"{s} Pet (normal {r['corte_pet'][s]} · conserv {r_conserv['corte_pet'][s]})")
-if divergencias:
-    st.caption("**Onde os dois quadros divergem:** " + " · ".join(divergencias))
-else:
-    st.caption("Os dois quadros chegaram nos mesmos valores — não há fração em zona cinza esta semana.")
+    # Onde os 2 quadros divergem (fica fácil pra Gestão escolher)
+    divergencias = []
+    for s in SABORES:
+        if r["corte_50g"][s] != r_conserv["corte_50g"][s]:
+            divergencias.append(f"{s} 50g (normal {r['corte_50g'][s]} · conserv {r_conserv['corte_50g'][s]})")
+        if r["corte_pet"][s] != r_conserv["corte_pet"][s]:
+            divergencias.append(f"{s} Pet (normal {r['corte_pet'][s]} · conserv {r_conserv['corte_pet'][s]})")
+    if divergencias:
+        st.caption("**Onde os dois quadros divergem:** " + " · ".join(divergencias))
+    else:
+        st.caption("Os dois quadros chegaram nos mesmos valores — não há fração em zona cinza esta semana.")
+
 
 # Validação automática só roda quando a data é 18/05/2026 + displays = 35
 # (valor histórico que faz o sistema bater com a decisão real da Gestão).
