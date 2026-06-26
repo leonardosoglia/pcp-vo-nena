@@ -219,11 +219,11 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li {{
 }}
 
 section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li a {{
-    color: {t['sb_text']} !important;
+    color: #CBD5E1 !important;
     font-size: 12px !important;
     font-weight: 500 !important;
     border-radius: 7px !important;
-    padding: 6px 11px !important;
+    padding: 6px 11px 6px 26px !important;   /* recuo: itens "dentro" do grupo */
     display: block;
     transition: all 0.15s ease;
     text-decoration: none !important;
@@ -241,7 +241,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li.active a {{
     font-weight: 600 !important;
     border-left: 3px solid {t['brand']} !important;
     border-radius: 0 8px 8px 0 !important;
-    padding-left: 9px !important;
+    padding-left: 23px !important;   /* 23 + 3px da barra = 26, alinha c/ os itens recuados */
 }}
 
 /* Ícones dos itens do menu: discretos (cinza); o do item ATIVO fica laranja */
@@ -252,15 +252,18 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNav"] li[aria-current="p
     color: {t['brand']} !important;
 }}
 
-/* Títulos de grupo do menu (Operação do dia, Sugestão, ...) — hierarquia */
+/* Títulos de grupo do menu (Operação do dia, Sugestão, ...) — hierarquia:
+   risquinho de divisão acima + rótulo miúdo maiúsculo, recuado MENOS que os
+   itens (que ficam a 26px) pra os itens parecerem "dentro" do grupo. */
 section[data-testid="stSidebar"] [data-testid="stNavSectionHeader"] {{
     color: {t['sb_text_muted']} !important;
     font-size: 10px !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.07em !important;
-    margin: 12px 0 2px 0 !important;
-    padding-left: 14px !important;
+    margin: 14px 6px 4px 6px !important;
+    padding: 11px 6px 0 6px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }}
 
 /* Logo no topo da sidebar — respiro */

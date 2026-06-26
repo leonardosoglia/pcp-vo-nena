@@ -83,6 +83,6 @@ pg = st.navigation({
     "Cadastros": [suprimentos_pg, reconciliacao_pg, equipe_pg],
     "Suporte": [assistente_pg, ajuda_pg],
     "Admin": [admin_seed_pg],
-})
+}, expanded=True)  # menu SEMPRE aberto (sem o "Ver mais/menos" que ficava grudado)
 
 pg.run()
