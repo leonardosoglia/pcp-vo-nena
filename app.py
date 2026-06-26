@@ -90,46 +90,41 @@ pg = st.navigation({
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# MENU PRÓPRIO NA SIDEBAR — grupos sempre abertos, itens recuados
+# MENU PRÓPRIO — SANFONA: cada grupo abre SÓ ao clicar e FECHA sozinho ao trocar
+# de tela. O grupo aberto fica guardado em session_state; quando a página muda,
+# zeramos (fecha tudo). Início fica sempre visível no topo.
 # ════════════════════════════════════════════════════════════════════════════
-def _grupo(titulo):
-    st.markdown(f"<div class='navgrp'>{titulo}</div>", unsafe_allow_html=True)
+_GRUPOS_NAV = [
+    ("Operação do dia",     [lancamento_pg, painel_pg]),
+    ("Sugestão",            [sugestao_palha_pg, sugestao_cocada_pg]),
+    ("Vendas & resultado",  [vendas_pg, lucratividade_pg, producao_demanda_pg]),
+    ("Análise da produção", [curva_abc_pg, media_movel_pg, anomalias_pg, insights_pg, bala_pg]),
+    ("Cadastros",           [suprimentos_pg, reconciliacao_pg, equipe_pg]),
+    ("Suporte",             [assistente_pg, ajuda_pg]),
+    ("Admin",               [admin_seed_pg]),
+]
 
+# Trocou de tela? Fecha todos os grupos (volta à forma recolhida).
+_pagina_atual = getattr(pg, "url_path", "") or getattr(pg, "title", "")
+if st.session_state.get("_nav_pagina") != _pagina_atual:
+    st.session_state["_nav_pagina"] = _pagina_atual
+    st.session_state["_nav_grupo_aberto"] = None
 
 with st.sidebar:
     st.page_link(home, use_container_width=True)
-
-    _grupo("Operação do dia")
-    st.page_link(lancamento_pg, use_container_width=True)
-    st.page_link(painel_pg, use_container_width=True)
-
-    _grupo("Sugestão")
-    st.page_link(sugestao_palha_pg, use_container_width=True)
-    st.page_link(sugestao_cocada_pg, use_container_width=True)
-
-    _grupo("Vendas & resultado")
-    st.page_link(vendas_pg, use_container_width=True)
-    st.page_link(lucratividade_pg, use_container_width=True)
-    st.page_link(producao_demanda_pg, use_container_width=True)
-
-    _grupo("Análise da produção")
-    st.page_link(curva_abc_pg, use_container_width=True)
-    st.page_link(media_movel_pg, use_container_width=True)
-    st.page_link(anomalias_pg, use_container_width=True)
-    st.page_link(insights_pg, use_container_width=True)
-    st.page_link(bala_pg, use_container_width=True)
-
-    _grupo("Cadastros")
-    st.page_link(suprimentos_pg, use_container_width=True)
-    st.page_link(reconciliacao_pg, use_container_width=True)
-    st.page_link(equipe_pg, use_container_width=True)
-
-    _grupo("Suporte")
-    st.page_link(assistente_pg, use_container_width=True)
-    st.page_link(ajuda_pg, use_container_width=True)
-
-    _grupo("Admin")
-    st.page_link(admin_seed_pg, use_container_width=True)
+    for _i, (_nome, _paginas) in enumerate(_GRUPOS_NAV):
+        _aberto = st.session_state.get("_nav_grupo_aberto") == _i
+        if st.button(
+            _nome,
+            key=f"navgrp_{_i}",
+            use_container_width=True,
+            icon=":material/expand_more:" if _aberto else ":material/chevron_right:",
+        ):
+            st.session_state["_nav_grupo_aberto"] = None if _aberto else _i
+            st.rerun()
+        if _aberto:
+            for _p in _paginas:
+                st.page_link(_p, use_container_width=True)
 
 
 pg.run()

@@ -905,5 +905,37 @@ footer {{ visibility: hidden; height: 0; }}
 #MainMenu {{ visibility: hidden; }}
 header[data-testid="stHeader"] {{ background: transparent; }}
 
+/* ─────────── TÍTULOS DE GRUPO DO MENU (botões-sanfona) ───────────
+   No FIM do tema de propósito: sobrescreve o botão laranja padrão da sidebar
+   SÓ nos títulos de grupo (key=navgrp_*). Ficam planos, maiúsculos, com risquinho
+   de divisão e a setinha (chevron). Degradação segura: se não pegar, vira botão. */
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button {{
+    background: transparent !important;
+    color: {t['sb_text_muted']} !important;
+    border: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    padding: 9px 8px !important;
+    margin-top: 6px !important;
+}}
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button:hover {{
+    background: {t['sb_surface']} !important;
+    color: {t['sb_text']} !important;
+}}
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button p {{
+    color: inherit !important; font-weight: 600 !important;
+}}
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button [data-testid="stIconMaterial"] {{
+    color: {t['sb_text_muted']} !important;
+    font-size: 16px !important;
+}}
+
 </style>
 """, unsafe_allow_html=True)
