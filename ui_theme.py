@@ -918,10 +918,10 @@ section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button {{
     box-shadow: none !important;
     justify-content: flex-start !important;
     text-align: left !important;
-    font-size: 10px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.05em !important;
     padding: 9px 8px !important;
     margin-top: 6px !important;
 }}
