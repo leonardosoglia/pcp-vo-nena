@@ -51,6 +51,7 @@ st.set_page_config(
 )
 
 from ui_theme import aplicar_tema
+from componentes import tabela
 aplicar_tema()
 
 BALAS_POR_TACHO = 30
@@ -258,7 +259,7 @@ df_tab = df[df["tachos"] + df["estoque_prateleira"] > 0][
 ].copy()
 df_tab.columns = ["Data", "Dia", "Tachos", "Balas produzidas", "Estoque prateleira"]
 df_tab = df_tab.sort_values("Data", ascending=False)
-st.dataframe(df_tab, width='stretch', hide_index=True)
+tabela(df_tab)
 
 
 # ════════════════════════════════════════════════════════════════════════════

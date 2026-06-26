@@ -49,6 +49,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+from componentes import tabela
 aplicar_tema()
 
 
@@ -288,7 +289,7 @@ df_h2_tab["media"] = df_h2_tab["media"].apply(lambda v: f"{v:+,.0f}")
 df_h2_tab.columns = ["Sabor", "Tamanho", "Total acumulado (und)", "Média por dia (und)", "Folhas medidas"]
 
 with st.expander("Ver tabela completa", expanded=False):
-    st.dataframe(df_h2_tab, width='stretch', hide_index=True)
+    tabela(df_h2_tab)
 
 # Caixa "Como ler os números"
 st.markdown(
@@ -322,7 +323,7 @@ if h1["parciais"]:
     df_h1 = pd.DataFrame(h1["parciais"])
     df_h1["data"] = pd.to_datetime(df_h1["data"]).dt.strftime("%d/%m/%Y")
     df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cozidos", "Bandejas de massa → potes"]
-    st.dataframe(df_h1, width='stretch', hide_index=True)
+    tabela(df_h1, altura_max=360)
 
 st.markdown(
     "<div class='insight-card-good'>"
@@ -353,7 +354,7 @@ if h5["anomalias"]:
     df_h5["data"] = pd.to_datetime(df_h5["data"]).dt.strftime("%d/%m/%Y")
     df_h5["razao"] = df_h5["razao"].apply(lambda v: f"{v:.2f}x")
     df_h5.columns = ["Data", "Tradicional (band)", "Leite em Pó (band)", "Razão L/T"]
-    st.dataframe(df_h5, width='stretch', hide_index=True)
+    tabela(df_h5, altura_max=360)
 else:
     st.markdown(
         "<div class='insight-card-good'>"
@@ -401,7 +402,7 @@ if sobrecarga_dinamica:
     df_h4 = df_h4[["data", "emb_45g", "emb_mini", "total", "acima"]]
     df_h4["acima"] = df_h4["acima"].apply(lambda v: f"+{v:,}")
     df_h4.columns = ["Data", "45g (und)", "Mini (und)", "Total", "Acima do limite assumido"]
-    st.dataframe(df_h4, width='stretch', hide_index=True)
+    tabela(df_h4, altura_max=360)
 else:
     st.markdown(
         "<div class='insight-card-good'>"

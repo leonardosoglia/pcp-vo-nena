@@ -28,22 +28,30 @@ def _esc(v) -> str:
     return (str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
-def tabela(df, altura_max: int | None = None):
+def tabela(df, altura_max: int | None = None, cor_celula=None):
     """Quadro padrão do sistema — tabela limpa (cabeçalho cinza-claro, linhas finas,
     1ª coluna em destaque), igual ao mockup aprovado.
 
     Substitui o `st.dataframe` (grid interativo) nos quadros de apresentação.
     `df` é um DataFrame do pandas. `altura_max` (px) liga a rolagem em quadros
     grandes, mantendo o cabeçalho fixo no topo.
+
+    `cor_celula` (opcional): função `(coluna, valor) -> cor_hex | None` pra destacar
+    células sem perder o visual limpo — ex.: pintar a coluna oficial de laranja, ou
+    estoque negativo de vermelho. Quando None, a tabela fica toda neutra.
     """
     ths = "".join(f"<th>{_esc(c)}</th>" for c in df.columns)
     linhas = []
     for _, row in df.iterrows():
-        tds = "".join(f"<td>{_esc(v)}</td>" for v in row)
-        linhas.append(f"<tr>{tds}</tr>")
-    estilo = f' style="max-height:{int(altura_max)}px;overflow:auto"' if altura_max else ""
+        tds = []
+        for col, v in zip(df.columns, row):
+            cor = cor_celula(col, v) if cor_celula else None
+            estilo_td = f' style="color:{cor};font-weight:600"' if cor else ""
+            tds.append(f"<td{estilo_td}>{_esc(v)}</td>")
+        linhas.append(f"<tr>{''.join(tds)}</tr>")
+    estilo_wrap = f' style="max-height:{int(altura_max)}px;overflow:auto"' if altura_max else ""
     st.markdown(
-        f'<div class="vn-tbl-wrap"{estilo}><table class="vn-tbl">'
+        f'<div class="vn-tbl-wrap"{estilo_wrap}><table class="vn-tbl">'
         f'<thead><tr>{ths}</tr></thead><tbody>{"".join(linhas)}</tbody></table></div>',
         unsafe_allow_html=True,
     )

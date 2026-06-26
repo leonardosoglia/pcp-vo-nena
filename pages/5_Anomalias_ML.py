@@ -63,6 +63,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+from componentes import tabela
 aplicar_tema()
 
 
@@ -519,7 +520,7 @@ with st.expander("Ver todas as folhas com score (não só anomalias)", expanded=
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
     df_tab.columns = ["Data", "Status", "Score de estranheza"]
-    st.dataframe(df_tab, width='stretch', hide_index=True)
+    tabela(df_tab, altura_max=360)
 
 
 st.divider()

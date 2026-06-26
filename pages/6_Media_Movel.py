@@ -57,6 +57,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+from componentes import tabela
 aplicar_tema()
 
 
@@ -298,7 +299,7 @@ df_display = df_display.assign(_ord=df_tab["severidade"].map(ord_sev)).sort_valu
     ["_ord", "Sabor", "Dia da semana"]
 ).drop(columns="_ord")
 
-st.dataframe(df_display, width='stretch', hide_index=True)
+tabela(df_display)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -470,7 +471,7 @@ else:
         }
         for _, row in recalibrar.iterrows()
     ])
-    st.dataframe(df_sug, width='stretch', hide_index=True)
+    tabela(df_sug)
     st.caption(
         "_A Gestão decide se atualiza as metas. Sistema apenas sugere baseado "
         "na média recente — pode ser sazonalidade ou pedido pontual._"

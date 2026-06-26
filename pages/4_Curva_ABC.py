@@ -57,6 +57,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+from componentes import tabela
 aplicar_tema()
 
 
@@ -320,7 +321,7 @@ df_tab["pct_acumulado"] = (df_abc["pct_acumulado"] * 100).apply(lambda v: f"{v:.
 df_tab = df_tab[["produto_completo", "classe", "volume_band", "pct", "pct_acumulado"]]
 df_tab.columns = ["Produto", "Classe", "Bandejas cortadas", "% do total", "% acumulado"]
 
-st.dataframe(df_tab, width='stretch', hide_index=True)
+tabela(df_tab, altura_max=420)
 
 
 # ════════════════════════════════════════════════════════════════════════════
