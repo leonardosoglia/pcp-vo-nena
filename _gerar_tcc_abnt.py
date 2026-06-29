@@ -257,30 +257,49 @@ def read(f):
     return io.open(f, encoding='utf-8').read().split('\n') if os.path.exists(f) else ['<<arquivo ausente: %s>>' % f]
 
 
+def toc_field(doc, instr, placeholder):
+    """Campo de indice (TOC) cujo placeholder e o RESULTADO do campo — ou seja,
+    some quando o usuario atualiza o campo no Word (em vez de sobrar como texto solto)."""
+    p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
+    r = p.add_run()
+    fb = OxmlElement('w:fldChar'); fb.set(qn('w:fldCharType'), 'begin'); r._r.append(fb)
+    it = OxmlElement('w:instrText'); it.set(qn('xml:space'), 'preserve'); it.text = instr
+    r._r.append(it)
+    fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
+    rt = p.add_run(placeholder); rt.italic = True; rt.font.size = Pt(11)
+    r2 = p.add_run()
+    fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r2._r.append(fe)
+    return p
+
+
 # ---------- montagem do TCC ----------
 doc = Document()
 setup_styles(doc)
 setup_page(doc.sections[0])
 
 # CAPA
-centered(doc, 'UNIVERSIDADE FEDERAL DE CAMPINA GRANDE - UFCG', bold=True)
-centered(doc, 'CENTRO DE CIÊNCIAS E TECNOLOGIA - CCT', bold=True)
-centered(doc, 'UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO - UAEP', bold=True)
-centered(doc, 'CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO', bold=True)
-blanks(doc, 6)
-centered(doc, 'LEONARDO SÓGLIA', bold=True)
-blanks(doc, 6)
-centered(doc, TITULO, bold=True, size=14)
-blanks(doc, 10)
-centered(doc, 'CAMPINA GRANDE – PB')
+logo = doc.add_paragraph(); logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+logo.paragraph_format.first_line_indent = Cm(0); logo.paragraph_format.space_after = Pt(0)
+if os.path.exists('assets/ufcg_brasao.png'):
+    logo.add_run().add_picture('assets/ufcg_brasao.png', width=Cm(2.6))
+centered(doc, 'UNIVERSIDADE FEDERAL DE CAMPINA GRANDE - UFCG')
+centered(doc, 'CENTRO DE CIÊNCIAS E TECNOLOGIA - CCT')
+centered(doc, 'UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO - UAEP')
+centered(doc, 'CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO')
+blanks(doc, 9)
+centered(doc, 'LEONARDO SÓGLIA')
+blanks(doc, 8)
+centered(doc, TITULO, size=12)
+blanks(doc, 14)
+centered(doc, 'Campina Grande – PB')
 centered(doc, '2026')
 
 # FOLHA DE ROSTO
 doc.add_page_break()
-centered(doc, 'LEONARDO SÓGLIA', bold=True)
+centered(doc, 'LEONARDO SÓGLIA')
+blanks(doc, 7)
+centered(doc, TITULO, size=12)
 blanks(doc, 6)
-centered(doc, TITULO, bold=True, size=14)
-blanks(doc, 3)
 nat = doc.add_paragraph()
 nat.paragraph_format.left_indent = Cm(8); nat.paragraph_format.first_line_indent = Cm(0)
 nat.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -290,22 +309,22 @@ rn = nat.add_run('Trabalho de Conclusão de Curso apresentado ao Curso de Gradua
                  'requisito parcial para a obtenção do título de Bacharel em Engenharia '
                  'de Produção.')
 rn.font.name = TNR; rn.font.size = Pt(10)
-blanks(doc, 1)
+blanks(doc, 3)
 for line in ('Orientador: Prof. Dr. Francisco Kegenaldo Alves de Sousa',):
     p = doc.add_paragraph(); p.paragraph_format.left_indent = Cm(8)
     p.paragraph_format.first_line_indent = Cm(0)
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
     r = p.add_run(line); r.font.name = TNR; r.font.size = Pt(12)
-blanks(doc, 8)
-centered(doc, 'CAMPINA GRANDE – PB')
+blanks(doc, 13)
+centered(doc, 'Campina Grande – PB')
 centered(doc, '2026')
 
 # FOLHA DE APROVACAO
 doc.add_page_break()
-centered(doc, 'LEONARDO SÓGLIA', bold=True)
-blanks(doc, 4)
-centered(doc, TITULO, bold=True, size=14)
-blanks(doc, 3)
+centered(doc, 'LEONARDO SÓGLIA')
+blanks(doc, 5)
+centered(doc, TITULO, size=12)
+blanks(doc, 5)
 ap = doc.add_paragraph()
 ap.paragraph_format.left_indent = Cm(8); ap.paragraph_format.first_line_indent = Cm(0)
 ap.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -315,11 +334,11 @@ rap = ap.add_run('Trabalho de Conclusão de Curso apresentado ao Curso de Gradua
                  'requisito parcial para a obtenção do título de Bacharel em Engenharia '
                  'de Produção.')
 rap.font.name = TNR; rap.font.size = Pt(10)
-blanks(doc, 2)
-centered(doc, 'Aprovado em: ______ / ______ / __________')
-blanks(doc, 2)
-centered(doc, 'BANCA EXAMINADORA', bold=True)
-blanks(doc, 3)
+blanks(doc, 4)
+centered(doc, 'Campina Grande, ______ de ____________________ de 2026.')
+blanks(doc, 5)
+centered(doc, 'BANCA EXAMINADORA')
+blanks(doc, 4)
 for nome, papel in (
         ('Prof. Dr. Francisco Kegenaldo Alves de Sousa', 'Orientador – UAEP/CCT/UFCG'),
         ('[Nome do(a) avaliador(a)]', 'Avaliador(a) – UAEP/CCT/UFCG'),
@@ -338,45 +357,53 @@ parse_md(read('tcc/05_abstract.md'), doc, clean=True, head_as_bold=True)
 # LISTA DE FIGURAS (campo Sumario de Ilustracoes — coleta o estilo LegendaFigura)
 doc.add_page_break()
 centered(doc, 'LISTA DE FIGURAS', bold=True, size=12, after=12)
-p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
-r = p.add_run()
-fb = OxmlElement('w:fldChar'); fb.set(qn('w:fldCharType'), 'begin'); r._r.append(fb)
-it = OxmlElement('w:instrText'); it.set(qn('xml:space'), 'preserve')
-it.text = 'TOC \\h \\z \\t "LegendaFigura,1"'
-r._r.append(it)
-fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
-rt = p.add_run('[Abra no Word e clique com o botão direito > Atualizar campo para gerar a '
-               'lista de figuras, depois de inserir as imagens.]')
-rt.italic = True; rt.font.size = Pt(11)
-fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r._r.append(fe)
+toc_field(doc, 'TOC \\h \\z \\t "LegendaFigura;1"',
+          '[Abra no Word > Atualizar campo para gerar a lista de figuras, depois de inserir as imagens.]')
 
 # LISTA DE QUADROS (campo — coleta o estilo LegendaQuadro)
 doc.add_page_break()
 centered(doc, 'LISTA DE QUADROS', bold=True, size=12, after=12)
-p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
-r = p.add_run()
-fb = OxmlElement('w:fldChar'); fb.set(qn('w:fldCharType'), 'begin'); r._r.append(fb)
-it = OxmlElement('w:instrText'); it.set(qn('xml:space'), 'preserve')
-it.text = 'TOC \\h \\z \\t "LegendaQuadro,1"'
-r._r.append(it)
-fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
-rt = p.add_run('[Abra no Word e clique com o botão direito > Atualizar campo para gerar a '
-               'lista de quadros.]')
-rt.italic = True; rt.font.size = Pt(11)
-fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r._r.append(fe)
+toc_field(doc, 'TOC \\h \\z \\t "LegendaQuadro;1"',
+          '[Abra no Word > Atualizar campo para gerar a lista de quadros.]')
+
+# LISTA DE ABREVIATURAS E SIGLAS
+doc.add_page_break()
+centered(doc, 'LISTA DE ABREVIATURAS E SIGLAS', bold=True, size=12, after=12)
+SIGLAS = [
+    ('ABC', 'Análise ABC (curva de Pareto)'),
+    ('BOM', 'Bill of Materials (lista de materiais)'),
+    ('CCT', 'Centro de Ciências e Tecnologia'),
+    ('ERP', 'Enterprise Resource Planning (sistema integrado de gestão empresarial)'),
+    ('IA', 'Inteligência Artificial'),
+    ('LLM', 'Large Language Model (modelo de linguagem de grande porte)'),
+    ('MAPE', 'Mean Absolute Percentage Error (erro percentual absoluto médio)'),
+    ('MRP', 'Material Requirements Planning (planejamento das necessidades de materiais)'),
+    ('NF-e', 'Nota Fiscal eletrônica'),
+    ('OP', 'Ordem de Produção'),
+    ('PCP', 'Planejamento e Controle da Produção'),
+    ('PDV', 'Ponto de Venda'),
+    ('PMI', 'Pequenas e Médias Indústrias'),
+    ('TCC', 'Trabalho de Conclusão de Curso'),
+    ('UAEP', 'Unidade Acadêmica de Engenharia de Produção'),
+    ('UFCG', 'Universidade Federal de Campina Grande'),
+    ('XML', 'eXtensible Markup Language'),
+]
+tsig = doc.add_table(rows=0, cols=2)
+for sig, sig_def in SIGLAS:
+    cells = tsig.add_row().cells
+    cells[0].width = Cm(3); cells[1].width = Cm(13)
+    pp0 = cells[0].paragraphs[0]; pp0.paragraph_format.first_line_indent = Cm(0)
+    pp0.paragraph_format.space_after = Pt(2)
+    r0 = pp0.add_run(sig); r0.font.name = TNR; r0.font.size = Pt(12)
+    pp1 = cells[1].paragraphs[0]; pp1.paragraph_format.first_line_indent = Cm(0)
+    pp1.paragraph_format.space_after = Pt(2)
+    r1 = pp1.add_run(sig_def); r1.font.name = TNR; r1.font.size = Pt(12)
 
 # SUMARIO
 doc.add_page_break()
 centered(doc, 'SUMÁRIO', bold=True, size=12, after=12)
-p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
-r = p.add_run()
-fb = OxmlElement('w:fldChar'); fb.set(qn('w:fldCharType'), 'begin'); r._r.append(fb)
-it = OxmlElement('w:instrText'); it.set(qn('xml:space'), 'preserve'); it.text = 'TOC \\o "1-3" \\h \\z \\u'
-r._r.append(it)
-fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
-rt = p.add_run('[Abra no Word e clique com o botão direito > Atualizar campo para gerar o sumário.]')
-rt.italic = True; rt.font.size = Pt(11)
-fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r._r.append(fe)
+toc_field(doc, 'TOC \\o "1-3" \\h \\z \\u',
+          '[Abra no Word > Atualizar campo para gerar o sumário.]')
 
 # ---- secao textual (com numeracao de pagina) ----
 sec2 = doc.add_section(WD_SECTION.NEW_PAGE)

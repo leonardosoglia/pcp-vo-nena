@@ -1,4 +1,4 @@
-# Resumo (ABNT)
+# Resumo
 
 ---
 
