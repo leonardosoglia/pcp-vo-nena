@@ -1,27 +1,73 @@
 # 6 CONCLUSÃO
 
+Este trabalho partiu de um problema concreto e modesto — folhas de papel circulando pelo chão de fábrica de uma confeitaria semi-industrial — e o desenvolveu até um sistema digital de Planejamento e Controle da Produção integrado, em modo somente leitura, ao ERP da empresa, capaz de descrever não apenas o que se produz, mas o que se vende e o que efetivamente contribui para o resultado. Encerra-se retomando os objetivos propostos na introdução e confrontando-os com o que foi entregue (6.1), sintetizando as contribuições do trabalho (6.2), reconhecendo com honestidade suas limitações (6.3), apontando os caminhos de continuidade (6.4) e fechando com uma reflexão sobre a experiência (6.5).
+
 ## 6.1 Síntese do trabalho
-- Recapitular o problema, a abordagem e os resultados principais
-- Quantificar ganhos sempre que possível
+
+O problema que originou o projeto era operacional e cotidiano: a Gestão e a Produção da Doces Vó Nena planejavam a fábrica sobre registros em papel, não acumuláveis, sem visualização nem rastreabilidade, e sem nenhuma ponte com o ERP que a empresa já operava para o ciclo fiscal e contábil dos materiais. A abordagem adotada foi incremental e fiel ao processo real: digitalizar primeiro a folha exatamente como ela é, na mesma unidade física (tacho, bandeja, *display*), e só então acrescentar camadas de análise, integração e custeio sobre uma base de dados confiável. Essa fidelidade ao papel, defendida ao longo do Capítulo 3, foi o que permitiu que o sistema fosse adotado pela equipe em vez de rejeitado como mais uma planilha imposta de fora.
+
+Retomam-se os objetivos específicos enunciados na seção 1.5.2 para mostrar que foram atendidos. O **mapeamento dos processos** (objetivo 1) foi conduzido durante o estágio por observação direta e entrevistas com a Gestão e a Produção, e está documentado no Capítulo 3, incluindo as unidades de medida, as conversões críticas (tacho → bandeja → unidade) e os *lead times*. A **modelagem do domínio** (objetivo 2) preservou a estrutura conceitual da folha em um modelo relacional cuja chave é o par (data, sabor), tratando cada folha como um *snapshot* independente — decisão que, como discutido, evita o erro de somar estoque como se fosse fluxo. A **digitalização** (objetivo 3) materializou-se no formulário diário de Lançamento e no Painel, com persistência em banco Postgres na nuvem e a aplicação no ar em contêiner Docker. As **funcionalidades de visualização e análise** (objetivo 4) incluíram a Curva ABC de produção e a média móvel de calibração de metas (MAKRIDAKIS; WHEELWRIGHT; HYNDMAN, 1998).
+
+A **sugestão automática de corte e produção** (objetivo 5) foi implementada para palha e cocada e calibrada contra as decisões reais da Gestão, alcançando aderência de cerca de 85% para a palha e entre 50% e 70% para a cocada — uma diferença que, longe de ser apenas um número de desempenho, revelou-se um achado de modelagem (seção 5.5). O **módulo de Suprimentos** (objetivo 6) aplicou um MRP simplificado a partir da lista de materiais (BOM) e implementou a auto-baixa de insumos por produção. A **integração ao ERP SIGE Cloud** (objetivo 7) foi construída em modo somente leitura, usando a Ordem de Produção como ponte entre a verdade contábil do ERP e a verdade operacional do PCP, e incorporou a reconciliação entre o estoque teórico do sistema e o físico da contagem. A **apuração de custo e a análise de margem** (objetivo 8) foram viabilizadas pelo método de custeio por peso, que lê a gramatura no próprio nome do produto e a cruza com o custo de insumo trazido do ERP, elevando a cobertura de custeio de 17% para 64% das vendas e expondo a armadilha da margem de matéria-prima. O **módulo de Vendas e Lucratividade** (objetivo 9) trouxe a Curva ABC de demanda real lida diretamente do ERP, sem planilha intermediária, e a análise de contribuição por produto. A **avaliação de aderência** (objetivo 10) e a **discussão do papel do agente cognitivo baseado em LLM** (objetivo 11) foram conduzidas no Capítulo 5. O objetivo geral — desenvolver e implementar o sistema, integrá-lo ao ERP e incorporar visualização, sugestão, custeio, margem, lucratividade e apoio cognitivo — foi, portanto, cumprido em sua essência, com as fronteiras explicitadas na seção 6.3.
+
+O Quadro 6 sintetiza essa correspondência entre os objetivos específicos e o que foi entregue, com a evidência de cada um.
+
+**Quadro 6 — Objetivos específicos: resultado alcançado e evidência**
+
+| Objetivo específico | Resultado alcançado | Evidência |
+|---|---|---|
+| 1. Mapear os processos produtivos | Processos, unidades e *lead times* mapeados | Cap. 3.2; observação e entrevistas |
+| 2. Modelar o domínio de dados | Modelo relacional, chave (data, sabor), *snapshots* não acumulativos | Cap. 3.3 e 4.1.1 |
+| 3. Implementar a digitalização | Folha digital e Painel em produção na nuvem | Cap. 4.1; aplicação no ar (Docker/Hugging Face) |
+| 4. Visualização e análise | Curva ABC e média móvel | Cap. 4.2 |
+| 5. Sugestão automática | Sugeridores de palha e cocada calibrados | Cap. 4.3; aderência ~85% (palha) e 50–70% (cocada) |
+| 6. Módulo de Suprimentos (MRP) | BOM, explosão de necessidades e auto-baixa idempotente | Cap. 4.4 |
+| 7. Integração ao ERP + reconciliação | Leitura do SIGE; OP como ponte; reconciliação em três camadas | Cap. 4.5; ciclo ficha → OP → leitura provado |
+| 8. Custo e margem | Custo por peso (cobertura 17% → 64%); armadilha da margem | Cap. 4.6 e 4.7 |
+| 9. Vendas e Lucratividade | Curva ABC de demanda real; contribuição por produto | Cap. 4.8 e 4.9; ~R$ 400–530 mil/mês |
+| 10. Avaliar a aderência | Aderência medida; limites da modelagem determinística | Cap. 4.2.4 e 5.5 |
+| 11. Discutir o agente cognitivo (LLM) | Papel da camada cognitiva de apoio discutido | Cap. 5.5 e seção 2.9 |
+
+Fonte: elaborado pelo autor (2026).
 
 ## 6.2 Contribuições
-- Acadêmica: caso documentado de PCP digital em PMI de alimentos
-- Prática: sistema funcional, em uso na Doces Vó Nena
-- Metodológica: aplicação de LLM como camada cognitiva em PCP industrial
+
+As contribuições do trabalho se organizam em quatro eixos, do mais imediato ao mais conceitual.
+
+O primeiro é a **digitalização do PCP físico**. Substituiu-se o controle em papel por um sistema que preserva o vocabulário e as unidades da fábrica, registra cada dia como um *snapshot* rastreável e disponibiliza painel, exportação e histórico. Esse eixo confirma, com um caso real documentado, a premissa de Rodrigues e Feroni (2020) de que a simples estruturação de registros e rotinas de controle já gera ganho relevante em pequena indústria alimentícia, sem investimento elevado em tecnologia.
+
+O segundo é a **camada analítica** construída sobre essa base: a Curva ABC aplicada sobre a variável correta — fluxo, e não estoque, corrigindo o erro estoque/fluxo de Forrester (1961) — e a calibração de metas por média móvel. Aqui a contribuição é metodológica: a Curva ABC não foi usada uma única vez, mas **multiplicada em três perspectivas** (volume de produção, demanda real e contribuição/lucro) que se mostraram divergentes, tornando visível para a Gestão que vender muito não é o mesmo que lucrar muito.
+
+O terceiro é o **PCP integrado ao ERP** sob uma arquitetura de contextos delimitados: o SIGE como verdade contábil e fiscal dos materiais, o PCP como verdade operacional do chão de fábrica, e a Ordem de Produção como ponte entre os dois. A integração somente leitura, a reconciliação entre teórico e físico tratada como ajuste de inventário, e a tradução formalizada entre a linguagem da produção e a do ERP (o mapa de equivalências, que converteu conhecimento tácito da equipe em conhecimento codificado, no sentido de NONAKA; TAKEUCHI, 1997) constituem, em conjunto, um modelo de como uma ferramenta de PCP pode coexistir com um ERP sem disputar o comando sobre o estoque.
+
+O quarto eixo, e o mais denso teoricamente, é o **tratamento econômico do portfólio**: custo, margem e lucro. Documentou-se, com números do caso, a armadilha da margem de matéria-prima — a constatação de que a margem de material é alta sempre (84% a 96%), por construção, e não mede lucro —, propôs-se e implementou-se o método de custo por peso que elevou a cobertura de custeio para 64% das vendas, e construiu-se a análise de contribuição por produto que reordena o portfólio pelo que ele de fato deixa, e não pelo que ele fatura. A documentação dessas três contribuições — a armadilha, o método e a divergência das curvas — dialoga diretamente com a literatura de PCP em pequenas indústrias e a estende para um terreno que ela raramente alcança: o da análise econômica do mix. No plano acadêmico, o resultado é um caso instrumental documentado de PCP digital e integrado em pequena indústria de alimentos; no plano prático, é um sistema funcional, em uso na fábrica; e no plano metodológico, é a discussão exploratória de um agente conversacional baseado em LLM (BROWN *et al.*, 2020) como camada de apoio cognitivo que captura o contexto tácito que o modelo determinístico não alcança.
+
+Registra-se, por transparência, que o sistema foi desenvolvido pelo autor com o apoio de um assistente de programação baseado em inteligência artificial (Claude Code). O uso dessa ferramenta acelerou a implementação, mas as decisões de modelagem, as regras de negócio, a validação com a fábrica e a interpretação dos resultados — que são o conteúdo de Engenharia de Produção deste trabalho — foram conduzidas pelo autor, e estão sujeitas ao mesmo escrutínio que qualquer outra escolha de projeto.
 
 ## 6.3 Limitações
-- Amostra pequena (17 folhas no banco no momento do TCC)
-- Validação restrita a um único caso (uma empresa, um setor)
-- Recalibração contínua necessária (fábrica em crescimento)
+
+A principal limitação é estrutural e foi assumida desde o Capítulo 5: a camada de custo está **incompleta por construção**. O ERP entrega o custo do insumo e a ficha técnica, mas não o **custo de conversão** — mão de obra, energia, depreciação, *overhead* — alocado por produto, porque esse dado simplesmente não existe na empresa; ele precisa ser levantado por fora, e nenhuma integração o traria. Em consequência, a contribuição que o sistema reporta é de matéria-prima em valor, não a margem de contribuição plena. Isso é tratado como um achado — o limite do ERP como fonte única de verdade (LAUDON; LAUDON, 2020) —, mas ele é, ao mesmo tempo, a fronteira do que o sistema pode afirmar sobre lucratividade real.
+
+A segunda limitação é de **cobertura**: o método de custo por peso cobre 64% das vendas, não a totalidade. Os 36% restantes ficam de fora porque dependem de a gramatura constar de forma confiável no nome do produto no ERP e de o mapa de equivalências (*de-para*) estar correto; itens mal nomeados ou ainda não mapeados não são custeados. É uma cobertura expressiva diante do ponto de partida (17%), mas não é o portfólio inteiro.
+
+A terceira limitação é a de **estudo de caso único**. Os números aqui apresentados — vendas mensais, custo por quilograma por sabor, contribuição por produto, percentuais de aderência — descrevem uma fábrica específica, durante um estágio de 240 horas, em um período de crescimento acelerado que ao mesmo tempo enriquece e fragiliza as médias calculadas sobre poucas amostras. Eles ilustram mecanismos que se esperam transferíveis — a armadilha da margem, o limite do ERP, o teto da modelagem determinística —, mas **não têm pretensão de generalização estatística** (YIN, 2015). A isso somam-se limitações menores já discutidas: a janela curta de observação, a ausência de teste estatístico formal na medição de aderência e a avaliação de impacto ainda mais qualitativa (adesão da equipe, formalização de conhecimento tácito) do que quantitativa em redução de custo ou perdas — mensuração que exigiria horizonte mais longo do que o do estágio.
 
 ## 6.4 Trabalhos futuros
-- Etapa E — auto-baixa de insumos por produção
-- Etapa F — integração com Sigee Cloud (ERP)
-- Módulo de Vendas (gap identificado em 17/05)
-- Camada 3 expandida — agentes administrativos (Mariana Digital, bot WhatsApp)
-- Replicação do modelo em outras confeitarias
+
+Os trabalhos futuros decorrem diretamente das limitações e apontam quatro frentes.
+
+A primeira, e a mais importante para fechar a leitura econômica, é **levantar o custo de conversão**. Concluir a terceira camada de custo exige um estudo de tempos da fábrica, o rateio da folha de pagamento por produto e a medição do consumo energético, de modo a alocar mão de obra, energia e *overhead* ao item. Só com esse dado externo ao ERP a contribuição de matéria-prima se converte em margem de contribuição plena, e a priorização de mix passa a se apoiar em lucro real, e não apenas em contribuição de material. É a frente que mais agrega valor à decisão da Gestão.
+
+A segunda é **completar a cobertura de custeio**, hoje em 64%. Isso passa por consolidar o mapa de equivalências entre a linguagem da produção e a do ERP, padronizar a nomenclatura dos produtos no SIGE para que a gramatura seja sempre legível pelo método de custo por peso, e tratar os itens que não se enquadram no padrão de gramatura no nome. Cada item recuperado aproxima a análise de lucratividade do portfólio completo.
+
+A terceira é evoluir a **sugestão automática calibrada por lucro**. Hoje as sugestões de corte e produção são calibradas contra a decisão real da Gestão e medidas por aderência; o passo seguinte é incorporar a contribuição por produto como critério explícito de priorização, de modo que, diante de capacidade limitada de tacho e de fábrica, o sistema sugira o mix que mais contribui, e não apenas o que repõe estoque. A diferença de aderência entre palha (≈85%) e cocada (50–70%) indica, ainda, que a calibração da cocada se beneficiaria do canal cognitivo baseado em LLM para capturar o contexto tácito — pedidos antecipados, eventos de demanda — que a modelagem determinística não alcança.
+
+A quarta frente é a **expansão a outras pequenas indústrias**. A arquitetura de contextos delimitados (ERP como verdade contábil, PCP como verdade operacional, ordem de produção como ponte), o método de custo por peso e a abordagem incremental de digitalizar primeiro o processo real são, em princípio, transferíveis para outras confeitarias e pequenas indústrias de alimentos. Replicar o modelo em um segundo caso permitiria testar essa transferibilidade, separar o que é específico da Doces Vó Nena do que é padrão de PCP em PMI alimentícia, e dar à pesquisa o alcance que um estudo de caso único, por definição, não tem.
 
 ## 6.5 Considerações finais
-- Reflexão pessoal (em primeira pessoa permitido aqui)
-- O aprendizado profissional + acadêmico da experiência
-- Reconhecimento do orientador, empresa, equipe
+
+Em retrospectiva, o aprendizado mais forte deste trabalho não foi técnico, mas de postura: a percepção de que um sistema de PCP só vale o que vale para quem está no chão de fábrica. As decisões mais defendidas neste trabalho — digitalizar o papel antes de automatizar, manter o sistema somente leitura sobre o ERP, reportar contribuição de material dizendo explicitamente que ela não é lucro pleno — nasceram todas de respeitar o processo e os limites reais, e não de uma ambição de fazer o sistema decidir no lugar das pessoas. Foi essa fidelidade que sustentou a adesão da equipe e que dá ao projeto sua honestidade científica: o sistema afirma o que os dados sustentam e se recusa a inventar o que não tem.
+
+No plano acadêmico, o estágio obrigou o autor a articular, sobre um caso concreto, conceitos antes vistos isoladamente — o princípio de estoque versus fluxo de Forrester (1961), o MRP de Orlicky (1975), a margem de contribuição da contabilidade de custos, a conversão de conhecimento tácito em explícito de Nonaka e Takeuchi (1997) e os limites de um ERP como sistema de informação (LAUDON; LAUDON, 2020). Ver esses conceitos se encontrarem em uma fábrica de doces, e cada um corrigir um erro prático que teria sido cometido sem ele, foi a parte mais formadora da experiência. No plano profissional, representou o primeiro contato do autor com a responsabilidade de entregar algo de que uma equipe passa a depender diariamente.
+
+O autor agradece ao orientador, Prof. Kegenaldo, pela condução acadêmica do trabalho; à Doces Vó Nena, na pessoa do supervisor Eraldo e de toda a equipe da Gestão, Produção, Corte e Embalagem, pela abertura em deixar um estagiário observar, perguntar e mexer no que era o coração da operação; e à UAEP/UFCG, pela formação que tornou possível enxergar PCP onde, à primeira vista, havia apenas folhas de papel.
