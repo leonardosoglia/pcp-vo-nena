@@ -12,7 +12,7 @@ from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-TNR = 'Times New Roman'
+TNR = 'Arial'  # fonte do documento (modelo do professor + ABNT usam Arial)
 INLINE_RE = re.compile(r'(\*\*.+?\*\*|`.+?`|\[.+?\]\(.+?\)|\*.+?\*)')
 SKIP_HEAD = ('notas', 'ainda falta', 'alternativas de t')
 
@@ -56,6 +56,18 @@ def setup_styles(doc):
     lp.space_before = Pt(6); lp.space_after = Pt(2)
     lp.line_spacing_rule = WD_LINE_SPACING.SINGLE
     lp.keep_with_next = True
+    # estilo das legendas de quadro (coletado pela Lista de Quadros)
+    try:
+        lq = doc.styles['LegendaQuadro']
+    except KeyError:
+        lq = doc.styles.add_style('LegendaQuadro', WD_STYLE_TYPE.PARAGRAPH)
+    lq.base_style = doc.styles['Normal']
+    lq.font.name = TNR; lq.font.size = Pt(11); lq.font.bold = True
+    qp = lq.paragraph_format
+    qp.first_line_indent = Cm(0); qp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    qp.space_before = Pt(6); qp.space_after = Pt(2)
+    qp.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    qp.keep_with_next = True
 
 
 def _field(run, instr):
@@ -170,6 +182,12 @@ def parse_md(lines, doc, clean=False, head_as_bold=False):
             r = p.add_run(mfig.group(1).strip())
             r.bold = True; r.font.name = TNR; r.font.size = Pt(11)
             i += 1; continue
+        mquad = re.match(r'^\*\*\s*(Quadro\s+\d+\s*[—–-]\s*.*?)\s*\*\*$', s)
+        if mquad:
+            p = doc.add_paragraph(style='LegendaQuadro')
+            r = p.add_run(mquad.group(1).strip())
+            r.bold = True; r.font.name = TNR; r.font.size = Pt(11)
+            i += 1; continue
         mfonte = re.match(r'^Fonte:\s', s)
         if mfonte:
             p = doc.add_paragraph(); pf = p.paragraph_format
@@ -245,9 +263,10 @@ setup_styles(doc)
 setup_page(doc.sections[0])
 
 # CAPA
-centered(doc, 'UNIVERSIDADE FEDERAL DE CAMPINA GRANDE', bold=True)
-centered(doc, 'UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO')
-centered(doc, 'CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO')
+centered(doc, 'UNIVERSIDADE FEDERAL DE CAMPINA GRANDE - UFCG', bold=True)
+centered(doc, 'CENTRO DE CIÊNCIAS E TECNOLOGIA - CCT', bold=True)
+centered(doc, 'UNIDADE ACADÊMICA DE ENGENHARIA DE PRODUÇÃO - UAEP', bold=True)
+centered(doc, 'CURSO DE GRADUAÇÃO EM ENGENHARIA DE PRODUÇÃO', bold=True)
 blanks(doc, 6)
 centered(doc, 'LEONARDO SÓGLIA', bold=True)
 blanks(doc, 6)
@@ -270,9 +289,9 @@ rn = nat.add_run('Trabalho de Conclusão de Curso apresentado ao Curso de Gradua
                  'Engenharia de Produção da Universidade Federal de Campina Grande, como '
                  'requisito parcial para a obtenção do título de Bacharel em Engenharia '
                  'de Produção.')
-rn.font.name = TNR; rn.font.size = Pt(12)
+rn.font.name = TNR; rn.font.size = Pt(10)
 blanks(doc, 1)
-for line in ('Orientador: Prof. Kegenaldo',):
+for line in ('Orientador: Prof. Dr. Francisco Kegenaldo Alves de Sousa',):
     p = doc.add_paragraph(); p.paragraph_format.left_indent = Cm(8)
     p.paragraph_format.first_line_indent = Cm(0)
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -280,6 +299,35 @@ for line in ('Orientador: Prof. Kegenaldo',):
 blanks(doc, 8)
 centered(doc, 'CAMPINA GRANDE – PB')
 centered(doc, '2026')
+
+# FOLHA DE APROVACAO
+doc.add_page_break()
+centered(doc, 'LEONARDO SÓGLIA', bold=True)
+blanks(doc, 4)
+centered(doc, TITULO, bold=True, size=14)
+blanks(doc, 3)
+ap = doc.add_paragraph()
+ap.paragraph_format.left_indent = Cm(8); ap.paragraph_format.first_line_indent = Cm(0)
+ap.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+ap.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+rap = ap.add_run('Trabalho de Conclusão de Curso apresentado ao Curso de Graduação em '
+                 'Engenharia de Produção da Universidade Federal de Campina Grande, como '
+                 'requisito parcial para a obtenção do título de Bacharel em Engenharia '
+                 'de Produção.')
+rap.font.name = TNR; rap.font.size = Pt(10)
+blanks(doc, 2)
+centered(doc, 'Aprovado em: ______ / ______ / __________')
+blanks(doc, 2)
+centered(doc, 'BANCA EXAMINADORA', bold=True)
+blanks(doc, 3)
+for nome, papel in (
+        ('Prof. Dr. Francisco Kegenaldo Alves de Sousa', 'Orientador – UAEP/CCT/UFCG'),
+        ('[Nome do(a) avaliador(a)]', 'Avaliador(a) – UAEP/CCT/UFCG'),
+        ('[Nome do(a) avaliador(a)]', 'Avaliador(a) – UAEP/CCT/UFCG')):
+    centered(doc, '__________________________________________________')
+    centered(doc, nome)
+    centered(doc, papel)
+    blanks(doc, 2)
 
 # RESUMO + ABSTRACT (pre-textuais)
 doc.add_page_break()
@@ -299,6 +347,21 @@ r._r.append(it)
 fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
 rt = p.add_run('[Abra no Word e clique com o botão direito > Atualizar campo para gerar a '
                'lista de figuras, depois de inserir as imagens.]')
+rt.italic = True; rt.font.size = Pt(11)
+fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r._r.append(fe)
+
+# LISTA DE QUADROS (campo — coleta o estilo LegendaQuadro)
+doc.add_page_break()
+centered(doc, 'LISTA DE QUADROS', bold=True, size=12, after=12)
+p = doc.add_paragraph(); p.paragraph_format.first_line_indent = Cm(0)
+r = p.add_run()
+fb = OxmlElement('w:fldChar'); fb.set(qn('w:fldCharType'), 'begin'); r._r.append(fb)
+it = OxmlElement('w:instrText'); it.set(qn('xml:space'), 'preserve')
+it.text = 'TOC \\h \\z \\t "LegendaQuadro,1"'
+r._r.append(it)
+fs = OxmlElement('w:fldChar'); fs.set(qn('w:fldCharType'), 'separate'); r._r.append(fs)
+rt = p.add_run('[Abra no Word e clique com o botão direito > Atualizar campo para gerar a '
+               'lista de quadros.]')
 rt.italic = True; rt.font.size = Pt(11)
 fe = OxmlElement('w:fldChar'); fe.set(qn('w:fldCharType'), 'end'); r._r.append(fe)
 
