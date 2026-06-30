@@ -39,6 +39,7 @@ if _RAIZ not in sys.path:
 import sige_cloud_api as sige
 import vendas_sige as vs
 import contribuicao_produto as cpr
+import componentes
 
 st.set_page_config(
     page_title="Lucratividade • Doces Vó Nena",
@@ -68,6 +69,14 @@ def _brl(v, milhar=False) -> str:
         return "R$ " + f"{x/1000:,.0f}".replace(",", ".") + " mil"
     s = f"{x:,.2f}"
     return "R$ " + s.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _brl0(v) -> str:
+    """Reais sem centavos (R$ 1.234) — pra tabelas com valores grandes."""
+    try:
+        return "R$ " + f"{float(v):,.0f}".replace(",", ".")
+    except (TypeError, ValueError):
+        return "R$ 0"
 
 
 def _categoria(desc: str) -> str:
@@ -338,19 +347,17 @@ st.markdown(
 with st.expander("Ver a tabela completa (produto a produto)"):
     df = pd.DataFrame([{
         "Produto": str(l["descricao"]).split(" - ")[-1],
-        "Qtd": l["qtd"], "Receita (R$)": l["receita"],
-        "Custo material (R$)": l["custo_mp"], "Contribuição (R$)": l["contrib"],
-        "Margem material": (l["margem_pct"] / 100 if l["margem_pct"] is not None else None),
+        "Qtd": f"{int(round(float(l['qtd']))):,}".replace(",", "."),
+        "Receita (R$)": _brl0(l["receita"]),
+        "Custo material (R$)": _brl0(l["custo_mp"]),
+        "Contribuição (R$)": _brl0(l["contrib"]),
+        "Margem material": (f"{l['margem_pct']:.0f}%" if l["margem_pct"] is not None else "—"),
     } for l in sorted(mapeados, key=lambda x: -x["contrib"])])
-    st.dataframe(
-        df, width="stretch", hide_index=True,
-        column_config={
-            "Receita (R$)": st.column_config.NumberColumn(format="R$ %.0f"),
-            "Custo material (R$)": st.column_config.NumberColumn(format="R$ %.0f"),
-            "Contribuição (R$)": st.column_config.NumberColumn(format="R$ %.0f"),
-            "Qtd": st.column_config.NumberColumn(format="%.0f"),
-            "Margem material": st.column_config.NumberColumn(format="percent"),
-        })
+    componentes.tabela(
+        df, altura_max=460,
+        cols_direita=["Qtd", "Receita (R$)", "Custo material (R$)",
+                      "Contribuição (R$)", "Margem material"],
+    )
 
 st.caption(f"Calculado em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
            f"período {periodo[0].strftime('%d/%m/%Y')}–{periodo[1].strftime('%d/%m/%Y')} · "

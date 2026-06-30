@@ -60,6 +60,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+import componentes
 from ui_theme import aplicar_tema
 aplicar_tema()
 
@@ -446,13 +447,13 @@ st.markdown("##### Detalhamento por produto")
 df = pd.DataFrame(abc)
 df = df[["classe", "codigo", "descricao", "qtd", "receita", "pct_acum"]]
 df.columns = ["Classe", "Código", "Produto", "Volume (un)", "Receita (R$)", "% acum."]
-st.dataframe(
-    df, width="stretch", hide_index=True,
-    column_config={
-        "Receita (R$)": st.column_config.NumberColumn(format="R$ %.2f"),
-        "Volume (un)": st.column_config.NumberColumn(format="%.0f"),
-        "% acum.": st.column_config.NumberColumn(format="%.1f%%"),
-    },
+# Pré-formata os números em texto (R$ e % no padrão BR) pro quadro padrão.
+df["Volume (un)"] = df["Volume (un)"].map(lambda v: f"{int(round(float(v))):,}".replace(",", "."))
+df["Receita (R$)"] = df["Receita (R$)"].map(_brl)
+df["% acum."] = df["% acum."].map(lambda v: f"{float(v):.1f}%".replace(".", ","))
+componentes.tabela(
+    df, altura_max=460,
+    cols_direita=["Volume (un)", "Receita (R$)", "% acum."],
 )
 
 

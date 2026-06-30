@@ -654,6 +654,14 @@ section[data-testid="stSidebar"] .stCaption {{
     font-weight: 600;
     color: #151921;
 }}
+/* Colunas de dinheiro/quantidade/% — número à direita, dígitos de largura uniforme
+   (vírgula embaixo de vírgula). Liga via componentes.tabela(cols_direita=[...]). */
+[data-testid="stMain"] .vn-tbl th.vn-num,
+[data-testid="stMain"] .vn-tbl td.vn-num {{
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}}
 
 /* ─────────────────────────── DIVIDER ─────────────────────────── */
 [data-testid="stMain"] hr {{

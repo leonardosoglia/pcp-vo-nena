@@ -28,7 +28,7 @@ def _esc(v) -> str:
     return (str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
-def tabela(df, altura_max: int | None = None, cor_celula=None):
+def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None):
     """Quadro padrão do sistema — tabela limpa (cabeçalho cinza-claro, linhas finas,
     1ª coluna em destaque), igual ao mockup aprovado.
 
@@ -39,15 +39,24 @@ def tabela(df, altura_max: int | None = None, cor_celula=None):
     `cor_celula` (opcional): função `(coluna, valor) -> cor_hex | None` pra destacar
     células sem perder o visual limpo — ex.: pintar a coluna oficial de laranja, ou
     estoque negativo de vermelho. Quando None, a tabela fica toda neutra.
+
+    `cols_direita` (opcional): lista de nomes de coluna a alinhar à direita, com
+    dígitos de largura uniforme (vírgula embaixo de vírgula). Use nas colunas de
+    dinheiro/quantidade/porcentagem. Quando None, tudo fica alinhado à esquerda.
     """
-    ths = "".join(f"<th>{_esc(c)}</th>" for c in df.columns)
+    dir_set = set(cols_direita or ())
+    ths = "".join(
+        f'<th class="vn-num">{_esc(c)}</th>' if c in dir_set else f"<th>{_esc(c)}</th>"
+        for c in df.columns
+    )
     linhas = []
     for _, row in df.iterrows():
         tds = []
         for col, v in zip(df.columns, row):
             cor = cor_celula(col, v) if cor_celula else None
+            cls = ' class="vn-num"' if col in dir_set else ""
             estilo_td = f' style="color:{cor};font-weight:600"' if cor else ""
-            tds.append(f"<td{estilo_td}>{_esc(v)}</td>")
+            tds.append(f"<td{cls}{estilo_td}>{_esc(v)}</td>")
         linhas.append(f"<tr>{''.join(tds)}</tr>")
     estilo_wrap = f' style="max-height:{int(altura_max)}px;overflow:auto"' if altura_max else ""
     st.markdown(

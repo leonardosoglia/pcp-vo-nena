@@ -37,6 +37,7 @@ if _RAIZ not in sys.path:
 
 import sige_cloud_api as sige
 import contribuicao_produto as cpr
+import componentes
 
 st.set_page_config(
     page_title="Produção × Demanda • Doces Vó Nena",
@@ -238,23 +239,18 @@ st.divider()
 with st.expander("Ver a tabela completa"):
     df = pd.DataFrame([{
         "Sabor": l["sabor"],
-        "Bandejas cortadas": l["bandejas"],
-        "Unidades vendidas": round(l["volume"]),
-        "Receita (R$)": l["receita"],
-        "% produção": l["pct_prod"] / 100,
-        "% demanda": l[pct_dem] / 100,
-        "Gap (p.p.)": l[gap],
+        "Bandejas cortadas": f"{int(l['bandejas']):,}".replace(",", "."),
+        "Unidades vendidas": f"{int(round(l['volume'])):,}".replace(",", "."),
+        "Receita (R$)": "R$ " + f"{float(l['receita']):,.0f}".replace(",", "."),
+        "% produção": f"{float(l['pct_prod']):.1f}%".replace(".", ","),
+        "% demanda": f"{float(l[pct_dem]):.1f}%".replace(".", ","),
+        "Gap (p.p.)": f"{float(l[gap]):.1f}".replace(".", ","),
     } for l in linhas_ord])
-    st.dataframe(
-        df, width="stretch", hide_index=True,
-        column_config={
-            "Receita (R$)": st.column_config.NumberColumn(format="R$ %.0f"),
-            "Bandejas cortadas": st.column_config.NumberColumn(format="%d"),
-            "Unidades vendidas": st.column_config.NumberColumn(format="%d"),
-            "% produção": st.column_config.NumberColumn(format="percent"),
-            "% demanda": st.column_config.NumberColumn(format="percent"),
-            "Gap (p.p.)": st.column_config.NumberColumn(format="%.1f"),
-        })
+    componentes.tabela(
+        df,
+        cols_direita=["Bandejas cortadas", "Unidades vendidas", "Receita (R$)",
+                      "% produção", "% demanda", "Gap (p.p.)"],
+    )
 
 st.markdown(
     "<div class='card-info'>"

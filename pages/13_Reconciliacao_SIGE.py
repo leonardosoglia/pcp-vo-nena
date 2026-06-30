@@ -35,6 +35,7 @@ if _RAIZ not in sys.path:
 import cached_db
 import sige_cloud_api as sige
 import reconciliacao_sige as recon
+import componentes
 
 st.set_page_config(
     page_title="Reconciliação SIGE • Doces Vó Nena",
@@ -70,18 +71,30 @@ def carregar_reconciliacao():
     return linhas, recon.resumir(linhas), None
 
 
+def _num_br(v, casas=2, sinal=False):
+    """Número no padrão BR (1.234,56). `sinal`=True força +/−; None vira '—'."""
+    if v is None:
+        return "—"
+    fmt = f"{{:+,.{casas}f}}" if sinal else f"{{:,.{casas}f}}"
+    return fmt.format(float(v)).replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _qtd_br(v, un):
+    """Quantidade compacta no padrão BR, com a unidade (ex.: '39,5 kg')."""
+    return f"{v:g}".replace(".", ",") + (f" {un}" if un else "")
+
+
 def montar_df(linhas):
     rows = []
     for ln in linhas:
         rows.append({
             "Insumo": ln["nome"],
             "Situação": STATUS_LABEL.get(ln["status"], ln["status"]),
-            "SIGE (total)": ln["sige_saldo_compra"],
-            "SIGE → receita": (f'{ln["sige_convertido"]:g} {ln["un_receita"]}'
+            "SIGE (total)": _num_br(ln["sige_saldo_compra"]),
+            "SIGE → receita": (_qtd_br(ln["sige_convertido"], ln["un_receita"])
                                if ln["sige_convertido"] is not None else "—"),
-            "Nosso sistema": f'{ln["sistema"]:g} {ln["un_receita"]}',
-            "Divergência": (round(ln["divergencia"], 2)
-                            if ln["divergencia"] is not None else None),
+            "Nosso sistema": _qtd_br(ln["sistema"], ln["un_receita"]),
+            "Divergência": _num_br(ln["divergencia"], sinal=True),
         })
     return pd.DataFrame(rows)
 
@@ -134,12 +147,9 @@ if resumo["maior_divergencia"]:
 
 # ── Tabela ───────────────────────────────────────────────────────────────────
 df = montar_df(linhas)
-st.dataframe(
-    df, use_container_width=True, hide_index=True,
-    column_config={
-        "SIGE (total)": st.column_config.NumberColumn(format="%.2f"),
-        "Divergência": st.column_config.NumberColumn(format="%+.2f"),
-    },
+componentes.tabela(
+    df, altura_max=520,
+    cols_direita=["SIGE (total)", "SIGE → receita", "Nosso sistema", "Divergência"],
 )
 
 # ── Como ler ─────────────────────────────────────────────────────────────────
