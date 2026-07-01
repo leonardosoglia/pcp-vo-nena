@@ -32,6 +32,7 @@ from cached_db import (
     calcular_cortados, calcular_viradas_pvirar, get_folha_completa,
     SABORES_COCADA, SABORES_PALHA
 )
+import componentes
 
 st.set_page_config(page_title="Painel • Doces Vó Nena", page_icon="", layout="wide", initial_sidebar_state="expanded")
 
@@ -43,31 +44,60 @@ aplicar_tema()
 # for o primeiro hit do processo (cold start).
 init_db()
 
-# ── Helpers de estilo ──────────────────────────────────────────────────────────
-def cor(val, c="rgba(192,86,33,0.18)"):
+# ── Helpers de quadro (quadro padrão do sistema, com destaque de célula) ─────────
+# Cores de fundo da célula com valor > 0 (reproduzem o Painel antigo):
+# laranja = Gestão/Produção · teal (verde/azul) = Cortados/Viradas/Corte/Embalagem.
+COR_LARANJA = "rgba(192,86,33,0.18)"
+COR_VERDE   = "rgba(14,116,144,0.18)"
+COR_AZUL    = "rgba(14,116,144,0.16)"
+
+def _fmt_cell(v):
+    """Inteiro no padrão BR (1.234); preserva texto e o traço '—'."""
+    if isinstance(v, str):
+        return v
     try:
-        if pd.notna(val) and float(val) > 0:
-            return f"background-color:{c};color:#1a1a1a;font-weight:600;"
-    except: pass
-    return "color:rgba(0,0,0,0.18);" if val == 0 or val == "0" else ""
+        f = float(v)
+    except (TypeError, ValueError):
+        return str(v)
+    if f == int(f):
+        return f"{int(f):,}".replace(",", ".")
+    return f"{f:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-def estilo_laranja(v): return cor(v,"rgba(192,86,33,0.18)")
-def estilo_verde(v):   return cor(v,"rgba(14,116,144,0.18)")
-def estilo_azul(v):    return cor(v,"rgba(14,116,144,0.16)")
-def estilo_vermelho(v):return cor(v,"rgba(220,38,38,0.18)")
+def quadro(df, cor_fundo=None, rotulos=("Sabor",), html_cols=None, altura_max=None):
+    """Renderiza um quadro no padrão do sistema (tabela limpa + números à direita).
 
-def df_styled(df, fn, excluir=None):
-    if df.empty: return df.style
-    cols = [c for c in df.columns if c not in (excluir or [])]
-    return df.style.map(fn, subset=cols)
-
-def saldo_style(val):
-    try:
-        v = float(val)
-        if v > 0: return "background-color:rgba(220,38,38,0.2);color:#7f1d1d;font-weight:700;"
-        if v == 0: return "background-color:rgba(14,116,144,0.2);color:#0E7490;font-weight:700;"
-    except: pass
-    return ""
+    Se `cor_fundo`, pinta o fundo da célula com valor > 0 e esmaece os zeros — igual
+    ao destaque colorido do Painel antigo (negativos ficam neutros, como antes).
+    `rotulos` = colunas de texto (sem cor, à esquerda). `html_cols` = colunas com
+    HTML pronto (ex.: selo de status)."""
+    if df is None or df.empty:
+        st.info("Sem dados.")
+        return
+    rot = set(rotulos)
+    html_set = set(html_cols or ())
+    cols_val = [c for c in df.columns if c not in rot and c not in html_set]
+    dfx = df.copy()
+    for c in cols_val:
+        dfx[c] = dfx[c].map(_fmt_cell)
+    cc = None
+    if cor_fundo:
+        def cc(col, v, _cor=cor_fundo, _rot=rot, _html=html_set):
+            if col in _rot or col in _html:
+                return None
+            s = str(v).strip()
+            if s in ("", "—", "-"):
+                return "color:rgba(0,0,0,0.25)"
+            try:
+                num = float(s.replace(".", "").replace(",", "."))
+            except ValueError:
+                return None
+            if num > 0:
+                return f"background-color:{_cor};color:#1a1a1a;font-weight:600"
+            if num == 0:
+                return "color:rgba(0,0,0,0.25)"
+            return None
+    componentes.tabela(dfx, altura_max=altura_max, cor_celula=cc,
+                       cols_direita=cols_val, html_cols=list(html_set) or None)
 
 def reord_cocada(df):
     df = df.copy()
@@ -96,7 +126,7 @@ def mask_zero_45g(df, col_45g_name="45g", sabor_col="Sabor"):
 @st.dialog("Produtos com Estoque Crítico", width="large")
 def modal_alertas(df):
     st.markdown("Produtos **abaixo do estoque de segurança:**")
-    st.dataframe(df, width='stretch', hide_index=True)
+    quadro(df, rotulos=("Produto",))
     st.caption(f"Total: **{len(df)}** produtos em alerta")
 
 # ── Carregar dados ─────────────────────────────────────────────────────────────
@@ -172,19 +202,19 @@ with aba_gestao:
             st.caption("Semanas com feriado: adiantar produção no dia anterior.")
             df_m = pd.DataFrame(get_metas_45g())
             df_m.columns = ["Sabor","Segunda","Terça","Quarta","Quinta","Sexta"]
-            st.dataframe(df_styled(df_m, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_m, COR_LARANJA)
         with s2:
             df_mp = pd.DataFrame(get_metas_mini_pet())
             df_mp.columns = ["Sabor","Mini (und)","Pet (und)"]
-            st.dataframe(df_mp, width='stretch', hide_index=True)
+            quadro(df_mp, rotulos=("Sabor",))
         with s3:
             df_pt = pd.DataFrame(get_metas_potes())
             df_pt.columns = ["Sabor","Potes 260g","Potes 605g","Ref. Bandejas/dia"]
-            st.dataframe(df_styled(df_pt, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_pt, COR_LARANJA)
         with s4:
             df_cv = pd.DataFrame(get_conversoes())[["descricao","rende"]]
             df_cv.columns = ["Unidade","Rende"]
-            st.dataframe(df_cv, width='stretch', hide_index=True)
+            componentes.tabela(df_cv)
             st.info("**Regra de ouro:** 1 Tacho = 8 Bandejas. Coluna Produção: sempre múltiplo de 8 (exceto ZERO).")
 
     st.subheader("Visão Geral do Dia")
@@ -202,13 +232,13 @@ with aba_gestao:
         df_e = reord_cocada(df_cocada)[["sabor","emb_45g","emb_mini","emb_pet","emb_potes_260g","emb_potes_605g"]]
         df_e.columns = ["Sabor","45g","Mini","Pet","Potes 260g","Potes 605g"]
         df_e = mask_zero_45g(df_e)
-        st.dataframe(df_styled(df_e, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+        quadro(df_e, COR_LARANJA)
 
     st.subheader("Embalados — Palha")
     if not df_palha.empty:
         df_ep = reord_palha(df_palha)[["sabor","emb_50g","emb_pet"]]
         df_ep.columns = ["Sabor","50g","Pet"]
-        st.dataframe(df_styled(df_ep, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+        quadro(df_ep, COR_LARANJA)
     st.divider()
 
     st.subheader("Cortados — Cocada")
@@ -217,7 +247,7 @@ with aba_gestao:
     if cort_data and not df_cocada.empty:
         df_c = pd.DataFrame(cort_data)[["sabor","c1_45g","c2_45g","c3_45g","c1_mini","c2_mini","c1_pet","c2_pet"]]
         df_c.columns = ["Sabor","①45g","②45g","③45g","①Mini","②Mini","①Pet","②Pet"]
-        st.dataframe(df_styled(df_c, estilo_verde, ["Sabor"]), width='stretch', hide_index=True)
+        quadro(df_c, COR_VERDE)
     st.divider()
 
     st.subheader("Viradas e P/Virar")
@@ -228,20 +258,20 @@ with aba_gestao:
         if vp:
             df_vir = pd.DataFrame(vp)[["sabor","vir1","vir2"]]
             df_vir.columns = ["Sabor","① Produção","② Pós-corte"]
-            st.dataframe(df_styled(df_vir, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_vir, COR_AZUL)
         if not df_palha.empty:
             df_palha_v = reord_palha(df_palha)[["sabor","cont_band_palha"]]
             df_palha_v.columns = ["Palha (sabor)","Bandejas"]
             df_palha_v_f = df_palha_v[df_palha_v["Bandejas"] > 0]
             if not df_palha_v_f.empty:
                 st.caption("Coluna Palha (bandejas em contagem):")
-                st.dataframe(df_palha_v_f, width='stretch', hide_index=True)
+                quadro(df_palha_v_f, rotulos=("Palha (sabor)",))
     with col_pv:
         st.caption("P/Virar: ① Produção · ② = ① + Viradas② · Meta = referência fixa por sabor")
         if vp:
             df_pv = pd.DataFrame(vp)[["sabor","pv1","pv2","pv_meta"]]
             df_pv.columns = ["Sabor","① Produção","② c/Viradas","Meta"]
-            st.dataframe(df_styled(df_pv, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_pv, COR_AZUL)
     st.divider()
 
     st.subheader("PM · Balas · Doces")
@@ -273,7 +303,7 @@ with aba_producao:
         with col_j:
             df_joel = reord_cocada(df_cocada)[["sabor","ord_prod_band","ord_prod_virada","ord_prod_potes_260g","ord_prod_potes_605g"]]
             df_joel.columns = ["Sabor","Produção (band.)","Virada","Potes 260g","Potes 605g"]
-            st.dataframe(df_styled(df_joel, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_joel, COR_LARANJA)
             c1,c2 = st.columns(2)
             tot_band = int(df_cocada["ord_prod_band"].sum())
             c1.metric("Total bandejas", tot_band)
@@ -293,7 +323,7 @@ with aba_producao:
         df_pp.columns = ["Sabor","Bandejas"]
         df_pp_f = df_pp[df_pp["Bandejas"] > 0]
         if df_pp_f.empty: st.info("Nenhuma produção de palha hoje.")
-        else: st.dataframe(df_styled(df_pp_f, estilo_laranja, ["Sabor"]), width='stretch', hide_index=True)
+        else: quadro(df_pp_f, COR_LARANJA)
 
     st.divider()
     st.subheader("PM · Balas · Doces")
@@ -304,7 +334,7 @@ with aba_producao:
             "Balas (tachos)":   pbd.get("ord_balas",0),
             "Doces (und)": pbd.get("cnt_doces_displays",0),
         }])
-        st.dataframe(df_pbd, width='stretch', hide_index=True)
+        quadro(df_pbd, rotulos=())
         if pbd.get("ord_amanha_obs"):
             st.info(f"Amanhã: {pbd['ord_amanha_obs']}")
 
@@ -322,7 +352,7 @@ with aba_corte:
         df_cc = mask_zero_45g(df_cc, col_45g_name="Ordem 45g")
         col_t, col_ref = st.columns([3,1])
         with col_t:
-            st.dataframe(df_styled(df_cc, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_cc, COR_AZUL)
             c1,c2,c3 = st.columns(3)
             c1.metric("Total 45g (band.)",  int(df_cocada["ord_corte_45g"].sum()))
             c2.metric("Total Mini (band.)", int(df_cocada["ord_corte_mini"].sum()))
@@ -339,8 +369,7 @@ with aba_corte:
             if df_cp_f.empty:
                 st.info("Nenhum corte de palha previsto.")
             else:
-                st.dataframe(df_styled(df_cp_f, estilo_azul, ["Sabor"]),
-                             width='stretch', hide_index=True)
+                quadro(df_cp_f, COR_AZUL)
     else:
         st.info("Sem ordens de corte para hoje.")
 
@@ -359,7 +388,7 @@ with aba_embalagem:
 
         col_el, col_ref2 = st.columns([2,1])
         with col_el:
-            st.dataframe(df_styled(df_emb, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
+            quadro(df_emb, COR_AZUL)
             c1,c2 = st.columns(2)
             c1.metric("Pendente 45g (und.)",  f"{int(df_cocada['ord_emb_45g'].sum()):,}")
             c2.metric("Pendente Mini (und.)", f"{int(df_cocada['ord_emb_mini'].sum()):,}")
@@ -376,7 +405,7 @@ with aba_embalagem:
             df_ep.columns = ["Sabor","50g","Pet"]
             df_ep_f = df_ep[df_ep[["50g","Pet"]].sum(axis=1) > 0]
             if df_ep_f.empty: st.info("Nenhuma palha embalada registrada.")
-            else: st.dataframe(df_styled(df_ep_f, estilo_azul, ["Sabor"]), width='stretch', hide_index=True)
+            else: quadro(df_ep_f, COR_AZUL)
     else:
         st.info("Sem dados de embalagem para hoje.")
 
@@ -396,13 +425,9 @@ with aba_estoque:
         if filtro: df_show = df_show[df_show["id_produto"].str.contains(filtro.upper(), na=False)]
         if so_alertas: df_show = df_show[df_show["alerta"].str.contains("GERAR", na=False)]
         df_show.columns = ["Produto","Em Estoque","Estoque Segurança","Status"]
-
-        def estilo_status(val):
-            if "GERAR" in str(val): return "background-color:rgba(254,202,202,0.6);color:#7f1d1d;font-weight:700;"
-            if "OK" in str(val):    return "background-color:rgba(14,116,144,0.12);color:#0E7490;font-weight:600;"
-            return ""
-
-        st.dataframe(df_show.style.map(estilo_status, subset=["Status"]), width='stretch', hide_index=True)
+        df_show["Status"] = df_show["Status"].map(
+            lambda s: componentes.selo(str(s), "danger" if "GERAR" in str(s) else "ok"))
+        quadro(df_show, rotulos=("Produto",), html_cols=["Status"])
 
         c1,c2 = st.columns(2)
         c1.metric("Produtos OK",       len(df_show[df_show["Status"].str.contains("OK",na=False)]))

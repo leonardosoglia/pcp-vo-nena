@@ -662,6 +662,20 @@ section[data-testid="stSidebar"] .stCaption {{
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }}
+/* Selo/pílula colorida dentro de uma célula (componentes.selo) — status, alertas. */
+[data-testid="stMain"] .vn-selo {{
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}}
+[data-testid="stMain"] .vn-selo-ok,
+[data-testid="stMain"] .vn-selo-info    {{ background: rgba(14,116,144,0.12); color: #0E7490; }}
+[data-testid="stMain"] .vn-selo-danger  {{ background: rgba(254,202,202,0.60); color: #7F1D1D; }}
+[data-testid="stMain"] .vn-selo-success {{ background: rgba(22,163,74,0.14);  color: #14532D; }}
+[data-testid="stMain"] .vn-selo-warning {{ background: rgba(202,138,4,0.15);  color: #713F12; }}
 
 /* ─────────────────────────── DIVIDER ─────────────────────────── */
 [data-testid="stMain"] hr {{

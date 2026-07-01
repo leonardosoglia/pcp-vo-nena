@@ -28,7 +28,8 @@ def _esc(v) -> str:
     return (str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
-def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None):
+def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None,
+           html_cols=None):
     """Quadro padrão do sistema — tabela limpa (cabeçalho cinza-claro, linhas finas,
     1ª coluna em destaque), igual ao mockup aprovado.
 
@@ -36,15 +37,20 @@ def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None
     `df` é um DataFrame do pandas. `altura_max` (px) liga a rolagem em quadros
     grandes, mantendo o cabeçalho fixo no topo.
 
-    `cor_celula` (opcional): função `(coluna, valor) -> cor_hex | None` pra destacar
-    células sem perder o visual limpo — ex.: pintar a coluna oficial de laranja, ou
-    estoque negativo de vermelho. Quando None, a tabela fica toda neutra.
+    `cor_celula` (opcional): função `(coluna, valor) -> estilo_css | None` que
+    devolve o ESTILO CSS inline da célula (ex.: "background-color:...;color:...;
+    font-weight:600") pra destacar sem perder o visual limpo — ex.: pintar o fundo
+    da célula de valor no Painel, ou esmaecer um zero. Quando None, tudo neutro.
 
     `cols_direita` (opcional): lista de nomes de coluna a alinhar à direita, com
     dígitos de largura uniforme (vírgula embaixo de vírgula). Use nas colunas de
     dinheiro/quantidade/porcentagem. Quando None, tudo fica alinhado à esquerda.
+
+    `html_cols` (opcional): lista de colunas cujo conteúdo JÁ é HTML confiável e
+    NÃO deve ser escapado — ex.: uma coluna de status montada com `selo(...)`.
     """
     dir_set = set(cols_direita or ())
+    html_set = set(html_cols or ())
     ths = "".join(
         f'<th class="vn-num">{_esc(c)}</th>' if c in dir_set else f"<th>{_esc(c)}</th>"
         for c in df.columns
@@ -53,10 +59,11 @@ def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None
     for _, row in df.iterrows():
         tds = []
         for col, v in zip(df.columns, row):
-            cor = cor_celula(col, v) if cor_celula else None
+            estilo = cor_celula(col, v) if cor_celula else None
             cls = ' class="vn-num"' if col in dir_set else ""
-            estilo_td = f' style="color:{cor};font-weight:600"' if cor else ""
-            tds.append(f"<td{cls}{estilo_td}>{_esc(v)}</td>")
+            estilo_td = f' style="{estilo}"' if estilo else ""
+            conteudo = str(v) if col in html_set else _esc(v)
+            tds.append(f"<td{cls}{estilo_td}>{conteudo}</td>")
         linhas.append(f"<tr>{''.join(tds)}</tr>")
     estilo_wrap = f' style="max-height:{int(altura_max)}px;overflow:auto"' if altura_max else ""
     st.markdown(
@@ -64,6 +71,15 @@ def tabela(df, altura_max: int | None = None, cor_celula=None, cols_direita=None
         f'<thead><tr>{ths}</tr></thead><tbody>{"".join(linhas)}</tbody></table></div>',
         unsafe_allow_html=True,
     )
+
+
+def selo(texto, tipo: str = "ok") -> str:
+    """Selo/pílula colorida pra usar dentro de uma coluna de tabela (via `html_cols`).
+
+    `tipo`: 'ok'/'info' (azul) · 'danger' (vermelho) · 'success' (verde) ·
+    'warning' (âmbar). O estilo real vem do CSS `.vn-selo` no ui_theme.
+    """
+    return f'<span class="vn-selo vn-selo-{tipo}">{_esc(texto)}</span>'
 
 
 def status_badge(label: str, texto: str, tipo: str = "info"):
