@@ -153,9 +153,16 @@ _hj = date.today()
 _meses = vsige.ultimos_meses(n_meses)
 
 if _atualizar_hist:
-    _ja = {(r["ano"], r["mes"]) for r in db.get_vendas_mensais()}
+    _regs_atuais = db.get_vendas_mensais()
+    _ja = {(r["ano"], r["mes"]) for r in _regs_atuais}
+    # Meses cuja foto ficou incompleta (parcial=1): precisam ser refeitos até fechar.
+    # Sem isto, um mês fotografado antes do fim (ex.: junho tirado em 24/06) congela
+    # num valor parcial pra sempre, porque deixa de ser o mês corrente.
+    _parciais = {(r["ano"], r["mes"]) for r in _regs_atuais if r.get("parcial")}
     _alvo = [(y, m) for (y, m) in _meses
-             if (y, m) not in _ja or (y == _hj.year and m == _hj.month)]
+             if (y, m) not in _ja
+             or (y == _hj.year and m == _hj.month)
+             or (y, m) in _parciais]
     _erros = 0
     with st.spinner(f"Lendo {len(_alvo)} mês(es) no SIGE…"):
         for (_y, _m) in _alvo:
