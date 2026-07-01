@@ -299,7 +299,8 @@ df_display = df_display.assign(_ord=df_tab["severidade"].map(ord_sev)).sort_valu
     ["_ord", "Sabor", "Dia da semana"]
 ).drop(columns="_ord")
 
-tabela(df_display)
+tabela(df_display, cols_direita=["Semanas usadas", "Meta atual (und)",
+                                 "Realidade (média)", "Desvio (% e und)"])
 
 
 # ════════════════════════════════════════════════════════════════════════════

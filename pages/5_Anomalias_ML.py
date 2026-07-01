@@ -520,7 +520,7 @@ with st.expander("Ver todas as folhas com score (não só anomalias)", expanded=
     df_tab["anomaly_score"] = df_tab["anomaly_score"].apply(lambda v: f"{v:.3f}")
     df_tab = df_tab[["data", "status", "anomaly_score"]]
     df_tab.columns = ["Data", "Status", "Score de estranheza"]
-    tabela(df_tab, altura_max=360)
+    tabela(df_tab, altura_max=360, cols_direita=["Score de estranheza"])
 
 
 st.divider()

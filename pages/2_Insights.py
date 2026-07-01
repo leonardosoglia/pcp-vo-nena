@@ -289,7 +289,8 @@ df_h2_tab["media"] = df_h2_tab["media"].apply(lambda v: f"{v:+,.0f}")
 df_h2_tab.columns = ["Sabor", "Tamanho", "Total acumulado (und)", "Média por dia (und)", "Folhas medidas"]
 
 with st.expander("Ver tabela completa", expanded=False):
-    tabela(df_h2_tab)
+    tabela(df_h2_tab, cols_direita=["Total acumulado (und)", "Média por dia (und)",
+                                    "Folhas medidas"])
 
 # Caixa "Como ler os números"
 st.markdown(
@@ -323,7 +324,8 @@ if h1["parciais"]:
     df_h1 = pd.DataFrame(h1["parciais"])
     df_h1["data"] = pd.to_datetime(df_h1["data"]).dt.strftime("%d/%m/%Y")
     df_h1.columns = ["Data", "Sabor", "Bandejas ordenadas", "Tachos cozidos", "Bandejas de massa → potes"]
-    tabela(df_h1, altura_max=360)
+    tabela(df_h1, altura_max=360, cols_direita=["Bandejas ordenadas", "Tachos cozidos",
+                                                "Bandejas de massa → potes"])
 
 st.markdown(
     "<div class='insight-card-good'>"
@@ -354,7 +356,8 @@ if h5["anomalias"]:
     df_h5["data"] = pd.to_datetime(df_h5["data"]).dt.strftime("%d/%m/%Y")
     df_h5["razao"] = df_h5["razao"].apply(lambda v: f"{v:.2f}x")
     df_h5.columns = ["Data", "Tradicional (band)", "Leite em Pó (band)", "Razão L/T"]
-    tabela(df_h5, altura_max=360)
+    tabela(df_h5, altura_max=360, cols_direita=["Tradicional (band)", "Leite em Pó (band)",
+                                                "Razão L/T"])
 else:
     st.markdown(
         "<div class='insight-card-good'>"
@@ -402,7 +405,8 @@ if sobrecarga_dinamica:
     df_h4 = df_h4[["data", "emb_45g", "emb_mini", "total", "acima"]]
     df_h4["acima"] = df_h4["acima"].apply(lambda v: f"+{v:,}")
     df_h4.columns = ["Data", "45g (und)", "Mini (und)", "Total", "Acima do limite assumido"]
-    tabela(df_h4, altura_max=360)
+    tabela(df_h4, altura_max=360, cols_direita=["45g (und)", "Mini (und)", "Total",
+                                                "Acima do limite assumido"])
 else:
     st.markdown(
         "<div class='insight-card-good'>"

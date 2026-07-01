@@ -259,7 +259,7 @@ df_tab = df[df["tachos"] + df["estoque_prateleira"] > 0][
 ].copy()
 df_tab.columns = ["Data", "Dia", "Tachos", "Balas produzidas", "Estoque prateleira"]
 df_tab = df_tab.sort_values("Data", ascending=False)
-tabela(df_tab)
+tabela(df_tab, cols_direita=["Tachos", "Balas produzidas", "Estoque prateleira"])
 
 
 # ════════════════════════════════════════════════════════════════════════════

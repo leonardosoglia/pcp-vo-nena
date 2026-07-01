@@ -321,7 +321,7 @@ df_tab["pct_acumulado"] = (df_abc["pct_acumulado"] * 100).apply(lambda v: f"{v:.
 df_tab = df_tab[["produto_completo", "classe", "volume_band", "pct", "pct_acumulado"]]
 df_tab.columns = ["Produto", "Classe", "Bandejas cortadas", "% do total", "% acumulado"]
 
-tabela(df_tab, altura_max=420)
+tabela(df_tab, altura_max=420, cols_direita=["Bandejas cortadas", "% do total", "% acumulado"])
 
 
 # ════════════════════════════════════════════════════════════════════════════
