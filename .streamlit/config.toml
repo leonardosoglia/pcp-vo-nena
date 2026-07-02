@@ -17,6 +17,17 @@ secondaryBackgroundColor = "#F9FAFB"
 textColor = "#111827"
 font = "sans serif"
 
+# Sidebar escura declarada AQUI (tema nativo), não só no CSS do ui_theme.
+# Motivo: o esqueleto de carregamento do Streamlit usa o tema nativo — sem
+# isto, a sidebar nascia CLARA e "piscava" pra escura quando o CSS chegava
+# (flash visível a cada abertura; gravação do Leonardo em 02/07/2026).
+[theme.sidebar]
+base = "dark"
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#F1F5F9"
+primaryColor = "#C05621"
+
 [client]
 # Esconde os "tip cards" do Streamlit que aparecem em loading
 showSidebarNavigation = true
