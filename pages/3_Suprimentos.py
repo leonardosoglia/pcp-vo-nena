@@ -83,20 +83,6 @@ def _status_estoque(ins: dict) -> tuple[str, str]:
     return ("ok", "OK")
 
 
-# Cores Vó Nena por status (palavra colorida, sem emoji)
-_COR_STATUS = {
-    "critico": "#B91C1C",
-    "alerta": "#B45309",
-    "ok": "#A8A29E",
-}
-
-
-def _status_html(codigo: str, label: str) -> str:
-    """Renderiza o status como palavra colorida (HTML inline)."""
-    cor = _COR_STATUS.get(codigo, "#A8A29E")
-    return f"<span style='color:{cor};font-weight:600'>{label}</span>"
-
-
 def _formatar_qtd(qtd: float, unidade: str) -> str:
     """Mostra qtd com unidade. Inteiro se for redondo, senão 1 casa decimal."""
     if qtd == int(qtd):
@@ -183,12 +169,15 @@ with aba_insumos:
     if not insumos:
         st.info("Nenhum insumo cadastrado ainda. Clique em **Adicionar insumo** acima pra começar.")
     else:
+        _SELO_INS = {"critico": ("Crítico", "danger"),
+                     "alerta": ("Abaixo do mínimo", "warning"),
+                     "ok": ("OK", "neutro")}
         rows = []
         for i in insumos:
             codigo_status, label = _status_estoque(i)
             rows.append({
                 "ID": i["id"],
-                "Status": label,
+                "Status": componentes.selo(*_SELO_INS.get(codigo_status, (label, "neutro"))),
                 "Código": i["codigo"],
                 "Nome": i["nome"],
                 "Categoria": i["categoria"],
@@ -198,25 +187,15 @@ with aba_insumos:
                 "Lead time": f"{i['lead_time_dias']}d" if i["lead_time_dias"] else "—",
             })
         df_ins = pd.DataFrame(rows)
-        st.dataframe(
-            df_ins,
-            width='stretch',
-            hide_index=True,
-            column_config={
-                "Status": st.column_config.TextColumn(
-                    "Status",
-                    help="Crítico = abaixo do estoque de segurança · "
-                         "Abaixo do mínimo = abaixo do mínimo de alerta · OK = suficiente.",
-                ),
-            },
-        )
+        componentes.tabela(df_ins, altura_max=460, html_cols=["Status"],
+                           cols_direita=["Estoque", "Mínimo"])
 
-        # Legenda de status (palavra colorida, sem emoji)
+        # Legenda dos selos de status
         st.markdown(
             "Status: "
-            + _status_html("critico", "Crítico") + " · "
-            + _status_html("alerta", "Abaixo do mínimo") + " · "
-            + _status_html("ok", "OK"),
+            + componentes.selo("Crítico", "danger") + " abaixo do estoque de segurança · "
+            + componentes.selo("Abaixo do mínimo", "warning") + " abaixo do mínimo de alerta · "
+            + componentes.selo("OK", "neutro") + " suficiente",
             unsafe_allow_html=True,
         )
 
@@ -396,9 +375,9 @@ with aba_bom:
                 "Categoria": l["categoria"],
                 "Quantidade": _formatar_qtd(l["quantidade"], l["unidade"]),
                 "Em estoque": _formatar_qtd(l["estoque_atual"], l["insumo_unidade"]),
-                "Obs": l["obs"],
+                "Obs": l["obs"] or "",
             } for l in bom])
-            st.dataframe(df_bom, width='stretch', hide_index=True)
+            componentes.tabela(df_bom, cols_direita=["Quantidade", "Em estoque"])
 
             # Excluir linha
             st.markdown("###### Remover linha da receita")
@@ -514,9 +493,10 @@ with aba_movs:
                 top5 = sorted(consumo_por_insumo.items(), key=lambda x: -x[1])[:5]
                 with st.expander(f"Top 5 insumos mais consumidos nos últimos {dias_atras} dias", expanded=False):
                     df_top = pd.DataFrame(
-                        [{"Insumo": k, "Consumo total": f"{v:.3f}"} for k, v in top5]
+                        [{"Insumo": k, "Consumo total": f"{v:.3f}".replace(".", ",")}
+                         for k, v in top5]
                     )
-                    st.dataframe(df_top, width='stretch', hide_index=True)
+                    componentes.tabela(df_top, cols_direita=["Consumo total"])
 
             st.divider()
 
@@ -537,7 +517,7 @@ with aba_movs:
                 "Referência": _ref_label(m),
                 "Obs": m["obs"] or "",
             } for m in movs])
-            st.dataframe(df_movs, width='stretch', hide_index=True)
+            componentes.tabela(df_movs, altura_max=480, cols_direita=["Quantidade"])
             st.caption(f"{len(movs)} movimentações nos últimos {dias_atras} dias")
 
         st.divider()
@@ -629,18 +609,27 @@ with aba_necessidades:
 
         st.divider()
 
-        # Tabela detalhada
-        _LABEL_NEC = {"falta": "Vai faltar", "critico": "Pouca folga", "ok": "Suficiente"}
+        # Tabela detalhada — status em selo; saldo negativo em vermelho
+        _SELO_NEC = {"falta": ("Vai faltar", "danger"),
+                     "critico": ("Pouca folga", "warning"),
+                     "ok": ("Suficiente", "success")}
         rows = []
         for n in necess:
             rows.append({
-                "Status": _LABEL_NEC.get(n["status"], n["status"]),
+                "Status": componentes.selo(*_SELO_NEC.get(n["status"], (n["status"], "neutro"))),
                 "Insumo": n["insumo_nome"],
                 "Necessidade": _formatar_qtd(n["necessidade"], n["unidade"]),
                 "Estoque atual": _formatar_qtd(n["estoque_atual"], n["unidade"]),
                 "Saldo": _formatar_qtd(n["saldo"], n["unidade"]),
             })
-        st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
+
+        def _cor_saldo(col, v):
+            if col == "Saldo" and str(v).startswith("-"):
+                return "color:#B91C1C;font-weight:700"
+            return None
+
+        componentes.tabela(pd.DataFrame(rows), html_cols=["Status"], cor_celula=_cor_saldo,
+                           cols_direita=["Necessidade", "Estoque atual", "Saldo"])
 
         # Alertas detalhados pra faltas
         faltas = [n for n in necess if n["status"] == "falta"]
@@ -725,7 +714,7 @@ with aba_importar:
                     "Custo": _brl(d["custo"]) if d.get("custo") is not None else "—",
                     "Fornecedor": (d.get("fornecedor") or "—")[:30],
                 } for d in casados])
-                st.dataframe(df_prev, width="stretch", hide_index=True)
+                componentes.tabela(df_prev, altura_max=420, cols_direita=["Custo"])
 
             if nao_achados:
                 with st.expander(f"{len(nao_achados)} match(es) definido(s) mas não encontrado(s) no arquivo"):
