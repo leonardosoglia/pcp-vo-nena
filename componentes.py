@@ -124,9 +124,43 @@ def selo(texto, tipo: str = "ok") -> str:
     """Selo/pílula colorida pra usar dentro de uma coluna de tabela (via `html_cols`).
 
     `tipo`: 'ok'/'info' (azul) · 'danger' (vermelho) · 'success' (verde) ·
-    'warning' (âmbar). O estilo real vem do CSS `.vn-selo` no ui_theme.
+    'warning' (âmbar) · 'neutro' (cinza). O estilo vem do CSS `.vn-selo` no ui_theme.
     """
     return f'<span class="vn-selo vn-selo-{tipo}">{_esc(texto)}</span>'
+
+
+# Tons do chip de ícone do cartão de indicador: (cor do ícone, fundo do chip)
+_KPI_TONS = {
+    "marca":   ("#C05621", "#FBEADF"),
+    "ambar":   ("#A16207", "#FBF1DA"),
+    "info":    ("#2563A8", "#E7EEF8"),
+    "sucesso": ("#157A54", "#E4F3EB"),
+    "teal":    ("#0E7490", "#E6F3F5"),
+    "neutro":  ("#475569", "#EEF0F3"),
+}
+
+
+def kpi(col, label: str, valor, unidade: str = "", sub: str = "",
+        icone: str = "insights", tom: str = "marca"):
+    """Cartão de indicador oficial — ícone num chip colorido + rótulo + número
+    grande + subtexto. É o cartão das telas de Sugestão (aprovado), agora peça
+    global pra qualquer tela de números-chave.
+
+    `col` = coluna do st.columns onde renderizar (ou o próprio st) · `icone` =
+    nome de ícone Material, o mesmo padrão do menu/cabeçalho · `tom` = cor do
+    chip: 'marca' (laranja) · 'ambar' · 'info' (azul) · 'sucesso' (verde) ·
+    'teal' · 'neutro' (cinza).
+    """
+    cor, chip_bg = _KPI_TONS.get(tom, _KPI_TONS["marca"])
+    sub_html = f'<div class="vn-kpi-sub">{_esc(sub)}</div>' if sub else ""
+    col.markdown(
+        f'<div class="vn-kpi"><div class="vn-kpi-chip" style="background:{chip_bg}">'
+        f'<span class="vn-kpi-ico" style="color:{cor}">{_esc(icone)}</span></div>'
+        f'<div class="vn-kpi-lab">{_esc(label)}</div>'
+        f'<div><span class="vn-kpi-val">{_esc(valor)}</span>'
+        f'<span class="vn-kpi-unit">{_esc(unidade)}</span></div>{sub_html}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def status_badge(label: str, texto: str, tipo: str = "info"):

@@ -283,8 +283,12 @@ with tab_cap:
             df_cap = df_cap[["atividade", "valor_normal", "valor_min", "valor_max",
                               "unidade", "observacao", "id"]].copy()
             df_cap.columns = ["Atividade", "Normal", "Mín", "Máx", "Unidade", "Obs", "ID"]
-            st.dataframe(df_cap.drop(columns=["ID"]),
-                          width='stretch', hide_index=True)
+            for _c in ("Normal", "Mín", "Máx"):
+                df_cap[_c] = df_cap[_c].map(
+                    lambda v: "—" if pd.isna(v) else f"{v:g}".replace(".", ","))
+            df_cap["Obs"] = df_cap["Obs"].fillna("")
+            componentes.tabela(df_cap.drop(columns=["ID"]),
+                               cols_direita=["Normal", "Mín", "Máx"])
 
             # Botões de remoção individual
             st.caption("**Remover capacidade:**")

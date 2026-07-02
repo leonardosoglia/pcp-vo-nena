@@ -684,6 +684,60 @@ section[data-testid="stSidebar"] .stCaption {{
 [data-testid="stMain"] .vn-selo-warning {{ background: rgba(202,138,4,0.15);  color: #713F12; }}
 [data-testid="stMain"] .vn-selo-neutro  {{ background: #EEF0F3;              color: #475569; }}
 
+/* ─────────── CARTÃO DE INDICADOR (componentes.kpi) ───────────
+   O cartão das Sugestões (aprovado), agora global: chip de ícone colorido +
+   rótulo pequeno + número grande + subtexto. */
+[data-testid="stMain"] .vn-kpi {{
+    background: #FFFFFF;
+    border: 1px solid #ECEDEF;
+    border-radius: 14px;
+    padding: 15px 16px;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 10px rgba(16,24,40,.04);
+}}
+[data-testid="stMain"] .vn-kpi-chip {{
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 11px;
+}}
+[data-testid="stMain"] .vn-kpi-ico {{
+    font-family: 'Material Symbols Rounded';
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 1;
+    -webkit-font-feature-settings: 'liga';
+    font-feature-settings: 'liga';
+}}
+[data-testid="stMain"] .vn-kpi-lab {{
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #9AA1AC;
+    margin-bottom: 3px;
+}}
+[data-testid="stMain"] .vn-kpi-val {{
+    font-size: 26px;
+    font-weight: 700;
+    color: #151921;
+    line-height: 1;
+    letter-spacing: -.02em;
+}}
+[data-testid="stMain"] .vn-kpi-unit {{
+    font-size: 13px;
+    font-weight: 500;
+    color: #9AA1AC;
+    margin-left: 5px;
+}}
+[data-testid="stMain"] .vn-kpi-sub {{
+    font-size: 11px;
+    color: #B0B6BE;
+    margin-top: 6px;
+}}
+
 /* ─────────── MOLDURA DE PÁGINA (componentes.cabecalho / rodape) ───────────
    Cabeçalho estilo painel executivo: chip com ícone da seção + sobretítulo +
    título + divisória fina. O ícone usa a fonte Material que o Streamlit já

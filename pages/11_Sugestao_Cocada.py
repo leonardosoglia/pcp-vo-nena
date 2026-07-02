@@ -41,7 +41,7 @@ from cocada_planejamento import (
     EXEMPLO_11_05, ESPERADO_11_05,
 )
 import cached_db
-from componentes import tabela, cabecalho, rodape
+from componentes import tabela, cabecalho, rodape, kpi
 
 st.set_page_config(
     page_title="Sugestão Cocada • Doces Vó Nena",
@@ -55,37 +55,14 @@ aplicar_tema()
 # ════════════════════════════════════════════════════════════════════════════
 # CSS do painel de decisão (page-local — mesmo padrão da Sugestão Palha)
 # ════════════════════════════════════════════════════════════════════════════
+# Cartões de indicador e cabeçalho vêm do kit oficial (componentes.py);
+# aqui só ficam as peças exclusivas desta tela (chip de contexto + títulos).
 st.markdown("""
 <style>
-.sgp-eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C05621;background:#FBEADF;padding:3px 9px;border-radius:6px;margin-bottom:9px}
-.sgp-title{font-size:20px;font-weight:700;color:#151921;margin:0 0 4px;letter-spacing:-.01em}
-.sgp-sub{font-size:12.5px;color:#6B7280;margin:0 0 6px;line-height:1.5;max-width:680px}
-.sgp-card{background:#fff;border:1px solid #ECEDEF;border-radius:14px;padding:15px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 10px rgba(16,24,40,.04)}
-.sgp-chip{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:11px}
-.sgp-lab{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#9AA1AC;margin-bottom:3px}
-.sgp-val{font-size:26px;font-weight:700;color:#151921;line-height:1;letter-spacing:-.02em}
-.sgp-unit{font-size:13px;font-weight:500;color:#9AA1AC;margin-left:5px}
-.sgp-csub{font-size:11px;color:#B0B6BE;margin-top:6px}
 .sgp-ctx{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;color:#475569;background:#EEF0F3;padding:4px 11px;border-radius:999px;margin-top:6px}
 .sgp-h{font-size:13px;font-weight:600;color:#151921;margin:14px 0 8px}
 </style>
 """, unsafe_allow_html=True)
-
-_SVG_SCISSORS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>'
-_SVG_LAYERS = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>'
-_SVG_BOTTLE = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4h6v3"></path><rect x="7" y="7" width="10" height="14" rx="2"></rect></svg>'
-_SVG_REFRESH = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>'
-
-
-def _kpi(col, icone_svg, cor, chip_bg, label, valor, unidade, sub):
-    """Cartão de indicador do painel de decisão."""
-    col.markdown(
-        f'<div class="sgp-card"><div class="sgp-chip" style="background:{chip_bg}">'
-        f'{icone_svg.format(c=cor)}</div><div class="sgp-lab">{label}</div>'
-        f'<div><span class="sgp-val">{valor}</span><span class="sgp-unit">{unidade}</span></div>'
-        f'<div class="sgp-csub">{sub}</div></div>',
-        unsafe_allow_html=True,
-    )
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -507,11 +484,15 @@ total_vira = sum(r['virada_sugerida'].values())
 # Painel de decisão no topo (cartões) — preenche o placeholder lá de cima
 with kpi_box:
     _c1, _c2, _c3, _c4 = st.columns(4)
-    _kpi(_c1, _SVG_SCISSORS, "#C05621", "#FBEADF", "Cortar hoje", total_corte, "band", "45g · Mini · Pet")
-    _kpi(_c2, _SVG_LAYERS, "#A16207", "#FBF1DA", "Produzir", total_prod, "band", f"{r['total_tachos']} tachos")
-    _kpi(_c3, _SVG_BOTTLE, "#2563A8", "#E7EEF8", "Potes", total_p260 + total_p605, "un",
-         f"{total_p260} de 260g · {total_p605} de 605g")
-    _kpi(_c4, _SVG_REFRESH, "#157A54", "#E4F3EB", "Virar", total_vira, "band", "pros próximos dias")
+    kpi(_c1, "Cortar hoje", total_corte, "band", "45g · Mini · Pet",
+        icone="content_cut", tom="marca")
+    kpi(_c2, "Produzir", total_prod, "band", f"{r['total_tachos']} tachos",
+        icone="layers", tom="ambar")
+    kpi(_c3, "Potes", total_p260 + total_p605, "un",
+        f"{total_p260} de 260g · {total_p605} de 605g",
+        icone="takeout_dining", tom="info")
+    kpi(_c4, "Virar", total_vira, "band", "pros próximos dias",
+        icone="autorenew", tom="sucesso")
     _ctx_c = (f"{WEEKDAYS_PT[weekday]} · estoques de {data_sel.strftime('%d/%m')}"
               if data_sel is not None else "Configure os estoques pra ver a sugestão")
     st.markdown(f'<span class="sgp-ctx">{_ctx_c}</span>', unsafe_allow_html=True)

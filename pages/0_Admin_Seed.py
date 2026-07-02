@@ -70,13 +70,13 @@ with st.expander(f"Insumos ({len(INSUMOS)} itens)", expanded=False):
     df_ins = pd.DataFrame(
         INSUMOS, columns=["código", "nome", "categoria", "unidade", "obs"]
     )
-    st.dataframe(df_ins, width='stretch', hide_index=True)
+    componentes.tabela(df_ins, altura_max=380)
 
 with st.expander(f"Receitas (BOM) — {len(RECEITAS)} produtos", expanded=False):
     for produto_chave, linhas in RECEITAS.items():
         st.markdown(f"**{produto_chave}** — {len(linhas)} insumos:")
         df = pd.DataFrame(linhas, columns=["insumo", "quantidade", "unidade"])
-        st.dataframe(df, width='stretch', hide_index=True)
+        componentes.tabela(df, cols_direita=["quantidade"])
 
 
 # ── Botão de ação ──────────────────────────────────────────────────────────

@@ -287,10 +287,14 @@ ticket = (receita / n_fat) if n_fat else 0.0
 
 st.divider()
 k1, k2, k3, k4 = st.columns(4)
-k1.metric("Receita faturada", _brl(receita))
-k2.metric("Pedidos faturados", f"{n_fat:,}".replace(",", "."))
-k3.metric("Produtos vendidos", f"{n_produtos}")
-k4.metric("Ticket médio", _brl(ticket))
+componentes.kpi(k1, "Receita faturada", _brl(receita),
+                sub=f"{n_dias} dias de período", icone="payments", tom="marca")
+componentes.kpi(k2, "Pedidos faturados", f"{n_fat:,}".replace(",", "."),
+                sub="status faturado no SIGE", icone="receipt_long", tom="teal")
+componentes.kpi(k3, "Produtos vendidos", f"{n_produtos}",
+                sub="itens distintos", icone="category", tom="ambar")
+componentes.kpi(k4, "Ticket médio", _brl(ticket),
+                sub="por pedido faturado", icone="sell", tom="sucesso")
 st.caption(f"Período {periodo[0].strftime('%d/%m/%Y')} – {periodo[1].strftime('%d/%m/%Y')} "
            f"· {n_dias} dias · {n_pedidos:,} pedidos lidos (todos os status), "
            f"{n_fat} faturados.".replace(",", "."))
