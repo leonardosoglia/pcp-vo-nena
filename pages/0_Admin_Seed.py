@@ -31,7 +31,7 @@ from seed_bom_completa import executar_seed, INSUMOS, RECEITAS
 st.set_page_config(
     page_title="Cadastrar BOM (setup) • Doces Vó Nena",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 from ui_theme import aplicar_tema
 aplicar_tema()

@@ -28,7 +28,7 @@ from componentes import cartao_atalho, status_badge, cabecalho, rodape
 st.set_page_config(
     page_title="Início • Doces Vó Nena",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 aplicar_tema()
 

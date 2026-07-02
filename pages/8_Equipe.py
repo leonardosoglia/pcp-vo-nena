@@ -46,7 +46,7 @@ st.set_page_config(
     page_title="Equipe • Doces Vó Nena",
     page_icon="",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 # Tema visual centralizado (Inter font + paleta clean)

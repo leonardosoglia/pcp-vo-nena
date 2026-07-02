@@ -43,7 +43,7 @@ st.set_page_config(
     page_title="Produção × Demanda • Doces Vó Nena",
     page_icon="",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 from ui_theme import aplicar_tema

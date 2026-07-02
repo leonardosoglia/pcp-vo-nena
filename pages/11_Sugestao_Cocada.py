@@ -46,7 +46,7 @@ from componentes import tabela, cabecalho, rodape, kpi
 st.set_page_config(
     page_title="Sugestão Cocada • Doces Vó Nena",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 from ui_theme import aplicar_tema
 aplicar_tema()

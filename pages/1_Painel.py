@@ -34,7 +34,7 @@ from cached_db import (
 )
 import componentes
 
-st.set_page_config(page_title="Painel • Doces Vó Nena", page_icon="", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Painel • Doces Vó Nena", page_icon="", layout="wide", initial_sidebar_state="auto")
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema

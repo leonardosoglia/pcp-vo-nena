@@ -625,7 +625,10 @@ section[data-testid="stSidebar"] .stCaption {{
 [data-testid="stMain"] .vn-tbl-wrap {{
     border: 1px solid #ECEDEF;
     border-radius: 12px;
-    overflow: hidden;
+    /* Tabela mais larga que a tela (celular) desliza de lado em vez de cortar */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     margin: 2px 0 8px;
     box-shadow: 0 1px 2px rgba(16,24,40,.03);
 }}
@@ -736,6 +739,32 @@ section[data-testid="stSidebar"] .stCaption {{
     font-size: 11px;
     color: #B0B6BE;
     margin-top: 6px;
+}}
+
+/* ─────────── CELULAR (Leva D) ───────────
+   A Gestão abre o app no telefone na fábrica: células mais compactas (cabem
+   mais colunas), número do cartão sem estourar, e alvos de toque ≥ 44px no
+   menu e nos expansores (mínimo ergonômico pra dedo). */
+@media (max-width: 640px) {{
+    [data-testid="stMain"] .vn-tbl th {{
+        padding: 8px 9px;
+    }}
+    [data-testid="stMain"] .vn-tbl td {{
+        padding: 8px 9px;
+        font-size: 11.5px;
+    }}
+    [data-testid="stMain"] .vn-kpi-val {{
+        font-size: 22px;
+    }}
+    [data-testid="stMain"] .vn-hdr-right {{
+        white-space: normal;
+    }}
+    section[data-testid="stSidebar"] button {{
+        min-height: 44px;
+    }}
+    [data-testid="stMain"] [data-testid="stExpander"] summary {{
+        min-height: 44px;
+    }}
 }}
 
 /* ─────────── MOLDURA DE PÁGINA (componentes.cabecalho / rodape) ───────────
