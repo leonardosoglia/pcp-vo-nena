@@ -64,8 +64,8 @@ import componentes
 from ui_theme import aplicar_tema
 aplicar_tema()
 
-# Cores por classe ABC — mesmas da página de produção (consistência visual)
-COR_CLASSE = {"A": "#059669", "B": "#B45309", "C": "#991B1B"}
+# Cores por classe ABC — fonte única do sistema (graficos.py)
+from graficos import COR_CLASSE
 # Quantos produtos mostrar no gráfico de Pareto (a cauda C fica só na tabela)
 MAX_BARRAS_PARETO = 35
 

@@ -244,9 +244,11 @@ st.caption(
 
 fig = go.Figure()
 
-# Cores por classe
-cor_por_classe = {"A": "#C05621", "B": "#B45309", "C": "#991B1B"}
-cores_barras = [cor_por_classe[c] for c in df_abc["classe"]]
+# Cores por classe — fonte única do sistema (A verde · B caramelo · C vinho),
+# igual aos cartões acima e à tela de Vendas. Antes a Classe A era laranja aqui
+# e verde em Vendas — o laranja fica reservado pra marca.
+from graficos import COR_CLASSE
+cores_barras = [COR_CLASSE[c] for c in df_abc["classe"]]
 
 fig.add_trace(go.Bar(
     x=df_abc["produto_completo"],

@@ -71,7 +71,13 @@ TOKENS = {
 
 
 def aplicar_tema():
-    """Injeta CSS global. Chamar após st.set_page_config()."""
+    """Injeta CSS global + registra o figurino oficial dos gráficos (Plotly).
+    Chamar após st.set_page_config()."""
+    try:
+        import graficos
+        graficos.registrar_template()
+    except Exception:
+        pass
     t = TOKENS
     st.markdown(f"""
 <style>
