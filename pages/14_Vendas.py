@@ -110,12 +110,10 @@ MESES_PT = ["", "jan", "fev", "mar", "abr", "mai", "jun",
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Vendas")
-st.caption(
-    "Vendas reais (pedidos faturados) lidas direto do SIGE. Mostra **para onde "
-    "vai o dinheiro** — por produto, canal e empresa — e a **Curva ABC de "
-    "demanda**. Difere da página *Curva ABC*, que classifica pela **produção** "
-    "(bandejas cortadas). Somente leitura — nada é alterado no SIGE."
+componentes.cabecalho(
+    "Vendas & resultado", "Vendas", icone="shopping_cart",
+    contexto="Vendas reais (pedidos faturados) lidas do SIGE — pra onde vai o "
+             "dinheiro, por produto, canal e empresa. <b>Só leitura</b>, nada muda no SIGE.",
 )
 
 # ── Guarda de credenciais ────────────────────────────────────────────────────
@@ -496,5 +494,4 @@ with st.expander("Como ler esta tela"):
         "*Atualizar do SIGE* para forçar a releitura."
     )
 
-st.caption(f"Vendas lidas do SIGE em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-           "somente leitura · cache de 30 min.")
+componentes.rodape("fonte: SIGE · somente leitura · renova a cada 30 min")

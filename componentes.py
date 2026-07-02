@@ -3,13 +3,60 @@ componentes.py — Peças visuais reutilizáveis do PCP Vó Nena.
 
 Construídas sobre o `ui_theme` (que injeta o CSS global). As telas importam daqui
 para terem todas a mesma cara — sem cada uma reinventar cartão/cabeçalho/aviso.
-É o "kit de peças" da reforma visual (Etapa 1).
+É o "kit de peças" da reforma visual.
 
-Primeiras peças:
+Peças:
+- `cabecalho()`     — moldura de abertura de página (selo da seção + título + contexto).
+- `rodape()`        — rodapé padrão (nome · versão · data/hora · nota da fonte).
+- `tabela()`        — quadro padrão do sistema (com cor de célula, selos e nº à direita).
+- `selo()`          — pílula colorida pra dentro de tabela (status).
 - `cartao_atalho()` — atalho clicável em forma de cartão (ícone + título + 1 linha).
 - `status_badge()`  — mini-cartão de status com um selo colorido (pílula).
 """
+from datetime import datetime
+
 import streamlit as st
+
+# Identidade única do sistema — TODA tela mostra a mesma versão no rodapé.
+# (Antes o Painel dizia v1.2 e o Lançamento v2.1 ao mesmo tempo.)
+APP_NOME = "PCP Doces Vó Nena"
+APP_VERSAO = "2.1"
+
+
+def cabecalho(secao: str, titulo: str, contexto: str = "", direita: str = "",
+              icone: str = "description"):
+    """Moldura de abertura de página — ícone da seção (chip) + sobretítulo (seção)
+    + título + 1 linha de contexto, com uma divisória fina embaixo (estilo painel
+    executivo, aprovado pelo Leonardo em 01/07).
+
+    `secao` = grupo do menu (ex.: "Vendas & resultado") · `titulo` = nome da tela ·
+    `contexto` = 1 linha do que a tela faz (aceita <b> pontual) · `direita` = HTML
+    curto opcional à direita (ex.: a data de hoje) · `icone` = nome do ícone Material
+    (o MESMO do menu em app.py, ex.: "shopping_cart") — usa a fonte de ícones que o
+    próprio Streamlit já carrega, então o ícone fica idêntico ao da barra lateral.
+    """
+    dir_html = f'<div class="vn-hdr-right">{direita}</div>' if direita else ""
+    ctx_html = f'<div class="vn-hdr-sub">{contexto}</div>' if contexto else ""
+    st.markdown(
+        '<div class="vn-hdr"><div class="vn-hdr-main">'
+        f'<div class="vn-hdr-chip"><span class="vn-hdr-ico">{_esc(icone)}</span></div>'
+        f'<div><div class="vn-hdr-over">{_esc(secao)}</div>'
+        f'<div class="vn-hdr-title">{_esc(titulo)}</div></div></div>'
+        f'{dir_html}</div>{ctx_html}',
+        unsafe_allow_html=True,
+    )
+
+
+def rodape(extra: str = ""):
+    """Rodapé padrão de toda tela: nome · versão · data/hora · nota opcional
+    (ex.: "fonte: SIGE (renova a cada 30 min)")."""
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    extra_html = f" · {_esc(extra)}" if extra else ""
+    st.markdown(
+        f'<div class="vn-rodape"><span>{APP_NOME} · v{APP_VERSAO}</span>'
+        f'<span>{agora}{extra_html}</span></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def cartao_atalho(page, titulo: str, descricao: str, icone: str = ""):

@@ -677,6 +677,82 @@ section[data-testid="stSidebar"] .stCaption {{
 [data-testid="stMain"] .vn-selo-success {{ background: rgba(22,163,74,0.14);  color: #14532D; }}
 [data-testid="stMain"] .vn-selo-warning {{ background: rgba(202,138,4,0.15);  color: #713F12; }}
 
+/* ─────────── MOLDURA DE PÁGINA (componentes.cabecalho / rodape) ───────────
+   Cabeçalho estilo painel executivo: chip com ícone da seção + sobretítulo +
+   título + divisória fina. O ícone usa a fonte Material que o Streamlit já
+   carrega (idêntico ao menu). Rodapé informativo em toda tela. */
+[data-testid="stMain"] .vn-hdr {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid #F1D9C9;
+    padding-bottom: 12px;
+}}
+[data-testid="stMain"] .vn-hdr-main {{
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}}
+[data-testid="stMain"] .vn-hdr-chip {{
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: #FBEADF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}}
+[data-testid="stMain"] .vn-hdr-ico {{
+    font-family: 'Material Symbols Rounded';
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1;
+    color: #C05621;
+    -webkit-font-feature-settings: 'liga';
+    font-feature-settings: 'liga';
+}}
+[data-testid="stMain"] .vn-hdr-over {{
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #9AA1AC;
+}}
+[data-testid="stMain"] .vn-hdr-title {{
+    font-size: 21px;
+    font-weight: 700;
+    color: #151921;
+    letter-spacing: -.01em;
+    line-height: 1.15;
+}}
+[data-testid="stMain"] .vn-hdr-right {{
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #C05621;
+    text-align: right;
+    white-space: nowrap;
+}}
+[data-testid="stMain"] .vn-hdr-sub {{
+    font-size: 12.5px;
+    color: #6B7280;
+    line-height: 1.5;
+    margin-top: 10px;
+    max-width: 680px;
+}}
+[data-testid="stMain"] .vn-rodape {{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 11px;
+    color: #9AA1AC;
+    border-top: 1px solid #E5E7EB;
+    margin-top: 26px;
+    padding-top: 10px;
+}}
+
 /* ─────────────────────────── DIVIDER ─────────────────────────── */
 [data-testid="stMain"] hr {{
     border-color: {t['border']} !important;
