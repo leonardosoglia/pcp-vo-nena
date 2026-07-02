@@ -4,7 +4,11 @@ CORRÊA, Henrique L.; CORRÊA, Carlos A. **Administração de produção e opera
 
 FORRESTER, Jay W. **Industrial dynamics**. Cambridge: MIT Press, 1961.
 
+JURAN, Joseph M. **Quality control handbook**. New York: McGraw-Hill, 1951.
+
 MARTINS, Petrônio G.; LAUGENI, Fernando P. **Administração da produção**. 3. ed. São Paulo: Saraiva, 2015.
+
+NONAKA, Ikujiro; TAKEUCHI, Hirotaka. **Criação de conhecimento na empresa**: como as empresas japonesas geram a dinâmica da inovação. Rio de Janeiro: Campus, 1997.
 
 ORLICKY, Joseph. **Material requirements planning**: the new way of life in production and inventory management. New York: McGraw-Hill, 1975.
 

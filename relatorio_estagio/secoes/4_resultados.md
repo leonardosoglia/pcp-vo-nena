@@ -1,50 +1,74 @@
 # 4 RESULTADOS E CONTRIBUIÇÕES
 
-## 4.1 Sistema desenvolvido
+Nesta seção descrevo o que entreguei à empresa ao longo do estágio, do ponto de
+vista **operacional** — o que mudou no controle da produção da Doces Vó Nena a
+partir do meu trabalho como apoio de PCP. O sistema digital que desenvolvo em
+paralelo (objeto do meu Trabalho de Conclusão de Curso) aparece aqui apenas como
+uma das contribuições, sem o detalhamento técnico, que reservo para o TCC.
 
-O principal resultado do estágio é um sistema digital de Planejamento e Controle da Produção, em uso diário pela empresa. Em síntese, o sistema reúne:
+## 4.1 Um controle de produção mais organizado e confiável
 
-- um aplicativo *web* com páginas para o lançamento da folha diária, painel de acompanhamento, sugestões automáticas de produção e análises;
-- um banco de dados relacional que substitui o arquivo físico de folhas de papel, preservando todo o histórico;
-- hospedagem em nuvem, com acesso pelo computador e pelo celular;
-- a lista de materiais (receitas) cadastrada, base para o cálculo de necessidade de insumos.
+A principal contribuição do meu estágio é ter dado à fábrica um **controle de
+produção organizado e baseado em dados atualizados**. Todos os dias eu levanto o
+estoque — acabado e em processo — e consolido a folha de produção, de modo que a
+Gestão passou a decidir a partir de um retrato confiável do que existe, e não da
+memória ou de anotações soltas. A contagem diária e o fechamento da folha,
+antes dispersos e sujeitos a perda, tornaram-se uma rotina estruturada, que é o
+ponto de partida de todo o planejamento do dia.
 
-[[IMG: Captura de tela do Painel do sistema, exibindo a folha de produção do dia]]
+## 4.2 Apoio efetivo às ordens de produção, corte, embalagem e alocação
 
-## 4.2 Indicadores
+Passei a **apoiar diretamente a definição das ordens do dia**: quanto produzir de
+cada produto, quantas bandejas cortar e em qual formato, o que embalar e como
+distribuir o trabalho entre as pessoas da equipe. Esse apoio tornou as ordens
+mais claras e mais bem dimensionadas: a produção passou a ser puxada pela
+combinação entre o estoque atual, o que está em processo e a demanda esperada,
+respeitando o lead time de cada produto. Com a alocação do trabalho ajustada à
+capacidade disponível a cada dia, reduzi situações de ociosidade e de gargalo no
+corte e na embalagem.
 
-### 4.2.1 Cobertura funcional
+## 4.3 Documentação do funcionamento da fábrica
 
-Ao longo do período, o sistema passou a concentrar a operação de PCP da empresa. Os números de cobertura, no momento da redação deste relatório, são:
+Outra contribuição importante foi **organizar e documentar conhecimento que só
+existia na cabeça das pessoas**. Levantei e registrei as receitas de cada
+produto, os rendimentos reais de produção, o calendário de corte, os lead times e
+os parâmetros por dia da semana, além de montar uma lista completa e atualizada
+dos produtos que a empresa fabrica e revende. Esse registro reduz a dependência
+de pessoas específicas e deixa a operação menos vulnerável a ausências — um ganho
+de organização que permanece para a empresa independentemente do sistema.
 
-- 27 folhas de produção registradas no sistema;
-- 6 sabores de cocada e 5 de palha, além de pão de mel e bala de doce de leite;
-- 33 insumos cadastrados;
-- 91 linhas de lista de materiais (receitas por produto).
+## 4.4 Um sistema digital de PCP em desenvolvimento
 
-### 4.2.2 Aderência das sugestões automáticas
+Como suporte a todas essas atividades, **desenvolvo um sistema digital de PCP**
+que substitui o controle em papel: digitaliza a folha de produção, preserva o
+histórico (que antes se perdia no arquivo físico) e organiza a informação para a
+tomada de decisão. O sistema está em uso na empresa e acessível pelo computador e
+pelo celular. Por ser o **objeto do meu Trabalho de Conclusão de Curso**, seu
+detalhamento técnico — as análises, a integração com o ERP da empresa e o estudo
+de custo e lucratividade — é tratado no TCC, e não neste relatório. Registro, com
+transparência, que o construí com o apoio do **Claude Code**, um assistente de
+programação baseado em inteligência artificial, sob a minha condução.
 
-As sugestões automáticas de corte e produção foram comparadas às decisões reais da Gestão ao longo do estágio:
+## 4.5 Aprendizados de Engenharia de Produção aplicados
 
-- **Palha:** aderência de aproximadamente **85%** — o modelo semanal reproduz bem a decisão da Gestão;
-- **Cocada:** aderência aproximada de **50% a 70%**, com limites conhecidos e documentados — a decisão da cocada envolve um componente cognitivo que o modelo determinístico não captura totalmente.
+Ao longo do estágio, **apliquei na prática, adaptados ao porte da empresa,
+conceitos estudados no curso**: o Planejamento e Controle da Produção, o
+planejamento de necessidades de materiais (MRP) a partir da lista de materiais
+(ORLICKY, 1975), a Curva ABC para priorização, a noção de lead time e de estoque
+de segurança, e a distinção entre **estoque e fluxo** (FORRESTER, 1961), que me
+ajudou a organizar corretamente a contagem (o que é uma fotografia do estoque e o
+que é um fluxo que se acumula ao longo do tempo). Ver esses conceitos
+funcionando no chão de uma pequena fábrica, e não apenas na teoria, foi um dos
+aprendizados mais valiosos do estágio.
 
-### 4.2.3 Tempo operacional
+## 4.6 Síntese das contribuições
 
-A digitalização eliminou o folhear de páginas arquivadas: consultas a folhas anteriores, que antes exigiam busca manual no arquivo físico, passaram a ser imediatas. Os cálculos derivados (cortados, viradas, pra virar), antes feitos manualmente, passaram a ser automáticos. A quantificação precisa do tempo economizado está em consolidação junto à Gestão.
-
-## 4.3 Contribuições qualitativas
-
-**Para a empresa.** Substituição do controle manual por um sistema digital de baixa fricção; visibilidade histórica e em tempo real do estado da produção; base de dados estruturada que viabiliza análises e futuras extensões.
-
-**Para a Gestão.** Apoio à decisão diária por meio de sugestões automáticas e redução do tempo dedicado a tarefas administrativas.
-
-**Para a equipe.** Comunicação mais clara das ordens do dia e possibilidade de consulta a qualquer hora pelo celular.
-
-## 4.4 Aprendizados de Engenharia de Produção aplicados
-
-Ao longo do estágio, conceitos estudados no curso foram aplicados em contexto real, adaptados ao porte da empresa: Planejamento e Controle da Produção, MRP simplificado a partir da lista de materiais, Curva ABC dos sabores, *lead time*, política de estoque-alvo (reposição) e o princípio de estoque *versus* fluxo na construção das análises. As ordens não-múltiplas da capacidade do tacho, que geram sobra de massa, foram modeladas como decisão intencional de aproveitamento (a sobra vira potes), e não como desperdício.
-
-## 4.5 Contribuição acadêmica
-
-O sistema desenvolvido durante o estágio é também objeto de estudo do Trabalho de Conclusão de Curso, sob a mesma orientação. As descobertas operacionais — em especial a documentação do fenômeno da não-acomodação (a Gestão solicita produção mesmo com a meta do dia atingida, para não ociosar a equipe) e a aplicação de uma camada de apoio à decisão baseada nos dados reais da fábrica — compõem a contribuição original do trabalho.
+**Para a empresa**, o controle de produção saiu de um processo manual e disperso
+para uma rotina organizada e confiável, com a informação registrada e o
+conhecimento da fábrica documentado. **Para a Gestão**, as decisões diárias de
+produção, corte, embalagem e alocação passaram a se apoiar em dados atualizados,
+com o meu apoio na organização e na proposição dos números. **Para a equipe**, as
+ordens do dia ficaram mais claras e mais bem distribuídas. E, como continuidade
+natural, o sistema digital em desenvolvimento — meu TCC — leva esse ganho
+adiante, abrindo caminho para análises de custo, margem e lucratividade que a
+empresa antes não enxergava.
