@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Usa cached_db (wrapper @st.cache_data sobre database) — reduz latência
 # percebida no app em produção. Invalidação manual após save/delete.
 import cached_db as db
+import componentes
 from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
     get_papelzinho_joel, get_pvirar_ideal, get_metas_45g, get_metas_mini_pet,
@@ -171,13 +172,40 @@ def num_input_compact(col, key, valor_inicial, step=None):
         return int(v) if v is not None else 0
 
 
-def estilo_dif(v):
+def _fmt_int_br(v):
+    """Inteiro no padrão BR (1.234); None/NA viram '—' (esmaecido no quadro)."""
+    if v is None or pd.isna(v):
+        return "—"
     try:
-        n = float(v)
-        if n >= 0: return "color:#065F46;font-weight:700;background:#ECFDF5;"
-        return "color:#7F1D1D;font-weight:700;background:#FEF2F2;"
-    except Exception:
-        return "color:#999;"
+        return f"{int(v):,}".replace(",", ".")
+    except (TypeError, ValueError):
+        return str(v)
+
+
+def quadro_derivado(df, cols_dif):
+    """Quadro padrão dos derivados (read-only): números à direita; nas colunas de
+    diferença, verde = sobra (≥ 0) e vermelho = falta (< 0) — mesmas cores do
+    antigo estilo_dif. '—' (sem valor) fica esmaecido."""
+    dfx = df.copy()
+    cols_num = [c for c in dfx.columns if c != "Sabor"]
+    for c in cols_num:
+        dfx[c] = dfx[c].map(_fmt_int_br)
+
+    def _cor(col, v):
+        if col not in cols_dif:
+            return None
+        s = str(v).strip()
+        if s == "—":
+            return "color:rgba(0,0,0,0.25)"
+        try:
+            n = float(s.replace(".", ""))
+        except ValueError:
+            return None
+        if n >= 0:
+            return "background:#ECFDF5;color:#065F46;font-weight:700"
+        return "background:#FEF2F2;color:#7F1D1D;font-weight:700"
+
+    componentes.tabela(dfx, cor_celula=_cor, cols_direita=cols_num)
 
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
@@ -823,20 +851,8 @@ with st.form("folha_completa", border=False):
                     "② Pet":   c2_pt,
                     "③ Pet":   c3_pt,
                 })
-            df_calc = pd.DataFrame(rows_calc).convert_dtypes()
-            st.dataframe(
-                df_calc.style.map(estilo_dif, subset=["③ 45g", "③ Mini", "③ Pet"]),
-                width='stretch', hide_index=True,
-                column_config={
-                    "Sabor":  st.column_config.TextColumn(width=92),
-                    "② 45g":  st.column_config.NumberColumn(width=44),
-                    "③ 45g":  st.column_config.NumberColumn(width=44),
-                    "② Mini": st.column_config.NumberColumn(width=44),
-                    "③ Mini": st.column_config.NumberColumn(width=44),
-                    "② Pet":  st.column_config.NumberColumn(width=44),
-                    "③ Pet":  st.column_config.NumberColumn(width=44),
-                },
-            )
+            df_calc = pd.DataFrame(rows_calc)
+            quadro_derivado(df_calc, ["③ 45g", "③ Mini", "③ Pet"])
 
         # ── 6. VIRADAS — derivado ────────────────────────────────────────────────
         with st.expander("Viradas — Cocada (derivado, read-only)", expanded=False):
@@ -857,16 +873,7 @@ with st.form("folha_completa", border=False):
                     "② Pós-corte": v2,
                 })
             df_vir = pd.DataFrame(rows_vir)
-            st.dataframe(
-                df_vir.style.map(estilo_dif, subset=["② Pós-corte"]),
-                width='stretch', hide_index=True,
-                column_config={
-                    "Sabor":         st.column_config.TextColumn(width=112),
-                    "① da Produção (V)": st.column_config.NumberColumn(width=92),
-                    "Σ Cortes":      st.column_config.NumberColumn(width=78),
-                    "② Pós-corte":   st.column_config.NumberColumn(width=96),
-                },
-            )
+            quadro_derivado(df_vir, ["② Pós-corte"])
 
         # ── 7. P/VIRAR — derivado ────────────────────────────────────────────────
         with st.expander("P/Virar — Cocada (derivado, read-only)", expanded=False):
@@ -891,17 +898,7 @@ with st.form("folha_completa", border=False):
                     "Dif vs Meta": pv2 - meta,
                 })
             df_pv = pd.DataFrame(rows_pv)
-            st.dataframe(
-                df_pv.style.map(estilo_dif, subset=["② = ① + Vir②", "Dif vs Meta"]),
-                width='stretch', hide_index=True,
-                column_config={
-                    "Sabor":          st.column_config.TextColumn(width=100),
-                    "① da Produção (PV)": st.column_config.NumberColumn(width=92),
-                    "② = ① + Vir②":   st.column_config.NumberColumn(width=96),
-                    "Meta":           st.column_config.NumberColumn(width=56),
-                    "Dif vs Meta":    st.column_config.NumberColumn(width=78),
-                },
-            )
+            quadro_derivado(df_pv, ["② = ① + Vir②", "Dif vs Meta"])
 
         # ── 8. PRODUÇÃO — Cocada (Ordens) ────────────────────────────────────────
         with st.expander("Produção — Cocada (Ordens)", expanded=False):
@@ -1324,14 +1321,21 @@ if _preview_data == data_str:
             # Tabela de consumo previsto, ordenada por status (faltas primeiro).
             ordem = {"falta": 0, "critico": 1, "ok": 2}
             consumos_ord = sorted(_pv["consumos"], key=lambda c: (ordem[c["status"]], c["insumo_nome"]))
+            _selo_status = {"falta": ("FALTA", "danger"), "critico": ("JUSTO", "warning"),
+                            "ok": ("OK", "ok")}
+            # Decimais com vírgula (1,500 kg) — com ponto parecia mil e quinhentos.
+            _q = lambda x, un: f"{x:.3f}".replace(".", ",") + f" {un}"
             df_prev = pd.DataFrame([{
-                "Status": {"falta": "FALTA", "critico": "JUSTO", "ok": "OK"}[c["status"]],
+                "Status": componentes.selo(*_selo_status[c["status"]]),
                 "Insumo": c["insumo_nome"],
-                "Consumo": f"{c['quantidade']:.3f} {c['unidade']}",
-                "Estoque atual": f"{c['estoque_atual']:.3f} {c['unidade']}",
-                "Estoque depois": f"{c['estoque_depois']:.3f} {c['unidade']}",
+                "Consumo": _q(c["quantidade"], c["unidade"]),
+                "Estoque atual": _q(c["estoque_atual"], c["unidade"]),
+                "Estoque depois": _q(c["estoque_depois"], c["unidade"]),
             } for c in consumos_ord])
-            st.dataframe(df_prev, width='stretch', hide_index=True)
+            componentes.tabela(
+                df_prev, altura_max=420, html_cols=["Status"],
+                cols_direita=["Consumo", "Estoque atual", "Estoque depois"],
+            )
 
             _n_falta = sum(1 for c in _pv["consumos"] if c["status"] == "falta")
             if _n_falta:

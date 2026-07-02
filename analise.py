@@ -17,6 +17,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date, datetime
+import componentes
 from cached_db import (
     get_folha_cocada, get_folha_palha, get_papelzinho_joel, get_pm_balas_doces,
     get_metas_45g, get_metas_mini_pet, list_datas_folha,
@@ -328,21 +329,33 @@ def _render_ajustes_eraldo(df_cocada, sabores_cocada):
         df_ajustes_show = df_ajustes.copy()
         df_ajustes_show["data"] = df_ajustes_show["data"].dt.strftime("%d/%m/%Y")
         df_ajustes_show.columns = ["Data", "Sabor", "Base", "Real", "Ajuste"]
-        st.dataframe(
-            df_ajustes_show.style.map(
-                lambda v: ("color:#065F46;font-weight:700;" if isinstance(v, (int, float)) and v > 0
-                           else "color:#7F1D1D;font-weight:700;" if isinstance(v, (int, float)) and v < 0
-                           else ""),
-                subset=["Ajuste"],
-            ),
-            width='stretch', hide_index=True,
-        )
+        df_ajustes_show["Base"] = df_ajustes_show["Base"].map(lambda v: f"{int(v):,}".replace(",", "."))
+        df_ajustes_show["Real"] = df_ajustes_show["Real"].map(lambda v: f"{int(v):,}".replace(",", "."))
+        df_ajustes_show["Ajuste"] = df_ajustes_show["Ajuste"].map(lambda v: f"{int(v):+,}".replace(",", "."))
+
+        def _cor_ajuste(col, v):
+            # Verde = Gestão pediu acima da base · vermelho = abaixo (mesmas cores antigas).
+            if col != "Ajuste":
+                return None
+            s = str(v)
+            if s.startswith("-"):
+                return "color:#7F1D1D;font-weight:700"
+            if s.startswith("+"):
+                return "color:#065F46;font-weight:700"
+            return None
+
+        componentes.tabela(df_ajustes_show, altura_max=380, cor_celula=_cor_ajuste,
+                           cols_direita=["Base", "Real", "Ajuste"])
 
     # Sumário por sabor
     st.markdown("**Sumário por sabor:**")
-    agg = df.groupby("sabor")["ajuste_45g"].agg(["sum", "mean", "count"])
-    agg.columns = ["Soma ajustes", "Média ajustes", "Folhas no período"]
-    st.dataframe(agg, width='stretch')
+    agg = df.groupby("sabor")["ajuste_45g"].agg(["sum", "mean", "count"]).reset_index()
+    agg.columns = ["Sabor", "Soma ajustes", "Média ajustes", "Folhas no período"]
+    agg["Soma ajustes"] = agg["Soma ajustes"].map(lambda v: f"{int(v):+,}".replace(",", "."))
+    agg["Média ajustes"] = agg["Média ajustes"].map(
+        lambda v: f"{v:+,.1f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    agg["Folhas no período"] = agg["Folhas no período"].map(lambda v: str(int(v)))
+    componentes.tabela(agg, cols_direita=["Soma ajustes", "Média ajustes", "Folhas no período"])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -404,7 +417,7 @@ def _render_anomalias(df_cocada, df_palha):
         st.warning(f"⚠️ {len(alertas)} anomalia(s) detectada(s):")
         df_al = pd.DataFrame(alertas)
         df_al.columns = ["Tipo", "Data", "Descrição"]
-        st.dataframe(df_al, width='stretch', hide_index=True)
+        componentes.tabela(df_al, altura_max=380)
 
     st.divider()
     st.caption(
