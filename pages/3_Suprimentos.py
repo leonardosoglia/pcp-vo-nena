@@ -362,8 +362,8 @@ with aba_bom:
         "Pra cada produto, a lista de insumos que ele consome **por tacho** "
         "(cocada e palha) ou por unidade de produção (1 bolo de Pão de Mel, 1 tacho "
         "de bala). A receita é a mesma pro sabor inteiro — o formato (45g, Mini, Pet) "
-        "é decidido só no corte. Ex: 1 tacho de Cocada Tradicional consome 19 L de "
-        "leite in natura + 8 kg de açúcar + 4 kg de coco ralado."
+        "é decidido só no corte. Ex: 1 tacho de Cocada Tradicional consome 19,5 L de "
+        "leite in natura + 8 kg de açúcar + 5 kg de coco ralado."
     )
 
     insumos_disponiveis = get_insumos(somente_ativos=True)

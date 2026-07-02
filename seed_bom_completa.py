@@ -4,8 +4,8 @@ conhecidas (CADERNO Bloco 5, recebidas da Gestão até 22/05/2026).
 
 Receitas cobertas:
   - Cocada × 6 sabores (T, L, B, C, P, Z) — por TACHO (rende 8 band; Z rende 3).
-    Inclui a "mistura padrão" (500 ml de leite JÁ inclusos no total + 15 g sal +
-    70 g sorbato). Leite total por tacho: 19 L (T/L/B/C/P) · 26 L (Zero).
+    Inclui a "mistura padrão" (500 ml de leite que SOMAM por cima da base + 15 g sal
+    + 70 g sorbato). Leite total por tacho: 19,5 L (T/L/B/C/P) · 26,5 L (Zero).
   - Palha × 5 sabores (T, L, CH, CK, LIM) — por BANDEJA (1 panela = 1 bandeja).
   - Pão de Mel — por BOLO (1 bolo = 70 und = 7 displays).
   - Bala de doce de leite — por TACHO (1 tacho = 30 balas).
@@ -92,13 +92,14 @@ INSUMOS = [
 # RECEITAS (BOM) — produto_chave: [(codigo_insumo, quantidade, unidade), ...]
 #
 # COCADA — por TACHO (rende 8 band; Zero rende 3). Mistura padrão (por tacho):
-# 500 ml de leite (JÁ inclusos nos 19 L / Zero 26 L — não somam) + 15 g sal
-# (1 colher) + 70 g sorbato (14 colheres chá). Sal e sorbato entram como insumos.
+# 500 ml de leite que SOMAM por cima da base (19 + 0,5 = 19,5 L; Zero 26 + 0,5 =
+# 26,5 L) + 15 g sal (1 colher) + 70 g sorbato (14 colheres chá). Sal e sorbato
+# entram como insumos.
 # ════════════════════════════════════════════════════════════════════════════
 RECEITAS = {
     # Cocada Tradicional — coco normal
     "cocada_T_tacho": [
-        ("LEITE_IN_NATURA",       19.0,  "L"),   # 19 L total (500 ml viram a mistura)
+        ("LEITE_IN_NATURA",       19.5,  "L"),   # 19,5 L total (19 base + 0,5 da mistura)
         ("ACUCAR_CRISTAL",         8.0,  "kg"),
         ("COCO_RALADO",            5.0,  "kg"),
         ("SAL",                    0.015,"kg"),   # mistura: 1 colher = 15 g
@@ -107,7 +108,7 @@ RECEITAS = {
 
     # Cocada Leite Condensado — coco dobrado + LC
     "cocada_L_tacho": [
-        ("LEITE_IN_NATURA",       19.0,  "L"),
+        ("LEITE_IN_NATURA",       19.5,  "L"),
         ("ACUCAR_CRISTAL",         8.0,  "kg"),
         ("COCO_RALADO",           10.0,  "kg"),
         ("LEITE_CONDENSADO",      15.0,  "kg"),
@@ -117,7 +118,7 @@ RECEITAS = {
 
     # Cocada Brigadeiro — coco normal + achocolatado
     "cocada_B_tacho": [
-        ("LEITE_IN_NATURA",       19.0,  "L"),
+        ("LEITE_IN_NATURA",       19.5,  "L"),
         ("ACUCAR_CRISTAL",         8.0,  "kg"),
         ("COCO_RALADO",            5.0,  "kg"),
         ("ACHOCOLATADO",           0.500,"kg"),
@@ -127,7 +128,7 @@ RECEITAS = {
 
     # Cocada Café — coco normal + café (5 sachês de 40 g)
     "cocada_C_tacho": [
-        ("LEITE_IN_NATURA",       19.0,  "L"),
+        ("LEITE_IN_NATURA",       19.5,  "L"),
         ("ACUCAR_CRISTAL",         8.0,  "kg"),
         ("COCO_RALADO",            5.0,  "kg"),
         ("CAFE_SACHE_40G",         5,    "und"),
@@ -137,7 +138,7 @@ RECEITAS = {
 
     # Cocada Pé de Moça — SEM COCO + amendoim
     "cocada_P_tacho": [
-        ("LEITE_IN_NATURA",       19.0,  "L"),
+        ("LEITE_IN_NATURA",       19.5,  "L"),
         ("ACUCAR_CRISTAL",         8.0,  "kg"),
         ("AMENDOIM",               2.5,  "kg"),
         ("SAL",                    0.015,"kg"),
@@ -146,7 +147,7 @@ RECEITAS = {
 
     # Cocada Zero — sem açúcar cristal, leite extra, adoçantes triplos
     "cocada_Z_tacho": [
-        ("LEITE_IN_NATURA",       26.0,  "L"),   # 26 L total (500 ml viram a mistura)
+        ("LEITE_IN_NATURA",       26.5,  "L"),   # 26,5 L total (26 base + 0,5 da mistura)
         ("COCO_RALADO",            6.0,  "kg"),
         ("ADOCANTE_LOWCUCAR_STEVIA", 2.0,"kg"),
         ("ERITRITOL",              2.0,  "kg"),
