@@ -682,6 +682,7 @@ section[data-testid="stSidebar"] .stCaption {{
 [data-testid="stMain"] .vn-selo-danger  {{ background: rgba(254,202,202,0.60); color: #7F1D1D; }}
 [data-testid="stMain"] .vn-selo-success {{ background: rgba(22,163,74,0.14);  color: #14532D; }}
 [data-testid="stMain"] .vn-selo-warning {{ background: rgba(202,138,4,0.15);  color: #713F12; }}
+[data-testid="stMain"] .vn-selo-neutro  {{ background: #EEF0F3;              color: #475569; }}
 
 /* ─────────── MOLDURA DE PÁGINA (componentes.cabecalho / rodape) ───────────
    Cabeçalho estilo painel executivo: chip com ícone da seção + sobretítulo +

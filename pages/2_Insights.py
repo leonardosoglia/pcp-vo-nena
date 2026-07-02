@@ -176,7 +176,7 @@ def _calc_proporcao_45g(datas, folhas_cocada):
 # ════════════════════════════════════════════════════════════════════════════
 # ORQUESTRADOR — carrega dados + chama todas as análises
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=60, show_spinner="Recalculando insights...")
+@st.cache_data(ttl=60, show_spinner="Calculando os insights...")
 def calcular_todos_insights():
     """Carrega tudo do banco UMA vez, roda as 6 análises, retorna dict."""
     datas = sorted(list_datas_folha())

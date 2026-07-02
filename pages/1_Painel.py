@@ -181,7 +181,7 @@ with st.sidebar:
             df_al.columns = ["Produto","Em Estoque","Meta"]
             modal_alertas(df_al)
     st.divider()
-    st.caption("Atualizado em tempo real.\nUse 🔄 Atualizar para forçar atualização.")
+    st.caption("Atualizado em tempo real.\nUse o botão Atualizar para forçar.")
 
 # ── Abas ───────────────────────────────────────────────────────────────────────
 aba_gestao, aba_producao, aba_corte, aba_embalagem, aba_estoque, aba_analise = st.tabs([

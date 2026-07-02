@@ -143,7 +143,7 @@ with colh1:
 with colh2:
     st.write("")
     _atualizar_hist = st.button(
-        "🔄 Atualizar do SIGE", use_container_width=True,
+        "Atualizar do SIGE", use_container_width=True,
         help="Recalcula o mês atual e os meses que ainda faltam (lê o SIGE; "
              "cada mês leva alguns segundos).")
 
@@ -239,7 +239,7 @@ with c_data:
     )
 with c_btn:
     st.write("")  # alinha o botão com o input
-    if st.button("🔄 Carregar / atualizar do SIGE", use_container_width=True):
+    if st.button("Atualizar do SIGE", use_container_width=True):
         st.session_state["vdet_go"] = True
 
 # st.date_input devolve 1 data enquanto o usuário escolhe a 2ª — espera as duas.
@@ -256,7 +256,7 @@ if st.session_state.pop("vdet_go", False):
     st.session_state["vdet_loaded"] = _chave_det
     carregar_vendas.clear()
 if st.session_state.get("vdet_loaded") != _chave_det:
-    st.info("Escolha o período e clique em **Carregar / atualizar do SIGE** para ver o "
+    st.info("Escolha o período e clique em **Atualizar do SIGE** para ver o "
             "detalhe por canal, empresa e a Curva ABC (leva ~1 min na 1ª vez; depois "
             "fica em cache). O histórico mensal acima já está pronto.")
     st.stop()

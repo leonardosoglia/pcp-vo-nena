@@ -47,11 +47,12 @@ st.set_page_config(
 from ui_theme import aplicar_tema
 aplicar_tema()
 
-STATUS_LABEL = {
-    "OK": "✅ Bate",
-    "DIVERGENTE": "⚠️ Divergente",
-    "NAO_COMPARAVEL": "❓ Confirmar unidade",
-    "SEM_SIGE": "➖ Sem SIGE",
+# Situação de cada insumo — vira selo colorido na tabela (componentes.selo)
+_SELO_STATUS = {
+    "OK": ("Bate", "success"),
+    "DIVERGENTE": ("Divergente", "warning"),
+    "NAO_COMPARAVEL": ("Confirmar unidade", "info"),
+    "SEM_SIGE": ("Sem SIGE", "neutro"),
 }
 
 
@@ -89,7 +90,8 @@ def montar_df(linhas):
     for ln in linhas:
         rows.append({
             "Insumo": ln["nome"],
-            "Situação": STATUS_LABEL.get(ln["status"], ln["status"]),
+            "Situação": componentes.selo(
+                *_SELO_STATUS.get(ln["status"], (ln["status"], "neutro"))),
             "SIGE (total)": _num_br(ln["sige_saldo_compra"]),
             "SIGE → receita": (_qtd_br(ln["sige_convertido"], ln["un_receita"])
                                if ln["sige_convertido"] is not None else "—"),
@@ -116,7 +118,7 @@ if not sige.credenciais_configuradas():
     st.stop()
 
 col_btn, _ = st.columns([1, 4])
-if col_btn.button("🔄 Carregar / atualizar do SIGE"):
+if col_btn.button("Atualizar do SIGE"):
     st.session_state["recon_go"] = True
 
 # Carregamento preguiçoso: a tela abre na hora; só lê o SIGE quando você clica.
@@ -124,7 +126,7 @@ if st.session_state.pop("recon_go", False):
     st.session_state["recon_loaded"] = True
     carregar_reconciliacao.clear()
 if not st.session_state.get("recon_loaded"):
-    st.info("A tela abre na hora. Clique em **Carregar / atualizar do SIGE** para ler o "
+    st.info("A tela abre na hora. Clique em **Atualizar do SIGE** para ler o "
             "estoque e reconciliar (leva ~1 min; depois fica em cache).")
     st.stop()
 
@@ -148,7 +150,7 @@ if resumo["maior_divergencia"]:
 # ── Tabela ───────────────────────────────────────────────────────────────────
 df = montar_df(linhas)
 componentes.tabela(
-    df, altura_max=520,
+    df, altura_max=520, html_cols=["Situação"],
     cols_direita=["SIGE (total)", "SIGE → receita", "Nosso sistema", "Divergência"],
 )
 
@@ -163,9 +165,9 @@ with st.expander("Como ler esta tela"):
         "por produção** (sem carga inicial), por isso aparece negativo. Depois da "
         "**contagem física**, esta coluna passa a ser o estoque real e a divergência "
         "vira o **ajuste de inventário** a tratar com a Gestão.\n"
-        "- **❓ Confirmar unidade:** insumos cujo fator de conversão (caixa↔kg) "
+        "- **Confirmar unidade:** insumos cujo fator de conversão (caixa↔kg) "
         "ainda depende de confirmação da Suprimentos.\n"
-        "- **➖ Sem SIGE:** insumos ainda não cadastrados no SIGE."
+        "- **Sem SIGE:** insumos ainda não cadastrados no SIGE."
     )
 
 componentes.rodape("fonte: SIGE · renova a cada 10 min")

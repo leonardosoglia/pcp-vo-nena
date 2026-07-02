@@ -122,7 +122,7 @@ def carregar_papelzinho(datas):
 # SUB-ABA 1 — Evolução temporal
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
-    st.markdown("##### 📈 Evolução temporal por sabor")
+    st.markdown("##### Evolução temporal por sabor")
 
     if df_cocada.empty and df_palha.empty and df_joel.empty:
         st.info("Sem dados pra mostrar.")
@@ -145,7 +145,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
         "Embalados Palha 50g":                ("palha",  "emb_50g",   "Embalados Palha 50g · und"),
         "Embalados Palha Pet":                ("palha",  "emb_pet",   "Embalados Palha Pet · und"),
     }
-    rotulo = st.selectbox("📊 Métrica a visualizar", list(opcoes_metricas.keys()),
+    rotulo = st.selectbox("Métrica a visualizar", list(opcoes_metricas.keys()),
                           key="evol_metrica")
     categoria, coluna, titulo = opcoes_metricas[rotulo]
 
@@ -178,7 +178,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
     total_por_dia = df_plot.groupby("data")["valor"].sum()
     if len(total_por_dia) > 1:
         st.caption(
-            f"📊 Média {len(total_por_dia)} dias: **{total_por_dia.mean():.0f}** · "
+            f"Média {len(total_por_dia)} dias: **{total_por_dia.mean():.0f}** · "
             f"Máximo: **{total_por_dia.max():.0f}** · Mínimo: **{total_por_dia.min():.0f}**"
         )
 
@@ -187,7 +187,7 @@ def _render_evolucao(df_cocada, df_palha, df_joel, sabores_cocada):
 # SUB-ABA 2 — Dia da semana
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_dia_semana(df_cocada, sabores_cocada):
-    st.markdown("##### 📊 Média por dia da semana")
+    st.markdown("##### Média por dia da semana")
     st.caption(
         "Revela o **calendário implícito** das decisões. Compare com o calendário da Gestão: "
         "Seg/Qua/Qui = 45g · Ter/Sex = Mini+Pet."
@@ -245,7 +245,7 @@ def _render_dia_semana(df_cocada, sabores_cocada):
 # SUB-ABA 3 — Heatmap
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_heatmap(df_cocada, sabores_cocada):
-    st.markdown("##### 🔥 Heatmap (dia da semana × sabor)")
+    st.markdown("##### Mapa de calor (dia da semana × sabor)")
     st.caption(
         "Intensidade de uma métrica em cada combinação dia × sabor. "
         "Quanto mais escuro, mais alto o valor médio."
@@ -292,7 +292,7 @@ def _render_heatmap(df_cocada, sabores_cocada):
 # SUB-ABA 4 — Ajustes da Gestão
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_ajustes_eraldo(df_cocada, sabores_cocada):
-    st.markdown("##### ⚙️ Ajustes da Gestão (Parâmetro Real vs Base esperada)")
+    st.markdown("##### Ajustes da Gestão (Parâmetro Real vs Base esperada)")
     st.caption(
         "Quanto a Gestão desviou da tabela de referência em cada folha. "
         "Positivo = aumentou produção · Negativo = diminuiu."
@@ -323,7 +323,7 @@ def _render_ajustes_eraldo(df_cocada, sabores_cocada):
     df_ajustes = df_ajustes.sort_values("data", ascending=False)
 
     if df_ajustes.empty:
-        st.success("✅ Nenhum ajuste de 45g registrado no período (Gestão seguiu a base semanal).")
+        st.success("Nenhum ajuste de 45g registrado no período — a Gestão seguiu a base semanal.")
     else:
         st.markdown("**Ajustes registrados (45g):**")
         df_ajustes_show = df_ajustes.copy()
@@ -362,7 +362,7 @@ def _render_ajustes_eraldo(df_cocada, sabores_cocada):
 # SUB-ABA 5 — Detecção de anomalias
 # ══════════════════════════════════════════════════════════════════════════════
 def _render_anomalias(df_cocada, df_palha):
-    st.markdown("##### ⚠️ Detecção de anomalias")
+    st.markdown("##### Detecção de anomalias")
     st.caption(
         "Sistema avisa quando proporções típicas entre sabores são violadas — "
         "pode indicar erro de contagem ou situação atípica que merece atenção."
@@ -381,7 +381,7 @@ def _render_anomalias(df_cocada, df_palha):
                     l = row.get("LEITE EM PÓ", 0) or 0
                     if t > 0 and l > t * 1.3:
                         alertas.append({
-                            "tipo": "🌾 Palha 50g",
+                            "tipo": "Palha 50g",
                             "data": data_idx.strftime("%d/%m/%Y"),
                             "descrição": (
                                 f"Leite em Pó ({l}) está mais de 30% acima do Tradicional ({t}). "
@@ -403,7 +403,7 @@ def _render_anomalias(df_cocada, df_palha):
                             v = row.get(outro, 0) or 0
                             if v > t:
                                 alertas.append({
-                                    "tipo": "🍬 Cocada 45g",
+                                    "tipo": "Cocada 45g",
                                     "data": data_idx.strftime("%d/%m/%Y"),
                                     "descrição": (
                                         f"{outro} ({v}) está acima do Tradicional ({t}). "
@@ -412,16 +412,16 @@ def _render_anomalias(df_cocada, df_palha):
                                 })
 
     if not alertas:
-        st.success("✅ Nenhuma anomalia detectada no período selecionado.")
+        st.success("Nenhuma anomalia detectada no período selecionado.")
     else:
-        st.warning(f"⚠️ {len(alertas)} anomalia(s) detectada(s):")
+        st.warning(f"{len(alertas)} anomalia(s) detectada(s):")
         df_al = pd.DataFrame(alertas)
         df_al.columns = ["Tipo", "Data", "Descrição"]
         componentes.tabela(df_al, altura_max=380)
 
     st.divider()
     st.caption(
-        "💡 Mais regras de anomalia serão adicionadas conforme o histórico crescer e novos padrões "
+        "Mais regras de anomalia serão adicionadas conforme o histórico crescer e novos padrões "
         "forem identificados."
     )
 
@@ -430,7 +430,7 @@ def _render_anomalias(df_cocada, df_palha):
 # RENDER PRINCIPAL — chamado pelo painel.py
 # ══════════════════════════════════════════════════════════════════════════════
 def render():
-    st.subheader("📊 Análise de Tendências e Padrões")
+    st.subheader("Análise de tendências e padrões")
     st.caption(
         "Camada 1 da inteligência do sistema — visualização do histórico de folhas. "
         "Quanto mais folhas você digitalizar (atuais e antigas), mais ricos ficam os gráficos."
@@ -439,8 +439,8 @@ def render():
     datas_disponiveis = sorted(list_datas_folha())
     if not datas_disponiveis:
         st.info(
-            "📋 **Nenhuma folha registrada ainda.** "
-            "Salve folhas no formulário **Lançamento** (porta 8502) e os gráficos aparecerão aqui."
+            "**Nenhuma folha registrada ainda.** "
+            "Salve folhas na tela **Lançamento** e os gráficos aparecerão aqui."
         )
         return
 
@@ -450,12 +450,12 @@ def render():
 
     col_ini, col_fim, col_sab = st.columns([1, 1, 2.5])
     with col_ini:
-        data_ini = st.date_input("📅 De", value=data_min, min_value=data_min, max_value=data_max)
+        data_ini = st.date_input("De", value=data_min, min_value=data_min, max_value=data_max)
     with col_fim:
-        data_fim = st.date_input("📅 Até", value=data_max, min_value=data_min, max_value=data_max)
+        data_fim = st.date_input("Até", value=data_max, min_value=data_min, max_value=data_max)
     with col_sab:
         sabores_filtro = st.multiselect(
-            "🍬 Sabores cocada",
+            "Sabores cocada",
             options=SABORES_COCADA,
             default=SABORES_COCADA,
             help="Filtra os gráficos de cocada por sabor (palha não filtra).",
@@ -479,7 +479,7 @@ def render():
     n_folhas = len(datas_periodo)
     n_dias = (data_fim - data_ini).days + 1
 
-    st.markdown("### 🎯 KPIs do período")
+    st.markdown("### Indicadores do período")
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Folhas registradas", n_folhas, help=f"Período de {n_dias} dias")
     if not df_cocada.empty and "emb_45g" in df_cocada.columns:
@@ -496,11 +496,11 @@ def render():
 
     # ── Sub-abas ──
     sub_evol, sub_dia, sub_heat, sub_aj, sub_anom = st.tabs([
-        "📈 Evolução",
-        "📊 Dia da Semana",
-        "🔥 Heatmap",
-        "⚙️ Ajustes da Gestão",
-        "⚠️ Anomalias",
+        "Evolução",
+        "Dia da semana",
+        "Mapa de calor",
+        "Ajustes da Gestão",
+        "Anomalias",
     ])
     with sub_evol: _render_evolucao(df_cocada, df_palha, df_joel, sabores_filtro)
     with sub_dia:  _render_dia_semana(df_cocada, sabores_filtro)

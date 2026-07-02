@@ -68,7 +68,7 @@ COR_MEDIA = "#1F2937"      # cinza escuro (linha de tendência)
 # ════════════════════════════════════════════════════════════════════════════
 # DADOS
 # ════════════════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=1800, show_spinner="Carregando dados da bala...")
+@st.cache_data(ttl=1800, show_spinner="Lendo as folhas de produção...")
 def carregar_serie_bala():
     """Série temporal da bala: data, estoque (prateleira), tachos, balas produzidas."""
     datas = sorted(list_datas_folha())

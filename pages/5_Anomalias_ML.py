@@ -167,7 +167,7 @@ def _features_de_folha(d):
     return feat
 
 
-@st.cache_data(ttl=1800, show_spinner="Treinando modelo de detecção de anomalias...")
+@st.cache_data(ttl=1800, show_spinner="Analisando as folhas de produção...")
 def detectar_anomalias(contamination=0.1):
     """Roda Isolation Forest sobre todas as folhas + retorna DataFrame com score.
 
