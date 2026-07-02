@@ -1,8 +1,8 @@
 """
-pages/1_Painel.py — PCP Vó Nena v1.2
+pages/1_Painel.py — PCP Vó Nena
 
 Visualização operacional por departamento (Gestão, Produção, Corte, Embalagem, Estoque, Análise).
-Acessível pelo sidebar do app principal (entry point: lancamento.py).
+Acessível pelo sidebar do app principal (entry point: app.py).
 
 Stack: Python + Streamlit + Postgres (Supabase) — fallback SQLite local em dev.
 """
@@ -152,26 +152,23 @@ pbd        = _folha["pmbd"]
 df_est     = pd.DataFrame(get_estoque())
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
-col_t, col_d, col_r = st.columns([5,2,1])
-with col_t:
-    st.title("PCP — Doces Vó Nena")
-    st.caption("Visão operacional do dia por departamento.")
-with col_d:
-    if hoje == hoje_real:
-        st.markdown(f"<div style='margin-top:14px;color:#C05621;font-weight:600;'>{datetime.today().strftime('%A, %d/%m/%Y').capitalize()}</div>", unsafe_allow_html=True)
-    else:
-        from datetime import datetime as _dt
-        d_show = _dt.strptime(hoje, "%Y-%m-%d").strftime("%d/%m/%Y")
-        st.markdown(f"<div style='margin-top:14px;color:#C05621;font-weight:600;'>Última folha registrada: {d_show}</div>", unsafe_allow_html=True)
-with col_r:
-    st.write("")
-    if st.button("🔄 Atualizar", type="primary", width='stretch', help="Atualizar"): st.rerun()
-st.divider()
+if hoje == hoje_real:
+    _data_dir = datetime.today().strftime('%A, %d/%m/%Y').capitalize()
+else:
+    _data_dir = "Última folha: " + datetime.strptime(hoje, "%Y-%m-%d").strftime("%d/%m/%Y")
+componentes.cabecalho(
+    "Operação do dia", "Painel", icone="dashboard",
+    contexto="Visão operacional do dia por departamento — Gestão, Produção, "
+             "Corte, Embalagem e Estoque.",
+    direita=_data_dir,
+)
+if st.button("Atualizar", help="Relê os dados do banco agora"):
+    st.rerun()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### Vó Nena")
-    st.markdown("**Sistema PCP** — v1.2")
+    st.markdown(f"**Sistema PCP** — v{componentes.APP_VERSAO}")
     st.divider()
     st.markdown("#### Estoque Crítico")
     alertas = [e for e in get_estoque() if "GERAR" in e.get("alerta","")]
@@ -445,5 +442,4 @@ with aba_analise:
     import analise
     analise.render()
 
-st.divider()
-st.caption(f"PCP Doces Vó Nena — v1.2 · {datetime.today().strftime('%d/%m/%Y %H:%M')} · Python + Streamlit + Postgres")
+componentes.rodape("dados da folha do dia")

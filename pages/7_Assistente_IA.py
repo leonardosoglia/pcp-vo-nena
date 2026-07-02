@@ -31,9 +31,10 @@ if _RAIZ not in sys.path:
     sys.path.insert(0, _RAIZ)
 
 from cached_db import list_datas_folha
+import componentes
 
 st.set_page_config(
-    page_title="Pergunte ao Claude • Doces Vó Nena",
+    page_title="Assistente IA • Doces Vó Nena",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -47,11 +48,9 @@ aplicar_tema()
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Pergunte ao Claude")
-st.caption(
-    "Pergunte em português sobre a operação da Vó Nena. O sistema manda sua "
-    "pergunta + dados da folha + histórico recente pro Claude, que responde "
-    "em ~3-5s com explicação humana baseada nos dados reais."
+componentes.cabecalho(
+    "Suporte", "Assistente IA", icone="smart_toy",
+    contexto="Pergunte em português sobre a produção — o assistente lê os dados e responde. Cada pergunta custa centavos.",
 )
 
 with st.expander("Como funciona (clica pra entender)", expanded=False):
@@ -452,15 +451,8 @@ if historico_pra_exibir:
 # ════════════════════════════════════════════════════════════════════════════
 # RODAPÉ
 # ════════════════════════════════════════════════════════════════════════════
-st.divider()
-st.caption(
-    " Powered by **Claude** (Anthropic) · "
-    f"Sessão iniciada {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    "Custos exibidos são estimativas baseadas no pricing público vigente."
-)
-st.caption(
-    " **Lembrete pro TCC:** este é o componente que coroa a Camada 2 do sistema. "
-    "Capítulo associado: \"Integração com LLMs como camada cognitiva em PCP\". "
-    "Métricas pra o Cap 5: tempo médio de resposta, satisfação subjetiva do Eraldo (escala 1-5), "
-    "custo médio por consulta, % de perguntas que levaram a decisão concreta."
-)
+# Nota interna (não exibir na tela): componente que coroa a Camada 2. Capítulo do
+# TCC: "Integração com LLMs como camada cognitiva em PCP". Métricas pro Cap 5:
+# tempo médio de resposta, satisfação subjetiva da Gestão (1-5), custo médio por
+# consulta, % de perguntas que viraram decisão concreta.
+componentes.rodape("as respostas usam os dados do dia — confira antes de decidir")

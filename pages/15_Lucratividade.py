@@ -126,12 +126,9 @@ def carregar(d_ini: str, d_fim: str):
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Lucratividade — o que puxa o resultado")
-st.caption(
-    "Vendas reais do SIGE cruzadas com o custo do material. **Contribuição = "
-    "receita − custo do material** (o que sobra pra pagar a operação). Ainda não "
-    "é o lucro final — falta o custo de mão de obra/energia, em levantamento. "
-    "Somente leitura."
+componentes.cabecalho(
+    "Vendas & resultado", "Lucratividade", icone="trending_up",
+    contexto="O que cada produto deixa depois do custo de material — contribuição, não só receita. <b>Só leitura.</b>",
 )
 
 if not sige.credenciais_configuradas():
@@ -359,6 +356,4 @@ with st.expander("Ver a tabela completa (produto a produto)"):
                       "Contribuição (R$)", "Margem material"],
     )
 
-st.caption(f"Calculado em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-           f"período {periodo[0].strftime('%d/%m/%Y')}–{periodo[1].strftime('%d/%m/%Y')} · "
-           f"{res['n_pedidos']:,} pedidos · cache de 30 min.".replace(",", "."))
+componentes.rodape("fonte: SIGE · renova a cada 30 min")

@@ -63,6 +63,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+import componentes
 from componentes import tabela
 aplicar_tema()
 
@@ -267,10 +268,9 @@ def _explicar_feature(nome_feat: str, z_score: float) -> str:
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Folhas Atípicas")
-st.caption(
-    "Detecção automática via Machine Learning (Isolation Forest). "
-    "[Saiba mais](/Ajuda) na página de Ajuda."
+componentes.cabecalho(
+    "Análise da produção", "Anomalias ML", icone="warning",
+    contexto="O aprendizado de máquina aponta folhas fora do padrão — pra investigar, não pra concluir.",
 )
 
 
@@ -523,8 +523,4 @@ with st.expander("Ver todas as folhas com score (não só anomalias)", expanded=
     tabela(df_tab, altura_max=360, cols_direita=["Score de estranheza"])
 
 
-st.divider()
-st.caption(
-    f"Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"{n_folhas} folhas · cache 30 min."
-)
+componentes.rodape("fonte: folhas de produção")

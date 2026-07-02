@@ -35,6 +35,7 @@ st.set_page_config(
 )
 
 from ui_theme import aplicar_tema
+import componentes
 aplicar_tema()
 
 
@@ -119,11 +120,9 @@ st.markdown(AJUDA_CSS, unsafe_allow_html=True)
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + BUSCA
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown(
-    "<div class='aj-eyebrow'>PCP Vó Nena · Ajuda</div>"
-    "<div class='aj-title'>Central de Ajuda</div>"
-    "<div class='aj-sub'>Tudo sobre o sistema num lugar só. Use a busca ou as abas pra achar rápido.</div>",
-    unsafe_allow_html=True,
+componentes.cabecalho(
+    "Suporte", "Ajuda", icone="help",
+    contexto="Como o sistema funciona, termo a termo — busque ou navegue pelas abas.",
 )
 
 q = st.text_input(
@@ -444,3 +443,5 @@ with tab_ref:
         for titulo, corpo, uso in REFERENCIAS
     ]
     st.markdown("".join(refs), unsafe_allow_html=True)
+
+componentes.rodape("")

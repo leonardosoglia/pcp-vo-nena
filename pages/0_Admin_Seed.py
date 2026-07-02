@@ -25,10 +25,11 @@ if _RAIZ not in sys.path:
 
 import database as db_real
 import cached_db
+import componentes
 from seed_bom_completa import executar_seed, INSUMOS, RECEITAS
 
 st.set_page_config(
-    page_title="Admin · Seed BOM • Doces Vó Nena",
+    page_title="Cadastrar BOM (setup) • Doces Vó Nena",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -36,15 +37,13 @@ from ui_theme import aplicar_tema
 aplicar_tema()
 
 
-st.title("Admin — Cadastrar BOM completa")
-st.caption(
-    "**Ferramenta de setup única (Etapa D do roadmap).** Cadastra todos os "
-    "insumos e linhas de BOM (receitas) das cocadas, palhas, Pão de Mel e Bala "
-    "de uma vez no banco. **Idempotente** — pode rodar várias vezes sem duplicar."
+componentes.cabecalho(
+    "Admin", "Cadastrar BOM (setup)", icone="settings",
+    contexto="Área administrativa — recria insumos e receitas no banco. Só para configuração; não é tela do dia a dia.",
 )
+st.warning("Área administrativa — os botões desta tela escrevem no banco de produção. Use apenas na configuração inicial.")
 
 # ── Status atual ───────────────────────────────────────────────────────────
-st.divider()
 st.header("Status atual do banco")
 try:
     insumos_atuais = db_real.get_insumos(somente_ativos=False)
@@ -135,3 +134,5 @@ with st.expander("Quando ocultar / remover esta página", expanded=False):
         "- **Não use esta página em rotina** — é só pra setup inicial e "
         "re-aplicação após mudança no script."
     )
+
+componentes.rodape("")

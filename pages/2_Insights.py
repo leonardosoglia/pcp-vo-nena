@@ -49,6 +49,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+import componentes
 from componentes import tabela
 aplicar_tema()
 
@@ -202,12 +203,9 @@ def calcular_todos_insights():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + DADOS
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Insights & Diagnóstico")
-st.caption(
-    "Sinais que o sistema detectou ao analisar todas as folhas registradas. "
-    "Atualiza sozinho quando novas folhas entram. "
-    "**Importante:** sinais ≠ diagnósticos confirmados. "
-    "Cada achado é uma pista pra investigar com a Gestão — não conclusão fechada."
+componentes.cabecalho(
+    "Análise da produção", "Insights", icone="lightbulb",
+    contexto="Diagnóstico automático do histórico de folhas — padrões, tachos parciais e sobrecargas de embalagem.",
 )
 
 dados = calcular_todos_insights()
@@ -558,13 +556,9 @@ st.divider()
 # RODAPÉ
 # ════════════════════════════════════════════════════════════════════════════
 st.caption(
-    f"Análise gerada automaticamente em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"baseada em {dados['n_folhas']} folhas registradas · "
-    f"atualizada a cada 60 segundos ou quando nova folha é salva."
-)
-st.caption(
     "Esta página mostra **sinais a investigar** — não conclusões fechadas. "
     "Conforme novas folhas entram, padrões mais ricos emergem e os falsos positivos diminuem. "
     "Achados que a Gestão confirmar viram **regras automatizadas** na Camada 2 (sugestão de corte). "
     "Achados que a Gestão refutar são marcados aqui e desligados como alerta."
 )
+componentes.rodape("fonte: folhas de produção")

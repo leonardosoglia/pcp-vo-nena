@@ -51,6 +51,7 @@ st.set_page_config(
 )
 
 from ui_theme import aplicar_tema
+import componentes
 from componentes import tabela
 aplicar_tema()
 
@@ -97,10 +98,9 @@ df = carregar_serie_bala()
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Bala de Doce de Leite")
-st.caption(
-    "O produto que era invisível pro sistema agora tem análise própria — "
-    "produção (tachos → balas), estoque na prateleira e o descompasso entre eles."
+componentes.cabecalho(
+    "Análise da produção", "Bala", icone="cookie",
+    contexto="Produção, estoque e giro da bala de doce de leite — reposição por nível de estoque.",
 )
 
 if df.empty or df["tachos"].sum() == 0:
@@ -288,8 +288,4 @@ bala: ~{LEAD_TIME_DIAS} dias (processo do lote).
         """
     )
 
-st.divider()
-st.caption(
-    f"Atualizado em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"{len(df)} folhas · cache 30 min · 1 tacho = {BALAS_POR_TACHO} balas."
-)
+componentes.rodape("fonte: folhas de produção")

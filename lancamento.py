@@ -84,7 +84,7 @@ CALENDARIO_CORTE = {
 
 # ── Configuração da página ──────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Folha de Produção • Vó Nena",
+    page_title="Lançamento • Doces Vó Nena",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -337,15 +337,11 @@ if pendente:
     )
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
-col_t, col_d = st.columns([5, 2])
-with col_t:
-    st.title("Folha de Produção — Doces Vó Nena")
-with col_d:
-    st.markdown(
-        "<div style='margin-top:24px;text-align:right;color:#C05621;font-weight:700;font-size:15px;'>"
-        "PCP Vó Nena · v2.1</div>",
-        unsafe_allow_html=True,
-    )
+componentes.cabecalho(
+    "Operação do dia", "Lançamento", icone="edit_note",
+    contexto="A folha de produção do dia, digitalizada — preencha como no papel; "
+             "os derivados o sistema calcula sozinho.",
+)
 
 # ── Date picker + status ───────────────────────────────────────────────────────
 default_data = st.session_state.get("data_selecionada")
@@ -1376,8 +1372,4 @@ if _preview_data == data_str:
                     st.rerun()
 
 # ── Rodapé ─────────────────────────────────────────────────────────────────────
-st.divider()
-st.caption(
-    f"Folha de Produção — PCP Doces Vó Nena v2.1 · "
-    f"Sessão aberta em {datetime.now().strftime('%d/%m/%Y %H:%M')}"
-)
+componentes.rodape("grava no banco de produção")

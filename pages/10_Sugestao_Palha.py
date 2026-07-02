@@ -35,7 +35,7 @@ from palha_planejamento import (
     EXEMPLO_VALIDACAO_18_05, ESPERADO_18_05,
 )
 import cached_db
-from componentes import tabela
+from componentes import tabela, cabecalho, rodape
 
 # Sabor no banco → sigla na calculadora
 SIGLA_PALHA_DB = {
@@ -89,12 +89,10 @@ def _kpi(col, icone_svg, cor, chip_bg, label, valor, unidade, sub):
 # ════════════════════════════════════════════════════════════════════════════
 # Cabeçalho enxuto
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown(
-    '<div class="sgp-eyebrow">Sugestão · Palha</div>'
-    '<div class="sgp-title">Corte e produção da semana</div>'
-    '<div class="sgp-sub">A partir dos estoques do dia, o sistema sugere quanto cortar '
-    '(50g + Pet) e quanto produzir de bandejas. <b>A Gestão decide.</b></div>',
-    unsafe_allow_html=True,
+cabecalho(
+    "Sugestão", "Palha", icone="bakery_dining",
+    contexto="A partir dos estoques do dia, o sistema sugere quanto cortar "
+             "(50g + Pet) e quanto produzir de bandejas. <b>A Gestão decide.</b>",
 )
 
 # Painel de decisão (preenchido depois do cálculo) — fica no topo
@@ -405,7 +403,4 @@ with st.expander("Constantes da semana (avançado)", expanded=False):
     )
 
 _rodape_data = data_sel.strftime('%d/%m/%Y') if data_sel is not None else "sem data selecionada"
-st.caption(
-    f"Calculado para {_rodape_data} · fonte: {fonte_dados} · "
-    "dados em cache ~1 min."
-)
+rodape(f"calculado para {_rodape_data} · fonte: {fonte_dados} · cache ~1 min")

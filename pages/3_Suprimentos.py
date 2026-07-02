@@ -33,6 +33,7 @@ _RAIZ = os.path.dirname(os.path.dirname(__file__))
 if _RAIZ not in sys.path:
     sys.path.insert(0, _RAIZ)
 
+import componentes
 import cached_db as db
 from cached_db import (
     init_db,
@@ -109,13 +110,10 @@ def _brl(valor: float) -> str:
 
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
-st.title("Suprimentos")
-st.caption(
-    "Controle de matéria-prima, embalagens, potes, cintas e displays. "
-    "Conectado à folha de produção: ao salvar uma folha no Lançamento, o sistema "
-    "mostra um preview e baixa automaticamente o consumo de insumos no estoque."
+componentes.cabecalho(
+    "Cadastros", "Suprimentos", icone="inventory_2",
+    contexto="Insumos, receitas (BOM) e movimentações — a base de matéria-prima do planejamento.",
 )
-st.divider()
 
 
 # ── Abas ──────────────────────────────────────────────────────────────────────
@@ -761,3 +759,5 @@ with aba_importar:
             "este mesmo casamento de produtos vira um botão **Sincronizar agora** — "
             "sem upload manual. Ver `suprimentos_sigee/03_solicitar_credenciais_api.md`."
         )
+
+componentes.rodape("grava no banco de produção")

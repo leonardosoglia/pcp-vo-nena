@@ -102,10 +102,10 @@ def montar_df(linhas):
 # ════════════════════════════════════════════════════════════════════════════
 # UI
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Reconciliação de estoque — SIGE × nosso sistema")
-st.caption("Estoque **total** de matéria-prima no SIGE (a fábrica é um local só; "
-           "somamos todos os depósitos), comparado com o nosso sistema. Somente "
-           "leitura — nada é alterado no SIGE.")
+componentes.cabecalho(
+    "Cadastros", "Reconciliação SIGE", icone="sync",
+    contexto="Estoque de insumos: o SIGE e o nosso sistema lado a lado — onde bate e onde diverge. <b>Só leitura.</b>",
+)
 
 if not sige.credenciais_configuradas():
     st.warning(
@@ -168,5 +168,4 @@ with st.expander("Como ler esta tela"):
         "- **➖ Sem SIGE:** insumos ainda não cadastrados no SIGE."
     )
 
-st.caption("Somente leitura. A decisão de ajuste é da Gestão — o sistema só mostra "
-           "a diferença. Cache de 10 min; use *Atualizar do SIGE* pra forçar a leitura.")
+componentes.rodape("fonte: SIGE · renova a cada 10 min")

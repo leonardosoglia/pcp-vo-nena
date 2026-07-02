@@ -41,7 +41,7 @@ from cocada_planejamento import (
     EXEMPLO_11_05, ESPERADO_11_05,
 )
 import cached_db
-from componentes import tabela
+from componentes import tabela, cabecalho, rodape
 
 st.set_page_config(
     page_title="Sugestão Cocada • Doces Vó Nena",
@@ -91,12 +91,10 @@ def _kpi(col, icone_svg, cor, chip_bg, label, valor, unidade, sub):
 # ════════════════════════════════════════════════════════════════════════════
 # Cabeçalho enxuto + painel de decisão (preenchido após o cálculo)
 # ════════════════════════════════════════════════════════════════════════════
-st.markdown(
-    '<div class="sgp-eyebrow">Sugestão · Cocada</div>'
-    '<div class="sgp-title">Corte e produção do dia</div>'
-    '<div class="sgp-sub">A partir dos estoques do dia, o sistema sugere o corte, a produção, '
-    'os potes e a viração. <b>A Gestão decide.</b></div>',
-    unsafe_allow_html=True,
+cabecalho(
+    "Sugestão", "Cocada", icone="cake",
+    contexto="A partir dos estoques do dia, o sistema sugere o corte, a produção, "
+             "os potes e a viração. <b>A Gestão decide.</b>",
 )
 kpi_box = st.container()
 
@@ -822,5 +820,4 @@ with st.expander("Notas e limitações desta v3", expanded=False):
         """
     )
 
-st.divider()
-st.caption("Camada 2 — o sistema sugere, a Gestão decide. PCP Vó Nena.")
+rodape("o sistema sugere, a Gestão decide")

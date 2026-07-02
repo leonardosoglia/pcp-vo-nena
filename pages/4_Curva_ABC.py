@@ -57,6 +57,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+import componentes
 from componentes import tabela
 aplicar_tema()
 
@@ -187,10 +188,9 @@ def calcular_curva_abc():
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO + EXPLICAÇÃO DIDÁTICA
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Curva ABC")
-st.caption(
-    "Classificação dos produtos por volume acumulado de bandejas cortadas. "
-    " [Saiba mais sobre Curva ABC](/Ajuda) na página de Ajuda."
+componentes.cabecalho(
+    "Análise da produção", "Curva ABC", icone="bar_chart",
+    contexto="Classifica os produtos pelo volume produzido (bandejas cortadas) — onde concentrar a atenção.",
 )
 
 
@@ -207,8 +207,6 @@ if df_abc.empty:
 # ════════════════════════════════════════════════════════════════════════════
 # RESUMO POR CLASSE
 # ════════════════════════════════════════════════════════════════════════════
-st.divider()
-
 col_a, col_b, col_c = st.columns(3)
 
 for col, classe, descricao, cor in [
@@ -360,8 +358,4 @@ with col3:
         st.caption("_(vazia)_")
 
 
-st.divider()
-st.caption(
-    f"Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"{len(df_abc)} produtos · cache de 30 min."
-)
+componentes.rodape("fonte: folhas de produção")

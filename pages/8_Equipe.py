@@ -51,17 +51,16 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+import componentes
 aplicar_tema()
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Equipe — Funcionários, Capacidades e Presença")
-st.caption(
-    "Cadastro de quem trabalha na fábrica + capacidades por atividade + "
-    "presença diária. Alimenta o algoritmo de **Sugestão de Ordem do Dia** "
-    "(Camada 2 — em construção)."
+componentes.cabecalho(
+    "Cadastros", "Equipe", icone="group",
+    contexto="Departamentos, capacidades e presença — referência pra dimensionar as ordens do dia.",
 )
 
 with st.expander("Como essa página funciona (clica pra entender)", expanded=False):
@@ -415,3 +414,4 @@ st.caption(
     "Próxima etapa: o algoritmo vai consumir esses dados pra pré-calcular "
     "ord_corte / ord_emb / ord_prod, considerando capacidade efetiva do dia."
 )
+componentes.rodape("")

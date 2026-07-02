@@ -23,8 +23,13 @@ if _RAIZ not in sys.path:
 
 import cached_db
 from ui_theme import aplicar_tema
-from componentes import cartao_atalho, status_badge
+from componentes import cartao_atalho, status_badge, cabecalho, rodape
 
+st.set_page_config(
+    page_title="Início • Doces Vó Nena",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 aplicar_tema()
 
 
@@ -63,8 +68,8 @@ if ultima_folha:
 # ════════════════════════════════════════════════════════════════════════════
 cab_esq, cab_dir = st.columns([3, 1.3], vertical_alignment="center")
 with cab_esq:
-    st.title("PCP Vó Nena")
-    st.caption(f"Hoje é {saudacao_dia}, {data_fmt}.")
+    cabecalho("PCP Doces Vó Nena", "Início", icone="home",
+              contexto=f"Hoje é {saudacao_dia}, {data_fmt}.")
 with cab_dir:
     if folha_hoje_existe:
         if st.button("Ver folha de hoje", type="primary",
@@ -197,3 +202,5 @@ with st.expander("Não sabe por onde começar?", expanded=False):
         - Em **Média Móvel**, ver se as metas base precisam de recalibração.
         """
     )
+
+rodape()

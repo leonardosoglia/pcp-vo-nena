@@ -57,6 +57,7 @@ st.set_page_config(
 
 # Tema visual centralizado (Inter font + paleta clean)
 from ui_theme import aplicar_tema
+import componentes
 from componentes import tabela
 aplicar_tema()
 
@@ -189,11 +190,9 @@ def calcular_tudo(janela=4):
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Calibração de metas")
-st.caption(
-    "Compara a **meta-base 45g** (tabela `metas_45g`, fixa) com o **Cortados² médio** "
-    "observado nas últimas semanas — `emb_45g + cort sala + papelzinho da Produção`. "
-    "Mostra onde a realidade se descolou do parâmetro e pede recalibração."
+componentes.cabecalho(
+    "Análise da produção", "Média Móvel", icone="show_chart",
+    contexto="Compara a meta de cada dia da semana com a média do que realmente saiu — e sugere recalibrar.",
 )
 
 
@@ -479,8 +478,4 @@ else:
     )
 
 
-st.divider()
-st.caption(
-    f"Análise atualizada em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-    f"{n_obs} observações · janela {janela} · cache 30 min."
-)
+componentes.rodape("fonte: folhas de produção")

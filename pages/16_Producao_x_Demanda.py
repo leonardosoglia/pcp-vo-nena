@@ -81,11 +81,9 @@ def carregar(d_ini: str, d_fim: str):
 # ════════════════════════════════════════════════════════════════════════════
 # CABEÇALHO
 # ════════════════════════════════════════════════════════════════════════════
-st.title("Produção × Demanda")
-st.caption(
-    "O **coração** do PCP puxado pela demanda: cruza **o que a fábrica corta** "
-    "(bandejas, das folhas) com **o que o mercado compra** (vendas reais do SIGE), "
-    "por sabor de cocada. Aponta onde **reequilibrar o corte**. Somente leitura."
+componentes.cabecalho(
+    "Vendas & resultado", "Produção × Demanda", icone="compare_arrows",
+    contexto="O esforço da fábrica lado a lado com o que o mercado comprou — os gaps por sabor.",
 )
 
 if not sige.credenciais_configuradas():
@@ -263,6 +261,4 @@ st.markdown(
     "bala e a palha não entram aqui)."
     "</div>", unsafe_allow_html=True)
 
-st.caption(f"Calculado em {datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-           f"demanda {periodo[0].strftime('%d/%m/%Y')}–{periodo[1].strftime('%d/%m/%Y')} · "
-           "produção = todas as folhas · cache de 30 min.")
+componentes.rodape("fonte: folhas de produção × SIGE · renova a cada 30 min")
