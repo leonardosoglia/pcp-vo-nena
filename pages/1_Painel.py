@@ -52,13 +52,18 @@ COR_VERDE   = "rgba(14,116,144,0.18)"
 COR_AZUL    = "rgba(14,116,144,0.16)"
 
 def _fmt_cell(v):
-    """Inteiro no padrão BR (1.234); preserva texto e o traço '—'."""
+    """Inteiro no padrão BR (1.234); preserva texto e o traço '—'.
+    None/NaN viram '—' (o quadro esmaece) — sem isso, int(NaN) derruba a tela."""
+    if v is None:
+        return "—"
     if isinstance(v, str):
         return v
     try:
         f = float(v)
     except (TypeError, ValueError):
         return str(v)
+    if f != f or abs(f) == float("inf"):   # NaN é o único valor diferente de si mesmo
+        return "—"
     if f == int(f):
         return f"{int(f):,}".replace(",", ".")
     return f"{f:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")

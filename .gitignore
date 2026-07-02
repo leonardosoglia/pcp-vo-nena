@@ -50,6 +50,15 @@ _tmp_*.py
 _streamlit_*.txt
 smoke_test_*.py
 
+# Ferramentas de trabalho com prefixo _ (exploração SIGE, backfills, saídas).
+# Regra da casa: _ no início = script/dado de sessão, não vai pro Git.
+# (Arquivos já rastreados, como _gerar_tcc_abnt.py, NÃO são afetados.)
+_*.py
+_*.json
+_*.txt
+_*.js
+_video_frames/
+
 # Locks de Office (Word/Excel) quando arquivo está aberto
 ~$*
 

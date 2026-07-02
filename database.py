@@ -910,79 +910,99 @@ def _seed_referencias(c):
 # ════════════════════════════════════════════════════════════════════════════════
 def get_folha_cocada(data):
     conn = get_conn()
-    rows = conn.execute(
-        _sql("SELECT * FROM folha_cocada WHERE data=? ORDER BY id"), (data,)
-    ).fetchall()
-    conn.close()
+    try:
+        rows = conn.execute(
+            _sql("SELECT * FROM folha_cocada WHERE data=? ORDER BY id"), (data,)
+        ).fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_folha_palha(data):
     conn = get_conn()
-    rows = conn.execute(
-        _sql("SELECT * FROM folha_palha WHERE data=? ORDER BY id"), (data,)
-    ).fetchall()
-    conn.close()
+    try:
+        rows = conn.execute(
+            _sql("SELECT * FROM folha_palha WHERE data=? ORDER BY id"), (data,)
+        ).fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_papelzinho_joel(data):
     conn = get_conn()
-    rows = conn.execute(
-        _sql("SELECT * FROM papelzinho_joel WHERE data=? ORDER BY id"), (data,)
-    ).fetchall()
-    conn.close()
+    try:
+        rows = conn.execute(
+            _sql("SELECT * FROM papelzinho_joel WHERE data=? ORDER BY id"), (data,)
+        ).fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_pm_balas_doces(data):
     conn = get_conn()
-    row = conn.execute(
-        _sql("SELECT * FROM folha_pm_balas_doces WHERE data=?"), (data,)
-    ).fetchone()
-    conn.close()
+    try:
+        row = conn.execute(
+            _sql("SELECT * FROM folha_pm_balas_doces WHERE data=?"), (data,)
+        ).fetchone()
+    finally:
+        conn.close()
     return dict(row) if row else {}
 
 
 def get_estoque():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM estoque ORDER BY id_produto").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM estoque ORDER BY id_produto").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_metas_45g():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM metas_45g").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM metas_45g").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_metas_mini_pet():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM metas_mini_pet").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM metas_mini_pet").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_metas_potes():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM metas_potes").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM metas_potes").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_pvirar_ideal():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM parametros_pvirar_ideal").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM parametros_pvirar_ideal").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
 def get_conversoes():
     conn = get_conn()
-    rows = conn.execute("SELECT * FROM conversoes").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT * FROM conversoes").fetchall()
+    finally:
+        conn.close()
     return [dict(r) for r in rows]
 
 
@@ -993,15 +1013,17 @@ def list_datas_folha():
     ORDER BY id (em vez de rowid) — Postgres não expõe rowid.
     """
     conn = get_conn()
-    rows = conn.execute("""
-        SELECT DISTINCT data FROM (
-            SELECT data FROM folha_cocada
-            UNION SELECT data FROM folha_palha
-            UNION SELECT data FROM papelzinho_joel
-            UNION SELECT data FROM folha_pm_balas_doces
-        ) AS u WHERE data IS NOT NULL ORDER BY data DESC
-    """).fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("""
+            SELECT DISTINCT data FROM (
+                SELECT data FROM folha_cocada
+                UNION SELECT data FROM folha_palha
+                UNION SELECT data FROM papelzinho_joel
+                UNION SELECT data FROM folha_pm_balas_doces
+            ) AS u WHERE data IS NOT NULL ORDER BY data DESC
+        """).fetchall()
+    finally:
+        conn.close()
     return [r["data"] for r in rows]
 
 

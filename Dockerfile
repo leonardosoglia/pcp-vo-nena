@@ -14,6 +14,14 @@
 
 FROM python:3.13-slim
 
+# Relogio do container no horario de Brasilia. Sem isso o servidor roda em UTC
+# (3h a frente): entre 21h e 0h no Brasil, date.today() do app vira "amanha" —
+# o historico mensal fecharia o mes na vespera e a folha "de hoje" nao e achada.
+# tzdata garante a tabela de fusos na imagem slim (se ja existir, e no-op).
+RUN apt-get update && apt-get install -y --no-install-recommends tzdata \
+    && rm -rf /var/lib/apt/lists/*
+ENV TZ=America/Sao_Paulo
+
 # HF Spaces exige usuario nao-root com uid 1000.
 RUN useradd -m -u 1000 user
 USER user
