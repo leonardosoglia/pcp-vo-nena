@@ -44,7 +44,8 @@ except Exception:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# DE-PARA — derivado de suprimentos_sigee/de_para_sige.md (14/06/2026)
+# DE-PARA — base 14/06 + re-mapeamento v3 (23/06, por UltimaAlteracao) aplicado
+# em 02/07/2026 com códigos conferidos AO VIVO no catálogo (0 fantasmas).
 # (chave_insumo, codigo_sige, fator→un.receita ou None, un.receita, status)
 # fator None  => não calcular custo (unidade de compra ambígua) — só obs/fornecedor.
 # codigo None => NAO_CADASTRADO (pular).
@@ -52,11 +53,19 @@ except Exception:
 DEPARA = [
     ("LEITE_IN_NATURA",          "01021",                  1.0,  "L",   "CONFIRMADO"),
     ("LEITE_CONDENSADO",         "000000000000012332",    20.0,  "kg",  "AMBIGUO"),
-    ("CREME_DE_LEITE",           "560074",                None,  "kg",  "FATOR_INCERTO"),
+    # v3: 6943 "CREME DE LEITE GRANDE FOOD SERVICE PIRACANJUBA 1,030" (alt 26/06,
+    # vivo). Preço R$213,72 sugere CAIXA 12x1,03kg (=R$17,29/kg) mas o nome não
+    # confirma — custo só depois da confirmação do fator.
+    ("CREME_DE_LEITE",           "6943",                  None,  "kg",  "TROCADO_v3_FATOR_INCERTO"),
     ("LEITE_NINHO",              "560077",                None,  "kg",  "FATOR_INCERTO"),
-    ("MANTEIGA_SEM_SAL",         "5620",                  None,  "kg",  "FATOR_INCERTO"),
+    # v3: 5620 é MARGARINA USO GERAL S/SAL AMELIA 12x1,01kg (não manteiga!).
+    # Pergunta pra fábrica: a receita usa manteiga ou margarina sem sal?
+    ("MANTEIGA_SEM_SAL",         "5620",                  None,  "kg",  "CONFIRMAR_MARGARINA_X_MANTEIGA"),
     ("DOCE_DE_LEITE",            "409000198",              4.8,  "kg",  "FATOR_INCERTO"),
-    ("ACUCAR_CRISTAL",           "409000200",              5.0,  "kg",  "FATOR_INCERTO"),
+    # v3: açúcar da cocada é REFINADO. O Guarani 992 (foto 23/06) está parado
+    # desde ago/25; o cadastro VIVO é 7566 "ALTO ALEGRE 1KG (FDO 10 PCT)"
+    # (alterado 30/06/26) — R$46/fardo 10x1kg = R$4,60/kg. Confirmar no chão.
+    ("ACUCAR_CRISTAL",           "7566",                  10.0,  "kg",  "TROCADO_v3_CONFIRMAR_CAMPO"),
     ("ACUCAR_CONFEITEIRO",       "409001130",             10.0,  "kg",  "CONFIRMADO"),
     ("ACUCAR_MASCAVO",           "7908089414219",          1.0,  "kg",  "CONFIRMADO"),
     ("ADOCANTE_LOWCUCAR_STEVIA", "409000415",              1.0,  "kg",  "CONFIRMADO"),
@@ -66,25 +75,35 @@ DEPARA = [
     ("ESSENCIA_MEL",             None,                    None,  "kg",  "NAO_CADASTRADO"),
     ("COCO_RALADO",              "008",                    2.0,  "kg",  "AMBIGUO"),
     ("AMENDOIM",                 "649",                    5.0,  "kg",  "AMBIGUO"),
-    # OVO -> "OVOS BRANCOS GRANDES (30 OVOS)" (cod 291, R$17,55 -> R$0,585/ovo).
-    # AMBIGUO: há vários cadastros de ovo no SIGE, nenhum com saldo p/ desempatar.
-    ("OVO",                      "291",                   30.0,  "und", "AMBIGUO"),
+    # v3: 409000334 "CX OVO BCO GD 20UN" (alt mar/26, mais recente que o 291 de
+    # set/24) — R$13,99/caixa = R$0,70/ovo. Nenhum cadastro de ovo é claramente
+    # vivo; segue ambíguo.
+    ("OVO",                      "409000334",             20.0,  "und", "TROCADO_v3_AMBIGUO"),
     ("ACHOCOLATADO",             "82143",                  0.5,  "kg",  "AMBIGUO"),
     ("CACAU_PO",                 "82143",                  0.5,  "kg",  "AMBIGUO"),
     ("CHOCOLATE_MEIO_AMARGO",    "409000228",              2.1,  "kg",  "FATOR_INCERTO"),
-    ("CAFE_SACHE_40G",           "409000174",              1.0,  "und", "FATOR_INCERTO"),
+    # v3: caixa Nescafé Tradição Forte 24x40g (alt 18/06, saldo 3) —
+    # R$130,05/caixa = R$5,42/sachê de 40g (a unidade da receita).
+    ("CAFE_SACHE_40G",           "000000000012610012",    24.0,  "und", "TROCADO_v3_CONFIRMADO"),
     ("BISCOITO_MAISENA",         "740226",                None,  "kg",  "AMBIGUO"),
-    ("BISCOITO_NEGRESCO",        "409000207",              0.1,  "kg",  "AMBIGUO"),
+    # v3: 83726 "BISC.NESTLE NEGRESCO RECH.ORIGINAL" (alt 18/06, vivo) — sem
+    # gramatura no nome (R$10,14 não bate com pacote de 140g); fator a confirmar.
+    ("BISCOITO_NEGRESCO",        "83726",                 None,  "kg",  "TROCADO_v3_FATOR_INCERTO"),
     ("CANELA_PO",                "5769",                  None,  "kg",  "AMBIGUO"),
     ("CRAVO_PO",                 None,                    None,  "kg",  "NAO_CADASTRADO"),
     ("LIMAO_TAITI",              "1805",                  None,  "und", "FATOR_INCERTO"),
-    ("FARINHA_TRIGO",            "409000150",              1.0,  "kg",  "AMBIGUO"),
+    # v3: 1462 "FARINHA DE TRIGO FDO 10X1KG" (alt 13/06, vivo) — MAS o preço
+    # R$4,99 parece ser do PACOTE de 1kg, não do fardo (R$0,50/kg é irreal e a
+    # trava de sanidade não pegaria); custo só depois de confirmar a unidade.
+    ("FARINHA_TRIGO",            "1462",                  None,  "kg",  "TROCADO_v3_FATOR_INCERTO"),
     ("BICARBONATO",              "26818",                  1.0,  "kg",  "CONFIRMADO"),
     ("FERMENTO_PO",              "409000330",              0.25, "kg",  "CONFIRMADO"),
     ("AMACIANTE",                None,                    None,  "kg",  "NAO_CADASTRADO"),
     ("PALMISTE",                 "OLEO DE PALMISTE TAUA", 14.5,  "kg",  "AMBIGUO"),
     ("SAL",                      "344",                    1.0,  "kg",  "AMBIGUO"),
-    ("SORBATO",                  "29.08.07.01",           None,  "kg",  "FATOR_INCERTO"),
+    # v3: cadastro POR KG criado pelo Leonardo em 23-25/06 (o Kunda antigo era
+    # caixa de 25 kg — não cabia os 70 g da receita). R$24,89/kg direto.
+    ("SORBATO",                  "7908089414222",          1.0,  "kg",  "TROCADO_v3_CONFIRMADO"),
     ("ETIQUETA_PALHA",           None,                    None,  "und", "NAO_CADASTRADO"),
 ]
 
