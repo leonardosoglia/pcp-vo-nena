@@ -1549,9 +1549,14 @@ def registrar_movimento_insumo(insumo_id: int, tipo: str, quantidade: float,
                  "VALUES (?, ?, ?, ?, ?, ?, ?)"),
             (data, insumo_id, tipo, quantidade, origem, referencia, obs),
         )
-        # 2. Atualiza cache de estoque_atual no insumo
+        # 2. Atualiza cache de estoque_atual no insumo. ROUND(_, 4): sem ele,
+        # a soma de floats acumula resíduo (ex.: -0,00000001) que dispara o
+        # alerta de "estoque negativo" sendo matematicamente zero. O CAST é
+        # obrigatório no Postgres (ROUND de 2 args só existe pra NUMERIC);
+        # no SQLite é inofensivo.
         c.execute(
-            _sql("UPDATE insumos SET estoque_atual = estoque_atual + ?, "
+            _sql("UPDATE insumos SET "
+                 "estoque_atual = ROUND(CAST(estoque_atual + ? AS NUMERIC), 4), "
                  "atualizado_em = CURRENT_TIMESTAMP WHERE id = ?"),
             (delta, insumo_id),
         )
