@@ -58,14 +58,16 @@ DEPARA = [
     # confirma — custo só depois da confirmação do fator.
     ("CREME_DE_LEITE",           "6943",                  None,  "kg",  "TROCADO_v3_FATOR_INCERTO"),
     ("LEITE_NINHO",              "560077",                None,  "kg",  "FATOR_INCERTO"),
-    # v3: 5620 é MARGARINA USO GERAL S/SAL AMELIA 12x1,01kg (não manteiga!).
-    # Pergunta pra fábrica: a receita usa manteiga ou margarina sem sal?
-    ("MANTEIGA_SEM_SAL",         "5620",                  None,  "kg",  "CONFIRMAR_MARGARINA_X_MANTEIGA"),
+    # CONFIRMADO campo 02/07 (Leonardo: "deve ser margarina mesmo"): é MARGARINA
+    # sem sal, não manteiga. 5620 "USO GERAL S/SAL AMÉLIA 12x1,01kg" = R$150,01/
+    # caixa ÷ 12,12 kg = R$12,38/kg.
+    ("MANTEIGA_SEM_SAL",         "5620",                  12.12, "kg",  "CONFIRMADO_MARGARINA"),
     ("DOCE_DE_LEITE",            "409000198",              4.8,  "kg",  "FATOR_INCERTO"),
-    # v3: açúcar da cocada é REFINADO. O Guarani 992 (foto 23/06) está parado
-    # desde ago/25; o cadastro VIVO é 7566 "ALTO ALEGRE 1KG (FDO 10 PCT)"
-    # (alterado 30/06/26) — R$46/fardo 10x1kg = R$4,60/kg. Confirmar no chão.
-    ("ACUCAR_CRISTAL",           "7566",                  10.0,  "kg",  "TROCADO_v3_CONFIRMAR_CAMPO"),
+    # CONFIRMADO campo 02/07: açúcar do tacho é REFINADO e "TODA SEMANA MUDA" de
+    # marca (Leonardo). Hoje = 7566 "ALTO ALEGRE 1KG (FDO 10 PCT)", vivo 30/06,
+    # R$46/fardo 10x1kg = R$4,60/kg. Insumo VOLÁTIL — código fixo é aproximação;
+    # a identidade real vem do radar por UltimaAlteracao (revisar toda semana).
+    ("ACUCAR_CRISTAL",           "7566",                  10.0,  "kg",  "CONFIRMADO_VOLATIL"),
     ("ACUCAR_CONFEITEIRO",       "409001130",             10.0,  "kg",  "CONFIRMADO"),
     ("ACUCAR_MASCAVO",           "7908089414219",          1.0,  "kg",  "CONFIRMADO"),
     ("ADOCANTE_LOWCUCAR_STEVIA", "409000415",              1.0,  "kg",  "CONFIRMADO"),
