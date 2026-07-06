@@ -29,8 +29,12 @@ textColor = "#F1F5F9"
 primaryColor = "#C05621"
 
 [client]
-# Esconde os "tip cards" do Streamlit que aparecem em loading
-showSidebarNavigation = true
+# DESLIGA a lista automática de páginas na sidebar. O menu do app é montado à
+# mão no app.py (grupos-sanfona via st.page_link); a lista automática só
+# aparecia no ESQUELETO de carregamento — a cada troca de tela, o navegador
+# desenhava a lista crua dos arquivos ("app", "Admin Seed", "Media Movel"...)
+# por 1-2s até o menu próprio chegar (flash gravado pelo usuário em 06/07/2026).
+showSidebarNavigation = false
 
 [browser]
 # Não envia telemetria do uso pro Streamlit
