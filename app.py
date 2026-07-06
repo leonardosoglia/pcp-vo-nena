@@ -110,21 +110,27 @@ if st.session_state.get("_nav_pagina") != _pagina_atual:
     st.session_state["_nav_pagina"] = _pagina_atual
     st.session_state["_nav_grupo_aberto"] = None
 
+# As keys viram classes CSS (st-key-*) que o ui_theme estiliza:
+#   navmenu          -> espaçamento denso do bloco inteiro
+#   navgrp_N[_open]  -> botão de grupo; sufixo _open marca o grupo aberto
+#   navsub_N         -> container dos itens do grupo aberto (trilho vertical)
 with st.sidebar:
-    st.page_link(home, use_container_width=True)
-    for _i, (_nome, _paginas) in enumerate(_GRUPOS_NAV):
-        _aberto = st.session_state.get("_nav_grupo_aberto") == _i
-        if st.button(
-            _nome,
-            key=f"navgrp_{_i}",
-            use_container_width=True,
-            icon=":material/expand_more:" if _aberto else ":material/chevron_right:",
-        ):
-            st.session_state["_nav_grupo_aberto"] = None if _aberto else _i
-            st.rerun()
-        if _aberto:
-            for _p in _paginas:
-                st.page_link(_p, use_container_width=True)
+    with st.container(key="navmenu"):
+        st.page_link(home, use_container_width=True)
+        for _i, (_nome, _paginas) in enumerate(_GRUPOS_NAV):
+            _aberto = st.session_state.get("_nav_grupo_aberto") == _i
+            if st.button(
+                _nome,
+                key=f"navgrp_{_i}_open" if _aberto else f"navgrp_{_i}",
+                use_container_width=True,
+                icon=":material/expand_more:" if _aberto else ":material/chevron_right:",
+            ):
+                st.session_state["_nav_grupo_aberto"] = None if _aberto else _i
+                st.rerun()
+            if _aberto:
+                with st.container(key=f"navsub_{_i}"):
+                    for _p in _paginas:
+                        st.page_link(_p, use_container_width=True)
 
 
 pg.run()

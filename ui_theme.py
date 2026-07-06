@@ -79,6 +79,13 @@ def aplicar_tema():
     except Exception:
         pass
     t = TOKENS
+    # Versão exibida no rodapé fixo da sidebar. Import tardio de propósito:
+    # componentes.py importa deste módulo; em import de topo viraria ciclo.
+    try:
+        from componentes import APP_VERSAO as _v
+        _rodape_versao = f"v{_v}"
+    except Exception:
+        _rodape_versao = ""
     st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -1135,25 +1142,32 @@ footer {{ visibility: hidden; height: 0; }}
 #MainMenu {{ visibility: hidden; }}
 header[data-testid="stHeader"] {{ background: transparent; }}
 
-/* ─────────── TÍTULOS DE GRUPO DO MENU (botões-sanfona) ───────────
+/* ─────────── MENU LATERAL — GRUPOS-SANFONA (refino 06/07/2026, mockup aprovado) ───────────
    No FIM do tema de propósito: sobrescreve o botão laranja padrão da sidebar
-   SÓ nos títulos de grupo (key=navgrp_*). Ficam planos, maiúsculos, com risquinho
-   de divisão e a setinha (chevron). Degradação segura: se não pegar, vira botão. */
+   SÓ nos títulos de grupo (key=navgrp_*). Título à esquerda, chevron à DIREITA
+   (padrão SaaS), sem risquinho entre grupos (ritmo só por espaçamento), grupo
+   aberto destacado, subitens num trilho vertical, rodapé fixo com a versão.
+   Degradação segura: se algo não pegar, vira botão/lista simples legível. */
+section[data-testid="stSidebar"] [class*="st-key-navmenu"] {{
+    gap: 3px !important;
+}}
 section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button {{
     background: transparent !important;
     color: {t['sb_text_muted']} !important;
     border: none !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 0 !important;
+    border-radius: 7px !important;
     box-shadow: none !important;
-    justify-content: flex-start !important;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    justify-content: space-between !important;
+    width: 100% !important;
     text-align: left !important;
     font-size: 12px !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    padding: 9px 8px !important;
-    margin-top: 6px !important;
+    padding: 8px 10px !important;
+    margin-top: 2px !important;
 }}
 section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button:hover {{
     background: {t['sb_surface']} !important;
@@ -1163,8 +1177,51 @@ section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button p {{
     color: inherit !important; font-weight: 600 !important;
 }}
 section[data-testid="stSidebar"] [class*="st-key-navgrp_"] button [data-testid="stIconMaterial"] {{
-    color: {t['sb_text_muted']} !important;
-    font-size: 16px !important;
+    color: #475569 !important;
+    font-size: 15px !important;
+}}
+/* Grupo ABERTO — título clareia, fundo sutil, chevron laranja */
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"][class*="_open"] button {{
+    background: #16233B !important;
+    color: #E2E8F0 !important;
+}}
+section[data-testid="stSidebar"] [class*="st-key-navgrp_"][class*="_open"] button [data-testid="stIconMaterial"] {{
+    color: {t['brand']} !important;
+}}
+/* Itens do grupo aberto — pendurados num trilho vertical (hierarquia visível) */
+section[data-testid="stSidebar"] [class*="st-key-navsub_"] {{
+    margin: 2px 0 4px 14px !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 0 !important;
+    padding-left: 6px !important;
+    gap: 2px !important;
+}}
+/* Divisória sutil sob o cabeçalho do logo */
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {{
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    margin: 0 12px 8px !important;
+    padding: 4px 0 10px !important;
+}}
+/* Rodapé fixo da sidebar — versão à esquerda, marca à direita */
+section[data-testid="stSidebar"] {{ position: relative !important; }}
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
+    padding-bottom: 52px !important;
+}}
+section[data-testid="stSidebar"]::before {{
+    content: "{_rodape_versao}";
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 10px 20px 12px;
+    font-size: 11px; color: {t['sb_text_muted']};
+    background: {t['sb_bg']};
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    z-index: 5;
+}}
+section[data-testid="stSidebar"]::after {{
+    content: "Doces Vó Nena";
+    position: absolute; bottom: 0; right: 0;
+    padding: 10px 20px 12px;
+    font-size: 11px; color: {t['sb_text_muted']};
+    z-index: 6;
 }}
 
 </style>
