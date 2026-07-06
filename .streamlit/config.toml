@@ -35,3 +35,11 @@ showSidebarNavigation = true
 [browser]
 # Não envia telemetria do uso pro Streamlit
 gatherUsageStats = false
+
+[server]
+# Upload de arquivo (file_uploader) atras do proxy do Hugging Face:
+# a protecao XSRF do Streamlit valida um token que o proxy do HF nao repassa,
+# derrubando o POST de upload com HTTP 403 (AxiosError visto em 06/07/2026 na
+# aba Importar do SIGE). Desligar a XSRF libera o upload. Risco baixo: app
+# interno, sem acoes destrutivas por GET; CORS segue ligado.
+enableXsrfProtection = false
