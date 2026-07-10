@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # percebida no app em produção. Invalidação manual após save/delete.
 import cached_db as db
 import componentes
+import leitura_folha
 from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
     get_papelzinho_joel, get_pvirar_ideal, get_metas_45g, get_metas_mini_pet,
@@ -399,12 +400,95 @@ if prioridade_corte:
 
 st.divider()
 
+# ── Preencher pela foto — leitura da folha manuscrita por IA (07/07/2026) ─────
+# A IA lê a(s) foto(s) e PRÉ-PREENCHE o formulário (só células vazias); nada é
+# salvo automaticamente. Dúvida/borrão → campo fica vazio ou marcado em amarelo.
+# Chaves de sessão: ocr_<data> (resultado), ocr_pend_<data> (aplicar no próximo
+# render), ocr_aplic_<data> (keys que preenchemos), ocr_conf_<data> (keys amarelas).
+_ocr_key = f"ocr_{data_str}"
+_ocr_pend_key = f"ocr_pend_{data_str}"
+_ocr_aplic_key = f"ocr_aplic_{data_str}"
+_ocr_conf_key = f"ocr_conf_{data_str}"
+
+with st.expander("Preencher pela foto", expanded=False, icon=":material/photo_camera:"):
+    st.caption(
+        "Anexe a(s) foto(s) da folha do dia — a leitura preenche o formulário e "
+        "**nada é salvo automaticamente**: revise e salve como sempre. "
+        "Dica: foto reta, boa luz, sem sombra. Pode anexar também um close de uma região."
+    )
+    _fotos = st.file_uploader(
+        "Fotos da folha", type=["jpg", "jpeg", "png"], accept_multiple_files=True,
+        key=f"fotos_folha_{data_str}", label_visibility="collapsed",
+    )
+    _c_ler, _c_desc, _c_nota = st.columns([1.3, 1.5, 3])
+    with _c_ler:
+        _ler_clicado = st.button(
+            "Ler as fotos", type="primary", disabled=not _fotos,
+            key=f"btn_ler_fotos_{data_str}",
+        )
+    with _c_desc:
+        if _ocr_key in st.session_state and st.button(
+                "Descartar leitura", key=f"btn_descartar_ocr_{data_str}"):
+            # Apaga o estado dos widgets que preenchemos — renascem com o banco.
+            for _k in st.session_state.get(_ocr_aplic_key, []):
+                st.session_state.pop(_k, None)
+            for _k in (_ocr_key, _ocr_pend_key, _ocr_aplic_key, _ocr_conf_key):
+                st.session_state.pop(_k, None)
+            st.rerun()
+    with _c_nota:
+        st.caption("Opus · dupla leitura · ~R$ 1,20 por folha")
+    if _ler_clicado and _fotos:
+        with st.spinner("Lendo as fotos (30–90 s — são duas leituras independentes)..."):
+            try:
+                st.session_state[_ocr_key] = leitura_folha.ler_folha(
+                    [f.getvalue() for f in _fotos])
+                st.session_state[_ocr_pend_key] = True  # aplicar no próximo render
+                st.rerun()  # rerun limpo: aplica via session_state antes do form
+            except Exception as e:
+                st.error(f"Não consegui ler as fotos: {e}")
+
 # ── Carregar dados existentes (4 queries paralelas em Postgres, 1 round-trip) ──
 _folha = db.get_folha_completa(data_str)
 dados_cocada = {r["sabor"]: r for r in _folha["cocada"]}
 dados_palha = {r["sabor"]: r for r in _folha["palha"]}
 papelzinho_existente = {r["sabor"]: r for r in _folha["papelzinho"]}
 pbd_atual = _folha["pmbd"] or {}
+
+# Aplicação pendente da leitura por foto: escreve os valores lidos DIRETO no
+# estado dos widgets (o único jeito que o Streamlit 1.56 respeita — value= é
+# ignorado depois da 1ª renderização). Só células vazias no banco E que o
+# usuário ainda não digitou. Roda UMA vez (consome o flag).
+_ocr = st.session_state.get(_ocr_key)
+if _ocr and st.session_state.get(_ocr_pend_key):
+    _plano = leitura_folha.plano_preenchimento(
+        _ocr, dados_cocada, dados_palha, pbd_atual, data_str)
+    _aplicadas = []
+    for _wk, _val in _plano["set"]:
+        if not st.session_state.get(_wk):  # respeita valor digitado pelo usuário
+            st.session_state[_wk] = _val
+            _aplicadas.append(_wk)
+    st.session_state[_ocr_aplic_key] = _aplicadas
+    st.session_state[_ocr_conf_key] = _plano["conferir"]
+    st.session_state.pop(_ocr_pend_key, None)
+
+if _ocr:
+    _s = _ocr["stats"]
+    try:
+        from claude_assistant import usd_para_brl
+        _custo_brl = usd_para_brl(_ocr.get("custo_usd", 0))
+    except Exception:
+        _custo_brl = _ocr.get("custo_usd", 0) * 5.2
+    st.success(
+        f"Leitura concluída — {_s['preenchidas']} células lidas · "
+        f"{_s['conferir']} para conferir (em amarelo) · custo ~R$ {_custo_brl:.2f}. "
+        f"Campos que já tinham valor não foram tocados."
+    )
+    if _ocr.get("aviso"):
+        st.warning(_ocr["aviso"])
+    st.warning("Nada foi salvo — revise os campos (amarelo = conferir com a folha) e salve como sempre.")
+    _css_ocr = leitura_folha.css_conferir(st.session_state.get(_ocr_conf_key, []))
+    if _css_ocr:
+        st.markdown(_css_ocr, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONTEÚDO PRINCIPAL — duas colunas espelhando a folha física
@@ -1252,6 +1336,11 @@ if salvar_clicked:
         st.session_state["folha_salva_em"] = data_str
         # Etapa E — sinaliza pra renderizar o preview da baixa no próximo rerun
         st.session_state["preview_baixa_pendente"] = data_str
+        # Encerra a leitura por foto: os valores viraram banco. Some o banner,
+        # o amarelo e o risco de reaplicar ao voltar pra tela.
+        for _k in (f"ocr_{data_str}", f"ocr_pend_{data_str}",
+                   f"ocr_aplic_{data_str}", f"ocr_conf_{data_str}"):
+            st.session_state.pop(_k, None)
 
         # Animação de confirmação — toast discreto no canto + mensagem inline.
         # NÃO usar st.balloons (festivo demais pra ambiente profissional).
