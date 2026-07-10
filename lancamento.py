@@ -1230,18 +1230,9 @@ with st.form("folha_completa", border=False):
                         unsafe_allow_html=True,
                     )
 
-        # ── 16.  DOCES — caixa unificada ───────────────────────────────────────
-        with st.expander("Doces", expanded=False):
-            st.caption(
-                "Pequenos doces de leite (produto distinto). Decisão sob demanda — a Gestão "
-                "costuma perguntar diretamente à Embalagem. Normalmente este campo fica vazio."
-            )
-
-            st.markdown("<div style='font-size:12px;font-weight:700;color:#7B341E;'>Quantidade atual (unidades)</div>", unsafe_allow_html=True)
-            cnt_doces = st.number_input(
-                label="cnt_doces", min_value=0, value=int(pbd_atual.get("cnt_doces_displays") or 0),
-                key=f"cnt_doces_{data_str}", label_visibility="collapsed",
-            )
+        # "Doces" (campo cnt_doces_displays): removido da tela em 10/07/2026 —
+        # produto de decisão sob demanda que a fábrica não registra nesta folha.
+        # A coluna do banco é preservada no save (valor histórico, não zerado).
 
     # ══════════════════════════════════════════════════════════════════════════════
     # BOTÃO DE SALVAR (transação atômica)
@@ -1298,7 +1289,8 @@ if salvar_clicked:
         pm_balas_doces_dict = {
             "cnt_pm": int(cnt_pm or 0),
             "cnt_balas": int(cnt_balas or 0),
-            "cnt_doces_displays": int(cnt_doces or 0),
+            # Doces saiu da tela (10/07): preserva o que já estava salvo, sem zerar.
+            "cnt_doces_displays": int(pbd_atual.get("cnt_doces_displays") or 0),
             "cnt_displays_palha": int(cnt_displays or 0),
             "ord_pm": int(ord_pm or 0),
             "ord_balas": int(ord_balas or 0),
