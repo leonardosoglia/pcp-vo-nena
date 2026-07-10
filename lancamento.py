@@ -412,9 +412,11 @@ _ocr_conf_key = f"ocr_conf_{data_str}"
 
 with st.expander("Preencher pela foto", expanded=False, icon=":material/photo_camera:"):
     st.caption(
-        "Anexe a(s) foto(s) da folha do dia — a leitura preenche o formulário e "
-        "**nada é salvo automaticamente**: revise e salve como sempre. "
-        "Dica: foto reta, boa luz, sem sombra. Pode anexar também um close de uma região."
+        "Anexe as fotos dos papéis do dia — **a Folha de Produção, o Papelzinho da "
+        "Produção e o Papelzinho da Bala** (pode mandar os três juntos; o leitor "
+        "reconhece cada um). A leitura preenche o formulário e **nada é salvo "
+        "automaticamente**: revise e salve como sempre. "
+        "Dica: foto reta, boa luz, sem sombra."
     )
     _fotos = st.file_uploader(
         "Fotos da folha", type=["jpg", "jpeg", "png"], accept_multiple_files=True,
@@ -461,7 +463,7 @@ pbd_atual = _folha["pmbd"] or {}
 _ocr = st.session_state.get(_ocr_key)
 if _ocr and st.session_state.get(_ocr_pend_key):
     _plano = leitura_folha.plano_preenchimento(
-        _ocr, dados_cocada, dados_palha, pbd_atual, data_str)
+        _ocr, dados_cocada, dados_palha, papelzinho_existente, pbd_atual, data_str)
     _aplicadas = []
     for _wk, _val in _plano["set"]:
         if not st.session_state.get(_wk):  # respeita valor digitado pelo usuário

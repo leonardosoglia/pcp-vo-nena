@@ -56,8 +56,18 @@ CAMPOS_PALHA = [
     "emb_50g", "emb_pet", "cont_band_palha",
     "ord_prod_band", "ord_corte_50g", "ord_corte_pet",
 ]
+# Papelzinho da Produção (papel separado, contagem da manhã): 45g/30g em
+# UNIDADES; P (Pet), PV (p/ virar) e V (viradas) em BANDEJAS.
+CAMPOS_PAPELZINHO = ["joel_45g", "joel_mini", "joel_pet", "joel_pv", "joel_v"]
+# cnt_*/ord_* vêm da Folha; bala_*/pm_inacabado/cocada_assada vêm do papelzinho
+# da Bala (papel separado). Todos moram na mesma tabela pm_balas_doces.
 CAMPOS_PMBD = ["cnt_pm", "ord_pm", "cnt_balas", "ord_balas",
-               "cnt_doces_displays", "cnt_displays_palha"]
+               "cnt_doces_displays", "cnt_displays_palha",
+               "bala_p_cortar", "bala_cortadas", "pm_inacabado", "cocada_assada",
+               "ord_amanha_obs"]
+# ord_amanha_obs é o único campo de TEXTO (o aviso "Amanhã" = PM do próximo dia
+# útil); o widget é um text_area — o plano converte o número lido pra string.
+_CAMPOS_TEXTO = {"ord_amanha_obs"}
 
 # Faixas de plausibilidade (fábrica real; folga generosa). Fora da faixa → conferir.
 _FAIXA_MAX = {
@@ -72,18 +82,23 @@ _FAIXA_MAX = {
     "ord_corte_50g": 5000, "ord_corte_pet": 5000,
     "cnt_pm": 2000, "ord_pm": 50, "cnt_balas": 3000, "ord_balas": 30,
     "cnt_doces_displays": 3000, "cnt_displays_palha": 3000,
+    "bala_p_cortar": 5000, "bala_cortadas": 5000,
+    "pm_inacabado": 2000, "cocada_assada": 2000, "ord_amanha_obs": 50,
+    "joel_45g": 20000, "joel_mini": 8000,
+    "joel_pet": 300, "joel_pv": 300, "joel_v": 300,
 }
 
 _ESQUELETO_JSON = json.dumps({
     "cocada": {s: {c: None for c in CAMPOS_COCADA} for s in SABORES_COCADA_JSON},
     "palha": {s: {c: None for c in CAMPOS_PALHA} for s in SABORES_PALHA_JSON},
+    "papelzinho": {s: {c: None for c in CAMPOS_PAPELZINHO} for s in SABORES_COCADA_JSON},
     "pmbd": {c: None for c in CAMPOS_PMBD},
     "duvidas": [],
 }, ensure_ascii=False)
 
-PROMPT_GABARITO = f"""Você vai ler a FOLHA DE PRODUÇÃO manuscrita de uma confeitaria (foto anexa) e transcrever os números para um JSON com esquema fixo. Você conhece o layout de antemão — NÃO adivinhe estrutura; apenas copie cada número manuscrito para o campo certo.
+PROMPT_GABARITO = f"""Você vai ler os papéis de produção manuscritos de uma confeitaria (fotos anexas) e transcrever os números para um JSON com esquema fixo. Cada foto é UM destes 3 documentos — identifique qual é pelo aspecto e leia com o gabarito correspondente. Você conhece os layouts de antemão — NÃO adivinhe estrutura; apenas copie cada número manuscrito para o campo certo.
 
-## LAYOUT DA FOLHA (impressa, preenchida à caneta)
+# DOCUMENTO 1 — FOLHA DE PRODUÇÃO (formulário IMPRESSO grande, título "FOLHA DE PRODUÇÃO", preenchido à caneta)
 
 Sabores de COCADA nas linhas, sempre nesta ordem: T, L, B, C, P, Z.
 Sabores de PALHA nas linhas: T, L, CH, CK, LIM (se houver uma linha "P" na palha, IGNORE-A — produto fora do sistema).
@@ -106,9 +121,35 @@ Blocos, de cima pra baixo:
 8. "EMBALAGEM" (45g / Mini) → ord_emb_45g, ord_emb_mini.
 9. "PRODUÇÃO PALHA" → ord_prod_band (da palha). "CORTE PALHA" (50g / Pet) →
    ord_corte_50g, ord_corte_pet.
-10. Rodapé "Balas / PM / Amanhã": Balas → ord_balas · PM → ord_pm · "Amanhã": IGNORE.
+10. Rodapé "Balas / PM / Amanhã": Balas → ord_balas · PM → ord_pm (bolos de pão
+    de mel a produzir HOJE) · Amanhã → ord_amanha_obs (bolos avisados pro
+    PRÓXIMO dia útil).
 
-## REGRAS INVIOLÁVEIS
+# DOCUMENTO 2 — PAPELZINHO DA PRODUÇÃO (papel PEQUENO quadriculado à mão, grade desenhada à caneta)
+
+Contagem da manhã. Colunas, da esquerda pra direita: 45g | 30g | P | PV | V.
+Linhas = os 6 sabores de cocada NA ORDEM T, L, B, C, P, Z (a sigla manuscrita na
+borda esquerda pode estar estilizada — confie na ORDEM, não na caligrafia da sigla).
+→ preencha o bloco "papelzinho" do JSON: 45g → joel_45g · 30g → joel_mini ·
+P → joel_pet · PV → joel_pv · V → joel_v.
+- 45g e 30g estão em UNIDADES (números grandes, ex. 3.780 = 3780).
+- P, PV e V estão em BANDEJAS (números pequenos, tipicamente 0-100).
+- ⚠ A ÚLTIMA LINHA da grade costuma ser a DATA espalhada nas células
+  (ex.: 10 | 07 | ... | 20 | 26 = 10/07/2026). NÃO é um sabor — IGNORE-A.
+- "∅", "X" ou um traço riscando a célula significam ZERO → transcreva 0.
+- Zero (Z) NÃO TEM 45g: joel_45g do Z é sempre null.
+
+# DOCUMENTO 3 — PAPELZINHO DA BALA (papel PEQUENO com texto corrido manuscrito, título "Bala de leite" ou similar)
+
+Linhas com rótulo = valor:
+- "P/cortar" → bala_p_cortar (balas por cortar)
+- "cortadas" → bala_cortadas (balas cortadas)
+- "T" ou "Total" → IGNORE (é a soma; o sistema calcula sozinho)
+- "PÃO" (pão de mel) → pm_inacabado
+- "ASS." (cocadas assadas) → cocada_assada
+"∅" ou "X" = 0. Estes campos vão no bloco "pmbd" do JSON.
+
+## REGRAS INVIOLÁVEIS (todos os documentos)
 - Zero (Z) NÃO TEM 45g: emb_45g, cort1_45g, ord_corte_45g e ord_emb_45g do Z são
   SEMPRE null, mesmo que pareça haver algo escrito.
 - Palha CK e LIM NÃO TÊM 50g: emb_50g e ord_corte_50g delas são SEMPRE null.
@@ -119,9 +160,12 @@ Blocos, de cima pra baixo:
   SEM o ponto, como 1160 — nunca como 1.16.
 - Se um número estiver borrado, rasurado, emendado ou você tiver QUALQUER dúvida
   de leitura, transcreva seu melhor palpite E acrescente uma entrada em
-  "duvidas": {{"bloco": "cocada|palha|pmbd", "sabor": "T" (ou null p/ pmbd),
-  "campo": "...", "motivo": "curto"}}. Na dúvida entre dois dígitos, declare a dúvida.
+  "duvidas": {{"bloco": "cocada|palha|papelzinho|pmbd", "sabor": "T" (a sigla do
+  sabor; null só p/ pmbd), "campo": "...", "motivo": "curto"}}. Na dúvida entre
+  dois dígitos, declare a dúvida.
 - Não invente valor que não está na foto.
+- Se um documento NÃO estiver entre as fotos, deixe o bloco correspondente
+  inteiro em null — nunca transfira número de um documento pro bloco de outro.
 
 ## SAÍDA
 Responda APENAS com o JSON (sem texto antes/depois, sem markdown), exatamente
@@ -235,6 +279,9 @@ def _iter_celulas():
     for s in SABORES_PALHA_JSON:
         for c in CAMPOS_PALHA:
             yield "palha", s, c
+    for s in SABORES_COCADA_JSON:
+        for c in CAMPOS_PAPELZINHO:
+            yield "papelzinho", s, c
     for c in CAMPOS_PMBD:
         yield "pmbd", None, c
 
@@ -252,6 +299,8 @@ def _proibida(bloco: str, sabor, campo: str) -> bool:
     """Células que NÃO existem na fábrica (regra dura, descarte silencioso)."""
     if bloco == "cocada" and sabor == "Z" and campo in (
             "emb_45g", "cort1_45g", "ord_corte_45g", "ord_emb_45g"):
+        return True
+    if bloco == "papelzinho" and sabor == "Z" and campo == "joel_45g":
         return True
     if bloco == "palha" and sabor in ("CK", "LIM") and campo in ("emb_50g", "ord_corte_50g"):
         return True
@@ -289,7 +338,7 @@ def ler_folha(fotos: list[bytes], modelo: str = MODELO_LEITURA,
             except AttributeError:
                 pass
 
-    valores = {"cocada": {}, "palha": {}, "pmbd": {}}
+    valores = {"cocada": {}, "palha": {}, "papelzinho": {}, "pmbd": {}}
     conferir = []
     n_ok = n_conf = n_desc = 0
 
@@ -360,7 +409,24 @@ _CAMPO_PARA_KEY_PMBD = {
     "cnt_pm": "cnt_pm", "ord_pm": "ord_pm", "cnt_balas": "cnt_balas",
     "ord_balas": "ord_balas", "cnt_doces_displays": "cnt_doces",
     "cnt_displays_palha": "cnt_displays_palha",
+    "bala_p_cortar": "bala_p_cortar", "bala_cortadas": "bala_cortadas",
+    "pm_inacabado": "pm_inacabado", "cocada_assada": "cocada_assada",
+    "ord_amanha_obs": "ord_amanha",
 }
+# Papelzinho: campo do banco == prefixo da key do widget (joel_45g_{SABOR}_{data})
+_CAMPO_PARA_KEY_PAPELZINHO = {c: c for c in CAMPOS_PAPELZINHO}
+
+# Campos do papelzinho da Bala cujo NOME no banco leva sufixo "_und" (a coluna
+# real difere do nome curto usado na leitura). Usado só pra consultar pbd_atual
+# na checagem "célula já tem valor salvo" — sem isso, esses 2 campos pareceriam
+# sempre vazios (pré-preenchem/pintam de amarelo por cima de dado salvo).
+_CAMPO_PMBD_COLUNA_BANCO = {"pm_inacabado": "pm_inacabado_und",
+                            "cocada_assada": "cocada_assada_und"}
+
+
+def _valor_banco_pmbd(pbd_atual, campo):
+    col = _CAMPO_PMBD_COLUNA_BANCO.get(campo, campo)
+    return (pbd_atual or {}).get(col)
 
 
 def _key_widget(bloco: str, sabor, campo: str, data_str: str):
@@ -368,6 +434,8 @@ def _key_widget(bloco: str, sabor, campo: str, data_str: str):
         pref, nome = _CAMPO_PARA_KEY_COCADA.get(campo), SIGLA_PARA_SABOR_COCADA.get(sabor, "")
     elif bloco == "palha":
         pref, nome = _CAMPO_PARA_KEY_PALHA.get(campo), SIGLA_PARA_SABOR_PALHA.get(sabor, "")
+    elif bloco == "papelzinho":
+        pref, nome = _CAMPO_PARA_KEY_PAPELZINHO.get(campo), SIGLA_PARA_SABOR_COCADA.get(sabor, "")
     else:
         pref, nome = _CAMPO_PARA_KEY_PMBD.get(campo), None
     if not pref:
@@ -375,16 +443,19 @@ def _key_widget(bloco: str, sabor, campo: str, data_str: str):
     return f"{pref}_{nome}_{data_str}" if nome else f"{pref}_{data_str}"
 
 
-def _celula_vazia_no_banco(bloco, sabor, campo, dados_cocada, dados_palha, pbd_atual) -> bool:
+def _celula_vazia_no_banco(bloco, sabor, campo, dados_cocada, dados_palha,
+                           papelzinho, pbd_atual) -> bool:
     if bloco == "cocada":
         return not (dados_cocada.get(SIGLA_PARA_SABOR_COCADA.get(sabor), {}) or {}).get(campo)
     if bloco == "palha":
         return not (dados_palha.get(SIGLA_PARA_SABOR_PALHA.get(sabor), {}) or {}).get(campo)
-    return not (pbd_atual or {}).get(campo)
+    if bloco == "papelzinho":
+        return not (papelzinho.get(SIGLA_PARA_SABOR_COCADA.get(sabor), {}) or {}).get(campo)
+    return not _valor_banco_pmbd(pbd_atual, campo)
 
 
 def plano_preenchimento(ocr: dict, dados_cocada: dict, dados_palha: dict,
-                        pbd_atual: dict, data_str: str) -> dict:
+                        papelzinho: dict, pbd_atual: dict, data_str: str) -> dict:
     """Traduz a leitura em ações sobre os widgets do formulário, SÓ para células
     VAZIAS no banco (nunca sobrescreve dado salvo). Retorna:
       {"set": [(widget_key, valor), ...],   # valores lidos a aplicar
@@ -394,27 +465,31 @@ def plano_preenchimento(ocr: dict, dados_cocada: dict, dados_palha: dict,
     ainda o que o usuário já digitou na tela."""
     vals = ocr.get("valores", {})
     conjunto_set = []
-    for bloco, mapa_sabor in (("cocada", vals.get("cocada") or {}), ("palha", vals.get("palha") or {})):
+    for bloco, mapa_sabor in (("cocada", vals.get("cocada") or {}),
+                              ("palha", vals.get("palha") or {}),
+                              ("papelzinho", vals.get("papelzinho") or {})):
         for sigla, campos in mapa_sabor.items():
             for campo, v in campos.items():
                 if v is None:
                     continue
-                if not _celula_vazia_no_banco(bloco, sigla, campo, dados_cocada, dados_palha, pbd_atual):
+                if not _celula_vazia_no_banco(bloco, sigla, campo, dados_cocada,
+                                              dados_palha, papelzinho, pbd_atual):
                     continue
                 wk = _key_widget(bloco, sigla, campo, data_str)
                 if wk:
                     conjunto_set.append((wk, v))
     for campo, v in (vals.get("pmbd") or {}).items():
-        if v is None or (pbd_atual or {}).get(campo):
+        if v is None or _valor_banco_pmbd(pbd_atual, campo):
             continue
         wk = _key_widget("pmbd", None, campo, data_str)
         if wk:
-            conjunto_set.append((wk, v))
+            conjunto_set.append((wk, str(v) if campo in _CAMPOS_TEXTO else v))
 
     conferir_keys = []
     for item in ocr.get("conferir", []):
         bloco, sabor, campo = item["bloco"], item["sabor"], item["campo"]
-        if not _celula_vazia_no_banco(bloco, sabor, campo, dados_cocada, dados_palha, pbd_atual):
+        if not _celula_vazia_no_banco(bloco, sabor, campo, dados_cocada,
+                                      dados_palha, papelzinho, pbd_atual):
             continue  # dado salvo é confiável — não pinta de amarelo
         wk = _key_widget(bloco, sabor, campo, data_str)
         if wk:
@@ -430,7 +505,9 @@ def css_conferir(keys: list[str]) -> str:
     partes = []
     for k in keys:
         classe = re.sub(r"[^a-zA-Z0-9_-]", "-", k)
+        # number_input renderiza <input>; o campo "Amanhã" é text_area (<textarea>).
         partes.append(f'[class*="st-key-{classe}"] input')
+        partes.append(f'[class*="st-key-{classe}"] textarea')
     seletores = ",\n".join(partes)
     return (f"<style>{seletores} {{ background: #FEF9C3 !important; "
             f"border-color: #FACC15 !important; }}</style>")
