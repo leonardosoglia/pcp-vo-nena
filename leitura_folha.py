@@ -61,8 +61,11 @@ CAMPOS_PALHA = [
 CAMPOS_PAPELZINHO = ["joel_45g", "joel_mini", "joel_pet", "joel_pv", "joel_v"]
 # cnt_*/ord_* vêm da Folha; bala_*/pm_inacabado/cocada_assada vêm do papelzinho
 # da Bala (papel separado). Todos moram na mesma tabela pm_balas_doces.
+# "Doces" (cnt_doces_displays) NÃO é lido de propósito: o campo quase nunca é
+# usado e seu nome interno contém "displays", o que fazia o modelo desviar pra
+# ele o valor da coluna "Displays" da folha. Fica sem destino → sem ambiguidade.
 CAMPOS_PMBD = ["cnt_pm", "ord_pm", "cnt_balas", "ord_balas",
-               "cnt_doces_displays", "cnt_displays_palha",
+               "cnt_displays_palha",
                "bala_p_cortar", "bala_cortadas", "pm_inacabado", "cocada_assada",
                "ord_amanha_obs"]
 # ord_amanha_obs é o único campo de TEXTO (o aviso "Amanhã" = PM do próximo dia
@@ -81,7 +84,7 @@ _FAIXA_MAX = {
     "emb_50g": 5000, "emb_pet": 5000, "cont_band_palha": 300,
     "ord_corte_50g": 5000, "ord_corte_pet": 5000,
     "cnt_pm": 2000, "ord_pm": 50, "cnt_balas": 3000, "ord_balas": 30,
-    "cnt_doces_displays": 3000, "cnt_displays_palha": 3000,
+    "cnt_displays_palha": 3000,
     "bala_p_cortar": 5000, "bala_cortadas": 5000,
     "pm_inacabado": 2000, "cocada_assada": 2000, "ord_amanha_obs": 50,
     "joel_45g": 20000, "joel_mini": 8000,
@@ -106,8 +109,10 @@ Sabores de PALHA nas linhas: T, L, CH, CK, LIM (se houver uma linha "P" na palha
 Blocos, de cima pra baixo:
 1. "EMBALADOS" — colunas 45g e Mini por sabor de cocada → emb_45g, emb_mini.
    Ao lado, coluna "Pet" → emb_pet. Ao lado, "Potes 260g / 605g" → emb_potes_260g, emb_potes_605g.
-2. No topo à direita: "PM" (número) → cnt_pm · "Doces" → cnt_doces_displays ·
-   "BALAS" → cnt_balas · "Displays" → cnt_displays_palha.
+2. No topo à direita, bloco de números soltos: "PM" → cnt_pm · "BALAS" →
+   cnt_balas · "Displays" (a contagem de displays de palha, geralmente ao lado
+   de BALAS) → cnt_displays_palha. ⚠ IGNORE por completo o campo "Doces" — NÃO
+   entra no JSON, mesmo que tenha número.
 3. "Palhas 50g / Pet" (topo direito) — por sabor de palha → emb_50g, emb_pet.
 4. "CORTADOS" — sub-blocos 45g, Mini e Pet. REGRA: em cada sub-bloco, transcreva
    SOMENTE a coluna mais à ESQUERDA → cort1_45g, cort1_mini, cort1_pet. As demais
@@ -407,7 +412,7 @@ _CAMPO_PARA_KEY_PALHA = {
 }
 _CAMPO_PARA_KEY_PMBD = {
     "cnt_pm": "cnt_pm", "ord_pm": "ord_pm", "cnt_balas": "cnt_balas",
-    "ord_balas": "ord_balas", "cnt_doces_displays": "cnt_doces",
+    "ord_balas": "ord_balas",
     "cnt_displays_palha": "cnt_displays_palha",
     "bala_p_cortar": "bala_p_cortar", "bala_cortadas": "bala_cortadas",
     "pm_inacabado": "pm_inacabado", "cocada_assada": "cocada_assada",

@@ -535,17 +535,17 @@ section[data-testid="stSidebar"] .stCaption {{
 /* Caixa de input limpa — o st.number_input injeta DOIS controles dentro
    da caixa, ambos escondidos aqui:
    1. steppers − + (stNumberInputStepUp/Down) — aparecem na caixa.
-   2. botao "x" (svg aria "Clear value") — aparece quando a caixa tem
-      numero; ocupava 24px e cortava o ultimo digito (54px sobravam pro
-      texto em vez de 78px).
+   2. botao "⊗" de limpar (data-testid="stNumberInputClearButton") — aparece
+      quando a caixa tem numero e TAPAVA o valor. O rotulo "Clear value" fica
+      no BOTAO, nao no svg (por isso o seletor antigo por svg[aria-label] nao
+      pegava); o testid e estavel e nao traduz. Mirar nele mata o "⊗".
    O usuario digita o numero direto, sem botao nenhum. */
 [data-testid="stMain"] [data-testid="stNumberInputStepUp"],
 [data-testid="stMain"] [data-testid="stNumberInputStepDown"],
-[data-testid="stMain"] [data-testid="stNumberInputContainer"] svg[aria-label="Clear value"] {{
+[data-testid="stMain"] [data-testid="stNumberInputClearButton"] {{
     display: none !important;
 }}
-[data-testid="stMain"] [data-testid="stNumberInputContainer"] > div:has([data-testid="stNumberInputStepUp"]),
-[data-testid="stMain"] [data-testid="stNumberInputContainer"] div:has(> svg[aria-label="Clear value"]) {{
+[data-testid="stMain"] [data-testid="stNumberInputContainer"] > div:has([data-testid="stNumberInputStepUp"]) {{
     display: none !important;
 }}
 
