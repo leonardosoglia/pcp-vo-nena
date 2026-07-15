@@ -27,7 +27,7 @@ if _RAIZ not in sys.path:
 
 from cached_db import (
     init_db, get_folha_cocada, get_folha_palha, get_pm_balas_doces,
-    get_papelzinho_joel, get_estoque, get_metas_45g, get_metas_mini_pet,
+    get_papelzinho_joel, get_estoque, get_estoque_do_dia, get_metas_45g, get_metas_mini_pet,
     get_metas_potes, get_pvirar_ideal, get_conversoes, list_datas_folha,
     calcular_cortados, calcular_viradas_pvirar, get_folha_completa,
     SABORES_COCADA, SABORES_PALHA
@@ -149,7 +149,7 @@ _folha = get_folha_completa(hoje)
 df_cocada  = pd.DataFrame(_folha["cocada"])
 df_palha   = pd.DataFrame(_folha["palha"])
 pbd        = _folha["pmbd"]
-df_est     = pd.DataFrame(get_estoque())
+df_est     = pd.DataFrame(get_estoque_do_dia(hoje))   # embalados reais da folha do dia
 
 # ── Cabeçalho ──────────────────────────────────────────────────────────────────
 if hoje == hoje_real:
@@ -171,7 +171,7 @@ with st.sidebar:
     st.markdown(f"**Sistema PCP** — v{componentes.APP_VERSAO}")
     st.divider()
     st.markdown("#### Estoque Crítico")
-    alertas = [e for e in get_estoque() if "GERAR" in e.get("alerta","")]
+    alertas = [e for e in get_estoque_do_dia(hoje) if "GERAR" in e.get("alerta","")]
     if not alertas:
         st.success("Tudo controlado!")
     else:

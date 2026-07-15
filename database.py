@@ -961,6 +961,42 @@ def get_estoque():
     return [dict(r) for r in rows]
 
 
+def get_estoque_do_dia(data):
+    """Estoque de produto acabado EMBALADO = os 'Embalados' da folha da `data`.
+
+    É a FOTO do estoque embalado daquele dia (estoque = snapshot, Forrester),
+    não o valor de exemplo semeado na tabela `estoque`. Por produto:
+      - stock_real       ← Embalado da folha (número REAL que a fábrica contou)
+      - stock_seguranca  ← alvo/mínimo da tabela `estoque` (parâmetro de referência)
+      - alerta           ← recalculado: abaixo do alvo → gerar ordem
+    Mesmo formato de get_estoque() → o Painel e a sidebar consomem sem mudar nada.
+    """
+    seg = {r["id_produto"]: r.get("stock_seguranca", 0) for r in get_estoque()}
+    emb_coc = {r["sabor"]: r for r in get_folha_cocada(data)}
+    emb_pal = {r["sabor"]: r for r in get_folha_palha(data)}
+
+    def _linha(pid, real):
+        sseg = int(seg.get(pid, 0) or 0)
+        real = int(real or 0)
+        return {"id_produto": pid, "stock_real": real, "stock_seguranca": sseg,
+                "alerta": "⚠️ GERAR ORDEM" if real < sseg else "✅ OK"}
+
+    out = []
+    for s in SABORES_COCADA:
+        sig = SIGLA_COCADA[s]
+        for tam, campo in (("45G", "emb_45g"), ("MINI", "emb_mini"), ("PET", "emb_pet")):
+            if s == "ZERO" and tam == "45G":
+                continue  # Zero não tem 45g
+            out.append(_linha(f"COC-{sig}-{tam}", (emb_coc.get(s) or {}).get(campo)))
+    for s in SABORES_PALHA:
+        sig = SIGLA_PALHA[s]
+        for tam, campo in (("50G", "emb_50g"), ("PET", "emb_pet")):
+            if tam == "50G" and s not in SABORES_PALHA_50G:
+                continue  # palha 50g só T/L/CH
+            out.append(_linha(f"PAL-{sig}-{tam}", (emb_pal.get(s) or {}).get(campo)))
+    return out
+
+
 def get_metas_45g():
     conn = get_conn()
     try:

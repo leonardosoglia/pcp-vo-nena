@@ -169,6 +169,12 @@ def get_estoque():
     return _db.get_estoque()
 
 
+# Estoque do dia = embalados da folha da data → TTL curto (muda com a folha).
+@st.cache_data(ttl=1800, show_spinner=False)
+def get_estoque_do_dia(data):
+    return _db.get_estoque_do_dia(data)
+
+
 @st.cache_data(ttl=86400, show_spinner=False)
 def get_metas_45g():
     return _db.get_metas_45g()
@@ -219,6 +225,7 @@ def invalidar_folha(data: str | None = None):
     list_datas_folha.clear()
     calcular_cortados.clear()
     calcular_viradas_pvirar.clear()
+    get_estoque_do_dia.clear()   # depende dos embalados da folha
 
 
 def invalidar_referencias():
