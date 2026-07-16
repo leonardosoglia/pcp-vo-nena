@@ -44,6 +44,7 @@ em 27/05/2026 — podem variar por versão; centralizados em ENDPOINTS pra ajust
 from __future__ import annotations
 
 import os
+import time
 import requests
 
 
@@ -120,40 +121,66 @@ def _headers() -> dict:
 
 
 # ── Transporte ───────────────────────────────────────────────────────────────
+# Falhas TRANSITÓRIAS do servidor do SIGE: 429 (rate limit) e 5xx (indisponível/
+# sobrecarga). Acontecem quando mandamos uma rajada de chamadas — paginar 30 dias
+# de pedidos são ~100 chamadas seguidas, e o SIGE corta com 503. Não é erro nosso
+# nem de credencial: repetir com espera crescente resolve.
+_RETRY_STATUS = (429, 500, 502, 503, 504)
+_RETRY_MAX = 4        # tentativas por chamada
+_RETRY_ESPERA = 1.5   # segundos; dobra a cada tentativa (1,5 → 3 → 6)
+
+
 def _request(method: str, endpoint_key: str, *, params: dict | None = None,
              json_body: dict | None = None) -> object:
     """Executa a chamada HTTP e devolve o JSON decodificado.
 
-    Levanta SigeAuthError (401/403/sem credencial) ou SigeError (demais falhas),
-    sempre com mensagem legível — nunca vaza stacktrace de requests pra UI.
+    Repete automaticamente em falha transitória (429/5xx/timeout) com espera
+    crescente. Levanta SigeAuthError (401/403/sem credencial) ou SigeError
+    (demais falhas), sempre com mensagem legível — nunca vaza stacktrace pra UI.
     """
     url = BASE_URL + ENDPOINTS[endpoint_key]
-    try:
-        resp = requests.request(
-            method, url, headers=_headers(),
-            params=params, json=json_body, timeout=TIMEOUT,
-        )
-    except requests.Timeout:
-        raise SigeError(f"SIGE não respondeu em {TIMEOUT}s ({endpoint_key}). Tente de novo.")
-    except requests.RequestException as e:
-        raise SigeError(f"Falha de rede ao chamar o SIGE ({endpoint_key}): {e}")
+    ultimo_erro = None
 
-    if resp.status_code in (401, 403):
-        raise SigeAuthError(
-            f"SIGE recusou as credenciais (HTTP {resp.status_code}). "
-            "Confira SIGE_AUTH_TOKEN / SIGE_USER / SIGE_APP."
-        )
-    if resp.status_code >= 400:
-        # SIGE devolve descrição do erro no corpo; inclui o início pra diagnóstico.
-        corpo = (resp.text or "")[:300]
-        raise SigeError(f"SIGE retornou HTTP {resp.status_code} em {endpoint_key}: {corpo}")
+    for tentativa in range(_RETRY_MAX):
+        if tentativa:
+            time.sleep(_RETRY_ESPERA * (2 ** (tentativa - 1)))
+        try:
+            resp = requests.request(
+                method, url, headers=_headers(),
+                params=params, json=json_body, timeout=TIMEOUT,
+            )
+        except requests.Timeout:
+            ultimo_erro = SigeError(f"SIGE não respondeu em {TIMEOUT}s ({endpoint_key}).")
+            continue  # timeout é transitório — tenta de novo
+        except requests.RequestException as e:
+            raise SigeError(f"Falha de rede ao chamar o SIGE ({endpoint_key}): {e}")
 
-    if not resp.content:
-        return None
-    try:
-        return resp.json()
-    except ValueError:
-        raise SigeError(f"SIGE devolveu resposta não-JSON em {endpoint_key}: {resp.text[:200]}")
+        if resp.status_code in (401, 403):
+            raise SigeAuthError(  # credencial errada: repetir não adianta
+                f"SIGE recusou as credenciais (HTTP {resp.status_code}). "
+                "Confira SIGE_AUTH_TOKEN / SIGE_USER / SIGE_APP."
+            )
+        if resp.status_code in _RETRY_STATUS:
+            ultimo_erro = SigeError(
+                f"SIGE indisponível (HTTP {resp.status_code}) em {endpoint_key} — "
+                "o servidor do ERP está sobrecarregado."
+            )
+            continue  # transitório — tenta de novo
+        if resp.status_code >= 400:
+            # SIGE devolve descrição do erro no corpo; inclui o início pra diagnóstico.
+            corpo = (resp.text or "")[:300]
+            raise SigeError(f"SIGE retornou HTTP {resp.status_code} em {endpoint_key}: {corpo}")
+
+        if not resp.content:
+            return None
+        try:
+            return resp.json()
+        except ValueError:
+            raise SigeError(f"SIGE devolveu resposta não-JSON em {endpoint_key}: {resp.text[:200]}")
+
+    raise ultimo_erro or SigeError(
+        f"SIGE não respondeu em {endpoint_key} após {_RETRY_MAX} tentativas. Tente de novo em instantes."
+    )
 
 
 # ── Leitura (modelo B — habilitada) ──────────────────────────────────────────
